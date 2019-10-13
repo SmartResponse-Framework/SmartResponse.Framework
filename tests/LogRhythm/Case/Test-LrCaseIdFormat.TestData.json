@@ -1,0 +1,52 @@
+{
+    "ValidInput": {
+        "ValidGuid": {
+            "Value": "5831f290-4798-4148-8165-01317d49afea",
+            "IsGuid": true,
+            "IsValid": true
+        },
+        "Str0": {
+            "Value": "0",
+            "IsGuid": false,
+            "IsValid": true
+        },
+        "Int0": {
+            "Value": 0,
+            "IsGuid": false,
+            "IsValid": true
+        },
+        "Int1234": {
+            "Value": 1234,
+            "IsGuid": false,
+            "IsValid": true
+        },
+        "Str1234": {
+            "Value": "1234",
+            "IsGuid": false,
+            "IsValid": true
+        }
+    },
+    
+    "InvalidInput": {
+        "StringAlpha": {
+            "Value": "abcd",
+            "IsGuid": false,
+            "IsValid": false
+        },
+        "StringAlphaNumeric": {
+            "Value": "a1s2g53dd24",
+            "IsGuid": false,
+            "IsValid": false
+        },
+        "SpecialChars": {
+            "Value": "!@#$%^&*()_+1-=`2as:\"{}<>?",
+            "IsGuid": false,
+            "IsValid": false
+        },
+        "InvalidGuid": {
+            "Value": "f290-4798-4148-8165-01317d49afea",
+            "IsGuid": false,
+            "IsValid": false
+        }
+    }
+}

@@ -1,0 +1,29 @@
+{
+	"id": "8b66217b-5b4c-4265-a67f-3554f192e8bd",
+	"name": "LogRhythm API Services",
+	"values": [
+		{
+			"key": "Token",
+			"value": "<Secret>",
+			"enabled": true
+		},
+		{
+			"key": "BaseUrl_Admin",
+			"value": "https://server.domain.com:8501/lr-admin-api",
+			"enabled": true
+		},
+		{
+			"key": "BaseUrl_Case",
+			"value": "https://server.domain.com:8501/lr-case-api",
+			"enabled": true
+		},
+		{
+			"key": "BaseUrl_AIE",
+			"value": "https://server.domain.com:8501/lr-drilldown-cache-api",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2019-09-20T00:15:13.447Z",
+	"_postman_exported_using": "Postman/7.7.2"
+}

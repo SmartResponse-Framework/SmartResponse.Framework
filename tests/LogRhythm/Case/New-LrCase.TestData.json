@@ -1,0 +1,10 @@
+{
+    "LrApiToken": "82231",
+
+    "CaseData": {
+        "Name": "Test Case - Pester Automated Test",
+        "Priority": 5,
+        "DueDate": "10-15-2019 09:18:22 AM",
+        "Summary": "Case created by Pester automation"
+    }
+}

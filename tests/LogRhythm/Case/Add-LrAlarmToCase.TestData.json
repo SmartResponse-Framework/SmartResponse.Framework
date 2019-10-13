@@ -1,0 +1,15 @@
+{
+    "LrApiToken": "82231",
+
+    "AddToCase": {
+        "Id": "1786",
+        "AlarmNumbers": [
+            2261469,
+            2261358
+        ]
+    },
+
+    "CreateCaseWithAlarms": {
+        "AlarmNumbers": [2261471,2261459,2261447]
+    }
+}

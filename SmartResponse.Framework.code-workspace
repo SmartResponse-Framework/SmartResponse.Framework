@@ -1,0 +1,18 @@
+{
+	"folders": 
+	[{
+        "path": "."
+    }],
+	"settings": 
+	{
+		"workbench.colorCustomizations": { "titleBar.activeBackground": "#0f3f66" },
+		"window.title": "(Community) SmartResponse.Framework",
+		"explorer.decorations.badges": false,
+
+		"files.exclude": {
+			"*.code-workspace": true,
+			".vscode": true,
+			".gitattributes": true
+		}
+	}
+}
