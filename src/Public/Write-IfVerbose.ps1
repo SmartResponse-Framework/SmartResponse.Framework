@@ -81,7 +81,7 @@ Function Write-IfVerbose {
         PS C:\> $Fruits = @('Apple','Bannana','Pineapple','Orange')
         PS C:\> $Fruits | Write-IfVerbose $true
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework
     #>
     [CmdletBinding()]
     Param(
