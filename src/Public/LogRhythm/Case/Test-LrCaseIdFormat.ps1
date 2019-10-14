@@ -23,7 +23,7 @@ Function Test-LrCaseIdFormat {
         ------ ------- -----
          False    True 181
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework
     #>
 
     [CmdletBinding()]

@@ -1,21 +1,11 @@
 {
-    "SMTP": {
-        "ServerName": "mail.domain.com",
-        "FromAddress": "address@domain.com",
-        "MessageTemplate": "Include\\MailTemplate.html",
-        "Logo": ""
-    },
     "Vault": {
         "ServerApiUri": "https://secretserver.domain.com/winauthwebservices/sswinauthwebservice.asmx",
-        "SecretList": {
-            "SecMgmtAccount": "12345",
-            "ApiVaultId": "121212"
-        }
     },
-    "Domain": {
+    "ActiveDirectory": {
         "Name": "YOUR_DOMAIN"
     },
-    "LrDeployment": {
+    "LogRhythm": {
         "AdminApiBaseUrl": "https://server.domain.com:8501/lr-admin-api",
         "CaseApiBaseUrl": "https://server.domain.com:8501/lr-case-api",
         "ApiVaultId": "121212",

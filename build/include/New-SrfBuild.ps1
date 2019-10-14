@@ -56,7 +56,7 @@ function New-SrfBuild {
         -----------
         Create a new build of this module as Version 1.0.1, without a release note.
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework
 #>
 
     [CmdletBinding()]

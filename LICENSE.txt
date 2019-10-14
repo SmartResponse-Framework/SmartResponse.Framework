@@ -1,5 +1,5 @@
 Microsoft Public License (Ms-PL)
-MonoGame - Copyright © 2009-2019 The MonoGame Team
+SmartResponse.Framework - Copyright © 2018-2019 Gene Cupstid
 
 All rights reserved.
 
