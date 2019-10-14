@@ -106,8 +106,15 @@ Function Get-LrPlaybooks {
     )
 
     Begin {
+        $Verbose = $false
+        if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
+            $Verbose = $true
+        }
+
         $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        Enable-TrustAllCertsPolicy
     }
 
 
@@ -124,7 +131,9 @@ Function Get-LrPlaybooks {
         $Method = $HttpMethod.Get
         $RequestUri = $BaseUrl + "/playbooks/?playbook=$Name"
 
-
+        # Verbose Output
+        Write-IfVerbose "Uri: $RequestUri" $Verbose -ForegroundColor Yellow
+        
         # REQUEST
         try {
             $Response = Invoke-RestMethod `
@@ -134,7 +143,11 @@ Function Get-LrPlaybooks {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$($Err.statusCode)]: $($Err.message)"
+            if ($Err) {
+                throw [Exception] "[$($Err.statusCode)]: $($Err.message)"    
+            } else {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
         }
 
         

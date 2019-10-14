@@ -1,11 +1,11 @@
 {
     "Vault": {
-        "ServerApiUri": "https://secretserver.domain.com/winauthwebservices/sswinauthwebservice.asmx",
+        "ServerApiUri": "https://secretserver.domain.com/winauthwebservices/sswinauthwebservice.asmx"
     },
     "ActiveDirectory": {
         "Name": "YOUR_DOMAIN"
     },
-    "LogRhythm": {
+    "LRDeployment": {
         "AdminApiBaseUrl": "https://server.domain.com:8501/lr-admin-api",
         "CaseApiBaseUrl": "https://server.domain.com:8501/lr-case-api",
         "ApiVaultId": "121212",

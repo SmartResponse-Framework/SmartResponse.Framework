@@ -37,6 +37,9 @@ function getTargetResource {
 
 Exported functions should observe the following naming structure.
 
+`[Verb]-[Module][Class][Description]`
+
+| Part      | Description |
 | ----------- | ----------- |
 | `Verb` | The first part of the function follows the [approved verb list](https://docs.microsoft.com/en-us/powershell/developer/cmdlet/approved-verbs-for-windows-powershell-commands) published by Microsoft. |
 | `Module` | The second portion of the function name indicates that it is part of the SmartResponse.Framework module|
