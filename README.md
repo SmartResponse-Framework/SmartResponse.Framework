@@ -65,11 +65,11 @@ First we will need to get our API Token into a credential. The way I do this is 
 
 ```powershell
 PS> $password = Read-Host -Prompt "token" -AsSecureString
-pass: *****(paste token)
-$token = [pscredential]::new("lr", $pass)
+token: *****(paste token)
+$token = [pscredential]::new("lr", $password)
 ```
 
-Then we can run one of the LogRhythm Case Commands. In this example, a playbook imported from the LogRhythm community about Malware is returned. Any playbooks with Malware in the name will also be returned in an array of playbook objects.
+Then we can run one of the LogRhythm Case Commands. In this example, a playbook imported from the LogRhythm community about Malware is returned. Any playbooks with Malware in the name will also be returned in an array of playbook objects. You can also specify the `-Verbose` switch for a little more info.
 
 ```powershell
 Get-LrPlaybooks -Credential $token -Name "Malware"
