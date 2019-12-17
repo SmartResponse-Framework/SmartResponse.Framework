@@ -6,9 +6,9 @@
     },
 
     "LrDeployment": {
-        "AdminApiBaseUrl": "https://chr2pr1sc4.chrobinson.com:8501/lr-admin-api",
-        "CaseApiBaseUrl": "https://chr2pr1sc4.chrobinson.com:8501/lr-case-api",
-        "AieApiUrl": "https://chr2pr1sc4.chrobinson.com:8501/lr-drilldown-cache-api",
+        "AdminApiBaseUrl": "https://server.domain.com:8501/lr-admin-api",
+        "CaseApiBaseUrl": "https://server.domain.com:8501/lr-case-api",
+        "AieApiUrl": "https://server.domain.com:8501/lr-drilldown-cache-api",
         "LrApiToken": "",
         "DefaultLrUserId": 52
     },
