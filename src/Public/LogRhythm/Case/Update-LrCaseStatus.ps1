@@ -9,8 +9,13 @@ Function Update-LrCaseStatus {
     .DESCRIPTION
         The Update-LrCaseStatus cmdlet updates an existing case's status based on an integer
         representing one of LogRhythm's 5 status codes.
+
+        Case Status must be changed in a particular ordre
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+        Note: You can bypass the need to provide a Credential by setting
+        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        with a valid Api Token.
     .PARAMETER Id
         Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
     .PARAMETER StatusNumber
@@ -20,14 +25,16 @@ Function Update-LrCaseStatus {
         3 - [Incident]  Open
         4 - [Incident]  Mitigated
         5 - [Incident]  Resolved
+    .PARAMETER Quiet
+        Indicates that this cmdlet suppresses all output.
     .INPUTS
-        [System.Object]     ->  Id
-        [System.Integer]    ->  StatusNumber
+        [System.Object]   ->  Id
+        [System.Int32]    ->  StatusNumber
     .OUTPUTS
         PSCustomObject representing the modified LogRhythm Case.
     .EXAMPLE
         PS C:\> Update-LrCaseStatus -Id "CC06D874-3AC5-4E6F-A8D1-C5F2AF477EEF" -StatusNumber 2
-
+        ---
             id                      : CC06D874-3AC5-4E6F-A8D1-C5F2AF477EEF
             number                  : 1815
             externalId              :
@@ -55,12 +62,9 @@ Function Update-LrCaseStatus {
 
     [CmdletBinding()]
     Param(
-        [Parameter(
-            Mandatory = $true, 
-            Position = 0
-        )]
+        [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
 
 
         [Parameter(
@@ -71,57 +75,85 @@ Function Update-LrCaseStatus {
         [object] $Id,
 
 
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 2
-        )]
-        [ValidateRange(1, 5)]
-        [int] $StatusNumber
+        [Parameter(Mandatory = $true, Position = 2)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Status,
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $PassThru,
+
+        [Parameter(Mandatory = $false, Position = 4)]
+        [switch] $Summary
     )
 
+
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        $ProcessedCount = 0
     }
 
+
     Process {
-        # Validate Case Id
+        # Get Case Id
         $IdInfo = Test-LrCaseIdFormat $Id
         if (! $IdInfo.IsValid) {
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         }
-        
+
+
+        # Validate Case Status
+        $_status = ConvertTo-LrCaseStatusId -Status $Status
+        if (! $_status) {
+            throw [ArgumentException] "Invalid case status: $Status"
+        }
+
+
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
         $Headers.Add("Content-Type","application/json")
 
+
         # Request URI
         $Method = $HttpMethod.Put
         $RequestUri = $BaseUrl + "/cases/$Id/actions/changeStatus/"
 
+
         # Request Body
         $Body = [PSCustomObject]@{
-            statusNumber = $StatusNumber
-        }
+            statusNumber = $_status
+        } | ConvertTo-Json
 
         
         # Send Request
+        Write-Verbose "[$Me]: request body is:`n$Body"
         try {
             $Response = Invoke-RestMethod `
                 -Uri $RequestUri `
                 -Headers $Headers `
                 -Method $Method `
-                -Body $($Body | ConvertTo-Json)
+                -Body $Body
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$($Err.statusCode)]: $($Err.message)"
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
+        $ProcessedCount++
 
-        return $Response
+        # Return
+        if ($PassThru) {
+            return $Response    
+        }
     }
 
-    End { }
+    
+    End {
+        if ($Summary) {
+            Write-Host "Updated $ProcessedCount cases to status $Status"
+        }
+    }
 }

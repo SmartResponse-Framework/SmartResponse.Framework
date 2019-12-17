@@ -10,6 +10,9 @@ Function Get-LrCaseById {
         The Get-LrCaseById cmdlet returns the LogRhythm Case specified by the ID parameter.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+        Note: You can bypass the need to provide a Credential by setting
+        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        with a valid Api Token.
     .PARAMETER Id
         Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
     .INPUTS
@@ -41,17 +44,14 @@ Function Get-LrCaseById {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
     #>
 
     [CmdletBinding()]
     Param(
-        [Parameter(
-            Mandatory = $true, 
-            Position = 0
-        )]
+        [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
 
 
         [Parameter(
@@ -64,13 +64,18 @@ Function Get-LrCaseById {
 
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Enable self-signed certificates and Tls1.2
+        Enable-TrustAllCertsPolicy
     }
 
 
     Process {
-        # Validate Case Id
+        # Get Case Id
         $IdInfo = Test-LrCaseIdFormat $Id
         if (! $IdInfo.IsValid) {
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
@@ -93,7 +98,20 @@ Function Get-LrCaseById {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$($Err.statusCode)]: $($Err.message)"
+
+            switch ($Err.statusCode) {
+                "404" { 
+                    throw [KeyNotFoundException] `
+                        "[404]: Playbook ID $Id not found, or you do not have permission to view it."
+                 }
+                 "401" {
+                     throw [UnauthorizedAccessException] `
+                        "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                 }
+                Default {
+                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                }
+            }
         }
 
         return $Response

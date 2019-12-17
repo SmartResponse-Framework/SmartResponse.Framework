@@ -72,13 +72,7 @@ function New-SrfBuild {
         [switch] $ReturnPsm1Path
     )
 
-    Begin {
-        # Verbose Parameter
-        $Verbose = $false
-        if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-            $Verbose = $true
-        }
-    
+    Begin { 
         # Pattern to match required version format
         $VersionMatch = [regex]::new("^\d\.\d\.\d")
         if (-not ($Version -match $VersionMatch)) {
@@ -89,7 +83,7 @@ function New-SrfBuild {
 
     Process {
         #region: Directories and Paths
-        Write-IfVerbose "[New-SrfBuild]: Starting Build" $Verbose -ForegroundColor Yellow
+        Write-Verbose "[New-SrfBuild]: Starting Build"
         $Target = "out"
         
         # Prep Build Directories
@@ -136,7 +130,7 @@ function New-SrfBuild {
 
 
         #region: Copy Source To Build
-        Write-IfVerbose "[New-SrfBuild]: Copying files..." $Verbose -ForegroundColor Yellow
+        Write-Verbose "[New-SrfBuild]: Copying files..."
         # Copy Source Directories
         Copy-Item $SrcPath\Public -Destination $BuildSrcPath -Recurse
         Copy-Item $SrcPath\Private -Destination $BuildSrcPath -Recurse
@@ -184,7 +178,7 @@ function New-SrfBuild {
 
 
         #region: Archive and Update
-        Write-IfVerbose "[New-SrfBuild]: Creating build archive..." $Verbose -ForegroundColor Yellow
+        Write-Verbose "[New-SrfBuild]: Creating build archive..."
         # Compress Module for distribution
         $BuildSrcDir | Compress-Archive -DestinationPath (Join-Path $BuildContainerPath $ModuleInfo.Module.ArchiveFileName)
 
@@ -197,7 +191,7 @@ function New-SrfBuild {
         $BuildInfo.ReleaseNotes = $ReleaseNotes
         $BuildInfo | ConvertTo-Json | Out-File $BuildInfoPath
 
-        Write-IfVerbose "[New-SrfBuild]: Complete! $BuildId" $Verbose -ForegroundColor Green
+        Write-Verbose "[New-SrfBuild]: Complete! $BuildId"
         if ($ReturnPsm1Path) {
             return $BuildPsm1Path
         }

@@ -60,12 +60,6 @@ function Install-SrfBuild {
     )
 
     Begin {
-        # Verbose Parameter
-        $Verbose = $false
-        if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-            $Verbose = $true
-        }
-
         # Check Is Admin
         $CurrentUser = New-Object Security.Principal.WindowsPrincipal([WindowsIdentity]::GetCurrent())
         $IsAdmin = $CurrentUser.IsInRole([WindowsBuiltInRole]::Administrator)
@@ -83,14 +77,12 @@ function Install-SrfBuild {
 
     Process {
         # Check for existing install
-        Write-IfVerbose "[Install-SrfBuild]: Param BuildId: $BuildId" $Verbose -ForegroundColor DarkYellow
-        Write-IfVerbose "[Install-SrfBuild]: Param Archive: $Archive" $Verbose -ForegroundColor DarkYellow
-        Write-IfVerbose "[Install-SrfBuild]: Param Force: $Force" $Verbose -ForegroundColor DarkYellow
+        Write-Verbose "[Install-SrfBuild]: Param BuildId: $BuildId"
+        Write-Verbose "[Install-SrfBuild]: Param Archive: $Archive"
+        Write-Verbose "[Install-SrfBuild]: Param Force: $Force"
 
         # If module is loaded, remove
-        if (Get-Module $ModuleInfo.Module.Name) {
-            Remove-Module $ModuleInfo.Module.Name
-        }
+        Get-Module $ModuleInfo.Module.Name | Remove-Module -Force
 
         # Option [BuildId]: Get Build
         if ($BuildId) {
@@ -111,7 +103,7 @@ function Install-SrfBuild {
         if (! $Archive) {
             $Result = Get-SrfBuild
             $Archive = $Result.Archive
-            Write-IfVerbose "[Install-SrfBuild]: Installing build $($Result.Guid)." $Verbose -ForegroundColor DarkYellow
+            Write-Verbose "[Install-SrfBuild]: Installing build $($Result.Guid)."
         }
 
         # Validate Archive

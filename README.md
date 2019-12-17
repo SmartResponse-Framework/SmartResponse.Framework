@@ -7,11 +7,54 @@ This is an open source, community-driven project. Pull requests, are welcome and
 
 :fire: **Everyone is encouraged to read and contribute to [open design issues](https://github.com/SmartResponse-Framework/SmartResponse.Framework/issues).**
 
-## News: October, 2019
+## News: December, 2019
 
-Currently the repository contains only a fraction of the content developed in the original module.  The purpose of this initial commit is to introduce the project to the community, and tackle any initial design considerations.
+I've released the full set of LogRhythm Automation commands that I've created to date.  This gives you the building blocks to fully implement case creation automation, in addition to things like case metrics. Since results are returned as PowerShell objects, there are many ways you can use the data retrieved.
 
-Release of additional features will follow at a measured pace to ensure they fit the needs of the community and are entirely environment indepdenent.  The module has generally been developed with domain / environment neutrality in mind (it is a framework, afterall) but there are some design decisions that were influenced by time and scope constraints at the initial time of development.
+Here's an example of pulling case information.  There are quite a few more options than these, so be sure to check `Get-Help` on any command you want to use.
+
+```powershell
+PS> $Result = Get-LrCases -CreatedAfter "2019-10-01 00:00:00" -ExcludeTags @("Testing", "API Testing")
+PS> Format-LrCaseListSummary -InputObject $Result
+
+Count             : 183
+Oldest            : 2019-10-01T16:43:59.0469619Z
+Newest            : 2019-12-16T21:48:54.4880726Z
+AvgCloseTimeDays  : 1.36330091726311
+AvgCloseTimeHours : 32.7192220143147
+TotalOpen         : 7
+TotalClosed       : 176
+DistinctTags      : 61
+DistinctOwners    : 5
+Tags              : {@{Name=Malware; Count=74}, @{Name=Phishing; Count=67}, @{Name=pdf; Count=26}, @{Name=Remediated Successfully; Count=40}...}
+Status            : {@{Name=Completed; Count=154}, @{Name=Resolved; Count=20}, @{Name=Created; Count=7}, @{Name=Mitigated; Count=2}}
+Owners            : {@{Name=Analyst Greg; Count=88}, @{Name=Analyst, Bob; Count=49}, @{Name=Analyst, Dwight; Count=11}, @{Name=Analyst, Ben; Count=25}...}
+```
+
+You'll probably want to use an alarm to create your cases.  The Alarm Id would be available at the time your alarm is triggered, otherwise you can find an Alarm ID in the web console, at the top of any alarm's detail. 
+
+```powershell
+PS> $Alarm = Get-LrAieDrilldown -AlarmId 2261194
+```
+
+Another example of creating a case:
+
+```powershell
+# Create an initial case
+PS> $Case = New-LrCase -Name "Test Case" -Priority 2 -Summary "This is a new case!" -DueDate "2019-12-17 16:00:00" -AlarmNumbers $Alarm.AlarmID
+
+# Add tags to the case, from an array of tag names (must be exact)
+PS> Add-LrTagsToCase -Id $Case.id -Tags @("Tag1","Tag2","Tag3")
+
+# Add a playbook by name (must be exact)
+PS> Add-LrPlaybookToCase -Id $Case.id -Playbook "Name of Playbook"
+
+# Turn the case into an incident
+PS> Update-LrCaseStatus -Id $Case.id -Status 3
+
+# Add a note to the case.
+PS> Add-LrNoteToCase -Id $Case.id -Text "Adding a note to the case"
+```
 
 ## Getting Started
 

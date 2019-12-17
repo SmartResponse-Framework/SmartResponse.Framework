@@ -46,13 +46,7 @@ Function Get-SrfBuild {
         [switch] $Installed
     )
 
-    Begin {
-        # Verbose Parameter
-        $Verbose = $false
-        if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-            $Verbose = $true
-        }
-    }
+    Begin { }
 
     Process {
         # Normalize Guid
@@ -71,7 +65,7 @@ Function Get-SrfBuild {
 
         if (! (Test-Path $BuildInfoPath)) {
             New-BuildInfo
-            Write-IfVerbose "[Get-SrfBuild]: Created new BuildInfo file at $BuildInfoPath" $Verbose -ForegroundColor Blue
+            Write-Verbose "[Get-SrfBuild]: Created new BuildInfo file at $BuildInfoPath"
         }
         $BuildInfo = Get-Content $BuildInfoPath -Raw | ConvertFrom-Json
         
@@ -91,9 +85,8 @@ Function Get-SrfBuild {
         if ($Installed) {
             if (Test-Path -Path (Join-Path  $InstallPath $ModuleInfo.Module.Name) -PathType Container) {
                 # If some version already imported, remove it so we can specifically get the installed version.
-                if (Get-Module $ModuleInfo.Module.Name) {
-                    Remove-Module $ModuleInfo.Module.Name
-                }
+                Get-Module $ModuleInfo.Module.Name | Remove-Module -Force
+                
                 Import-Module $ModuleInfo.Module.Name
                 $Info = Get-Module $ModuleInfo.Module.Name
 
@@ -116,7 +109,7 @@ Function Get-SrfBuild {
         # Option 2)  Get the latest build if guid not specified
         if (! $Key) {
             if ([string]::IsNullOrEmpty($BuildInfo.Psm1Path)) {
-                Write-IfVerbose "[Get-SrfBuild]: BuildInfo does not contain a valid build." $Verbose -ForegroundColor Red
+                Write-Verbose "[Get-SrfBuild]: BuildInfo does not contain a valid build."
             } else {
                 $Build.Guid = [guid]::Parse($BuildInfo.Guid)
                 $Build.Name = $ModuleInfo.Module.Name
@@ -152,7 +145,7 @@ Function Get-SrfBuild {
             $build_list | Format-List
         }
         # throw [Exception] "Unable to find $Key in builds directory."
-        Write-IfVerbose "[Get-SrfBuild]: Unable to find $Key in builds directory." $Verbose -ForegroundColor Red
+        Write-Verbose "[Get-SrfBuild]: Unable to find $Key in builds directory."
         return $null
     }
 

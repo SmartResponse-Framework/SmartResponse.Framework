@@ -10,6 +10,9 @@ Function Set-YourFunctionName {
         xxxxxx
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+        Note: You can bypass the need to provide a Credential by setting
+        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        with a valid Api Token.
     .PARAMETER XXXX
         xxxxxx
     .INPUTS
@@ -21,17 +24,14 @@ Function Set-YourFunctionName {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
     #>
 
     [CmdletBinding()]
     Param(
-        [Parameter(
-            Mandatory = $true, 
-            Position = 0
-        )]
+        [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
 
 
         [Parameter(
@@ -44,9 +44,14 @@ Function Set-YourFunctionName {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+    
         # $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         # $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
+
         $Token = $Credential.GetNetworkCredential().Password
+        # Enable self-signed certificates and Tls1.2
+        Enable-TrustAllCertsPolicy
     }
 
 
@@ -79,7 +84,7 @@ Function Set-YourFunctionName {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$($Err.statusCode)]: $($Err.message)"
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
 
         return $Response

@@ -3,7 +3,7 @@ Function Test-Guid {
     .SYNOPSIS
         Determine if a given string is a valid Guid.
     .DESCRIPTION
-        Determine if a given string is a valid Guid.
+        xxxx
     .PARAMETER Guid
         The string to be tested.
     .INPUTS
@@ -19,7 +19,7 @@ Function Test-Guid {
         PS > Test-Guid "edea82e3-8d0b-4370-86f0-d96bcd4b6c19"
         True
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
     #>
 
     [CmdletBinding()]

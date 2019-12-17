@@ -21,7 +21,7 @@ Function Set-YourFunctionName {
     .EXAMPLE
         xxxx
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
     #>
 
     [CmdletBinding()]
@@ -40,12 +40,6 @@ Function Set-YourFunctionName {
         $SrcRoot = ([System.IO.DirectoryInfo]::new($PSScriptRoot)).Parent
         $SrcRootPath = $SrcRoot.FullName
         $MyName = $MyInvocation.MyCommand.Name
-        
-        # Verbose Preference
-        $Verbose = $false
-        if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-            $Verbose = $true
-        }
     }
 
 
@@ -55,5 +49,4 @@ Function Set-YourFunctionName {
 
 
     End { }
-
 }

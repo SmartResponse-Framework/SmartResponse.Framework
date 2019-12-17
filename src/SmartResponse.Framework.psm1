@@ -18,46 +18,61 @@ $SrfPreferences = Get-Content -Path (Join-Path $SrfIncludes.FullName "SrfPrefere
 $SecretList = $SrfPreferences.Vault.SecretList
 
 
+# LogRhythm Case Vars
+# 1 - [Case]      Created
+# 2 - [Case]      Completed
+# 3 - [Incident]  Open
+# 4 - [Incident]  Mitigated
+# 5 - [Incident]  Resolved
+$LrCaseStatus = [PSCustomObject]@{
+    Created     = 1
+    Completed   = 2
+    Open        = 3
+    Mitigated   = 4
+    Resolved    = 5
+}
+
+
 # HTTP Vars
 $HttpMethod = [PSCustomObject]@{
-    Get = "Get"
-    Head = "Head"
-    Post = "Post"
-    Put = "Put"
-    Delete = "Delete"
-    Trace = "Trace"
+    Get     = "Get"
+    Head    = "Head"
+    Post    = "Post"
+    Put     = "Put"
+    Delete  = "Delete"
+    Trace   = "Trace"
     Options = "Options"
-    Merge = "Merge"
-    Patch = "Patch"
+    Merge   = "Merge"
+    Patch   = "Patch"
 }
 
 
 $HttpContentType = [PSCustomObject]@{
-    Json = "application/json"
-    Text = "text/plain"
-    Html = "text/html"
-    Xml = "application/xml"
-    JavaScript = "application/javascript"
-    FormUrl = "application/x-www-form-urlencoded"
-    FormData = "multipart/form-data"
+    Json        = "application/json"
+    Text        = "text/plain"
+    Html        = "text/html"
+    Xml         = "application/xml"
+    JavaScript  = "application/javascript"
+    FormUrl     = "application/x-www-form-urlencoded"
+    FormData    = "multipart/form-data"
 }
 
 
 # Azure Vars
 $RegexLibrary = [PSCustomObject]@{
-    URI = [regex]::new("(https:\/\/)?([\w\-])+\.{1}([a-zA-Z]{2,63})([\/\w-]*)*\/?\??([^#\n\r]*)?#?([^\n\r]*)")
-    GUID = [regex]::new("^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$")
+    URI      = [regex]::new("(https:\/\/)?([\w\-])+\.{1}([a-zA-Z]{2,63})([\/\w-]*)*\/?\??([^#\n\r]*)?#?([^\n\r]*)")
+    GUID     = [regex]::new("^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$")
     SECRETID = [regex]::new("^\d{3,6}$")
-    NAME = [regex]::new("^.*?$")
+    NAME     = [regex]::new("^.*?$")
 }
 
 
 # Azure AuthContext
 $AuthContext_Schema = [PSCustomObject]@{
-    Name = $RegexLibrary.NAME
-    TenantId = $RegexLibrary.GUID
-    SecretId = $RegexLibrary.SECRETID
-    OAuth2Uri = $RegexLibrary.URI
+    Name        = $RegexLibrary.NAME
+    TenantId    = $RegexLibrary.GUID
+    SecretId    = $RegexLibrary.SECRETID
+    OAuth2Uri   = $RegexLibrary.URI
     ResourceUri = $RegexLibrary.URI
 }
 #endregion
@@ -120,6 +135,7 @@ foreach ($include in $Includes.GetEnumerator()) {
 # Export Module Members
 Export-ModuleMember -Variable SrfPreferences
 Export-ModuleMember -Variable SecretList
+Export-ModuleMember -Variable LrCaseStatus
 Export-ModuleMember -Variable AssemblyList
 Export-ModuleMember -Variable HttpMethod
 Export-ModuleMember -Variable HttpContentType

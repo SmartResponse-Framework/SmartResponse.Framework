@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function New-LRCase {
+Function New-LrCase {
     <#
     .SYNOPSIS
         Create a new case.
@@ -10,6 +10,9 @@ Function New-LRCase {
         The New-LrCase cmdlet creates a new case and returns the newly created case as a PSCustomObject.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+        Note: You can bypass the need to provide a Credential by setting
+        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        with a valid Api Token.
     .PARAMETER Name
         Name of the case.
     .PARAMETER Priority
@@ -24,7 +27,7 @@ Function New-LRCase {
     .OUTPUTS
         PSCustomObject representing the newly created case.
     .EXAMPLE
-        PS C:\> New-LRCase -Name "test" -Priority 5 -Summary "test summary" -DueDate "10-20-2020 14:22:11" -Credential $cred
+        PS C:\> New-LrCase -Name "test" -Priority 5 -Summary "test summary" -DueDate "10-20-2020 14:22:11" -Credential $cred
     .NOTES
         LogRhythm-API
     .LINK
@@ -33,15 +36,16 @@ Function New-LRCase {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true, Position=0)]
+        [Parameter(Mandatory=$false, Position=0)]
         [ValidateNotNull()]
-        [pscredential] $Credential,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
 
 
         [Parameter(Mandatory=$true, 
             ValueFromPipeline = $true, 
             ValueFromPipelineByPropertyName = $true, 
-            Position=1)]
+            Position=1
+        )]
         [ValidateLength(1,250)]
         [string] $Name,
 
@@ -49,30 +53,41 @@ Function New-LRCase {
         [Parameter(Mandatory=$true, 
             ValueFromPipeline = $true, 
             ValueFromPipelineByPropertyName = $true, 
-            Position=2)]
+            Position=2
+        )]
         [ValidateRange(1,5)]
         [int] $Priority,
 
 
-        [Parameter(Mandatory=$false,
+        [Parameter(Mandatory = $false,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true,
-            Position=3)]
+            Position = 3
+        )]
         [DateTime] $DueDate = ([DateTime]::now).AddDays(1),
 
 
         [Parameter(Mandatory = $false,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true,
-            Position = 4)]
+            Position = 4
+        )]
         [ValidateLength(1,10000)]
-        [string] $Summary
+        [string] $Summary,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
+        [int[]] $AlarmNumbers
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
-        $Method = $HttpMethod.Post
+        
+        # Enable self-signed certificates and Tls1.2
+        Enable-TrustAllCertsPolicy
     }
 
     Process {
@@ -81,6 +96,8 @@ Function New-LRCase {
         $Headers.Add("Authorization", "Bearer $Token")
         $Headers.Add("Content-Type","application/json")
         $RequestUrl = $BaseUrl + "/cases/"
+
+        $Method = $HttpMethod.Post
 
         # Request Body
         $Body = [PSCustomObject]@{
@@ -94,14 +111,33 @@ Function New-LRCase {
 
         # Send Request
         try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            $Case = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            Write-Verbose "[$Me]: Created Case $($Case.id)"
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
 
-        return $Response
+        
+        # Attach Alarm to Case
+        if ($AlarmNumbers) {
+            try {
+                #TEST: [New-LrCase]: This may not be working yet.
+                $UpdatedCase = Add-LrAlarmToCase `
+                    -Credential $Credential `
+                    -Id $Case.id `
+                    -AlarmNumbers $AlarmNumbers
+                $Case = $UpdatedCase
+            }
+            catch {
+                Write-Error "Case was created, but failed to add alarms."
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+        }
+
+        # Done!
+        return $Case
     }
 
 

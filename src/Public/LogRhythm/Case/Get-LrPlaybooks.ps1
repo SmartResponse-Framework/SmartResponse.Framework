@@ -1,6 +1,6 @@
 using namespace System
 using namespace System.IO
-using namespace System.Collections.Bobric
+using namespace System.Collections.Generic
 
 Function Get-LrPlaybooks {
     <#
@@ -10,9 +10,13 @@ Function Get-LrPlaybooks {
         The Get-LrPlaybooks cmdlet returns a list of playbooks, optionally filtered by 
         Playbook name. Resulted can be sorted by Creation Date, Updated Date, or Name, 
         in a Ascending or Descending order.
+        If no playbooks are found, this cmdlet will return $null, not throw an exception.
         Note: This cmdlet does not support pagination.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+        Note: You can bypass the need to provide a Credential by setting
+        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        with a valid Api Token.
     .PARAMETER Name
         Filter results that have a playbook name that contain the specified string.
         Use the -Exact switch to specify an explicit filter.
@@ -27,6 +31,7 @@ Function Get-LrPlaybooks {
         System.String -> [Name] Parameter
     .OUTPUTS
         System.Object[] representing the returned LogRhythm playbooks.
+        Returns $null if no playbooks are found based on Name filter.
     .EXAMPLE
         PS C:\> @("Testing","Malware") | Get-LrPlaybooks -Credential $Token
             id            : F47CF405-CAEC-44BB-9FDB-644C33D58F2A
@@ -60,17 +65,14 @@ Function Get-LrPlaybooks {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
     #>
 
     [CmdletBinding()]
     Param(
-        [Parameter(
-            Mandatory = $true, 
-            Position = 0
-        )]
+        [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
 
 
         [Parameter(
@@ -106,15 +108,13 @@ Function Get-LrPlaybooks {
     )
 
     Begin {
-        $Verbose = $false
-        if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-            $Verbose = $true
-        }
-
+        $Me = $MyInvocation.MyCommand.Name
+        
         $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
-        Enable-TrustAllCertsPolicy
+        # Enable self-signed certificates and Tls1.2
+        Enable-TrustAllCertsPolicy        
     }
 
 
@@ -131,9 +131,7 @@ Function Get-LrPlaybooks {
         $Method = $HttpMethod.Get
         $RequestUri = $BaseUrl + "/playbooks/?playbook=$Name"
 
-        # Verbose Output
-        Write-IfVerbose "Uri: $RequestUri" $Verbose -ForegroundColor Yellow
-        
+
         # REQUEST
         try {
             $Response = Invoke-RestMethod `
@@ -143,11 +141,7 @@ Function Get-LrPlaybooks {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            if ($Err) {
-                throw [Exception] "[$($Err.statusCode)]: $($Err.message)"    
-            } else {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
 
         
@@ -158,16 +152,24 @@ Function Get-LrPlaybooks {
         if ($Exact) {
             $Pattern = "^$Name$"
             $Response | ForEach-Object {
-                if($_.name -match $Pattern) {
-                    return $_
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact playbook name match found."
+                    $Playbook = $_
+                    return $Playbook
                 }
             }
-            # No exact matches found
-            return $null
+        }
+
+        # for some reason, even if an exact playbook match is found, the function
+        # will return it but KEEP RUNNING.
+        if ($Exact -and (! $Playbook)) {
+            throw [Exception] "Unable to find exact match for playbook"
         }
 
         # Return all responses.
-        return $Response
+        if (! $Playbook) {
+            return $Response   
+        }
     }
 
 

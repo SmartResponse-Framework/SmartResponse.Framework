@@ -9,7 +9,7 @@ Function Get-RestErrorMessage {
     .OUTPUTS
         PSObject containing the body of the Exception Response.
     .EXAMPLE
-        PS> Get-RestErrorMessage $_
+        PS C:\> Get-RestErrorMessage $_
 
         statusCode  message
         ----------  -------
@@ -17,7 +17,7 @@ Function Get-RestErrorMessage {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
     #>
 
     #region: Parameters

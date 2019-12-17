@@ -2,15 +2,14 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Get-LrTags {
+Function Get-LrUsers {
     <#
     .SYNOPSIS
-        Return a list of tags.
+        Return a list of users.
     .DESCRIPTION
-        The Get-LrTags cmdlet returns a list of all existing case tags, 
-        and can optionally be filtered for tag names containing the specified
-        string. Results will be sorted alphabetically ascending, unless
-        the OrderBy parameter is set to "desc".
+        The Get-LrUser cmdlet returns a list of LogRhythm users that are
+        referenced as collaborators or for notifications.  Results will be sorted
+        alphabetically ascending, unless the OrderBy parameter is set to "desc".
 
         Note: This cmdlet does not support pagination.
     .PARAMETER Credential
@@ -19,39 +18,30 @@ Function Get-LrTags {
         the preference variable $SrfPreferences.LrDeployment.LrApiToken
         with a valid Api Token.
     .PARAMETER Name
-        Filter results that have a tag name that contain the specified string value.
+        Filter results that have a user name that contains the specified string value.
         Use the -Exact switch for an explicit filter.
+    .PARAMETER OnlyUsers
+        Filter results to only users that have a login.
     .PARAMETER Sort
         Sort the results in ascending (asc) or descending (desc) order.
     .PARAMETER Exact
         Only return tags that match the provided tag name exactly.
     .INPUTS
-        System.String value to Name parameter.
+        System.String value -> Name parameter
     .OUTPUTS
         System.Object
-        
-        Returns one or more LogRhythm (case) tag objects.
 
-        [LogRhythm.Tag]
+        Returns one or more LogRhythm User Objects.
+
+        [LogRhythm.User]
         ---------------------------------------------------
         FieldName       Type                Description
         ---------------------------------------------------
-        number          [System.Int32]    Tag ID
-        text            [System.String]     Tag Name
-        dateCreated     [System.DateTime]   Date tag created
-        createdBy       [Object]            Created by [LogRhythm.User]
+        number          [System.Int32]    User ID
+        name            [System.String]     User Full Name
+        disabled        [System.Boolean]    True if user is disabled
     .EXAMPLE
-        PS C:\> @("Testing","Malware") | Get-LrTags -Credential $Token
-            number   text          dateCreated                   createdBy
-            ------   ----          -----------                   ---------
-            120      API Testing   2019-10-05T10:38:05.7133333Z  @{number=35; name=Smith, Bob; disabled=False}
-            112      Testing       2019-09-20T21:36:59.34Z       @{number=35; name=Smith, Bob; disabled=False}
-              5      Malware       2019-03-13T15:11:21.467Z      @{number=35; name=Smith, Bob; disabled=False}
-    .EXAMPLE
-        PS C:\> @("Testing","Malware") | Get-LrTags -Credential $Token | Select-Object -ExpandProperty text
-            API Testing
-            Testing
-            Malware
+        PS C:\> 
     .NOTES
         LogRhythm-API
     .LINK
@@ -68,23 +58,30 @@ Function Get-LrTags {
         [Parameter(
             Mandatory = $false,
             ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             Position = 1
         )]
-        [ValidateNotNullOrEmpty()]
         [string] $Name,
 
-        
+
         [Parameter(
             Mandatory = $false,
             Position = 2
         )]
-        [ValidateSet('asc','desc')]
-        [string] $Sort = "asc",
+        [switch] $OnlyUsers,
 
-        
+
         [Parameter(
             Mandatory = $false,
             Position = 3
+        )]
+        [ValidateSet('asc','desc')]
+        [string] $Sort = "asc",
+
+
+        [Parameter(
+            Mandatory = $false,
+            Position = 4
         )]
         [switch] $Exact
     )
@@ -104,34 +101,49 @@ Function Get-LrTags {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("count", 500)
+        $Headers.Add("count", 5000)
         $Headers.Add("direction", $Sort)
-        
+
+
+        # Transform OnlyUsers switch into a boolean
+        # Note: Omitting OnlyUsers is the same as setting OnlyUsers to "false" as 
+        # far as the LogRhythm API handles it.
+        $OnlyUsers = $false
+        if ($PSBoundParameters.ContainsKey("OnlyUsers")) {
+            $OnlyUsers = $true
+        }
+
+
+        # Form Query String
+        $Params = [PSCustomObject]@{
+            name = $Name
+            onlyUsers = $OnlyUsers
+        } | ConvertTo-QueryString
+
 
         # Request URI
         $Method = $HttpMethod.Get
-        $RequestUri = $BaseUrl + "/tags/?tag=$Name"
-
+        $RequestUri = $BaseUrl + "/persons/" + $Params
 
         # REQUEST
         try {
             $Response = Invoke-RestMethod `
                 -Uri $RequestUri `
                 -Headers $Headers `
-                -Method $Method `
+                -Method $Method
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
 
-        
+
         # [Exact] Parameter
-        # Search "Malware" normally returns both "Malware" and "Malware 2"
+        # Search "Smith, Bob" normally returns both "Smith, Bob" and "Smith, Bob Admin".
         if ($Exact) {
             $Pattern = "^$Name$"
             $Response | ForEach-Object {
-                if($_.text -match $Pattern) {
+                if($_.name -match $Pattern) {
                     return $_
                 }
             }

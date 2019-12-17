@@ -10,6 +10,9 @@ Function Add-LrPlaybookToCase {
         The Add-LrPlaybookToCase cmdlet adds a playbook to an existing case.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+        Note: You can bypass the need to provide a Credential by setting
+        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        with a valid Api Token.
     .PARAMETER Id
         Unique identifier for the case, either as an RFC 4122 formatted string,
         or as a number.
@@ -17,7 +20,7 @@ Function Add-LrPlaybookToCase {
         Unique identifier for the playbook. This can either be the Playbook's ID
         as an RFC 4122 formatted string, or the exact name of the playbook.
     .INPUTS
-
+        [System.Object] "Id" ==> [Id] : The ID of the Case to modify.
     .OUTPUTS
         PSCustomObject representing the added playbook.
     .EXAMPLE
@@ -25,17 +28,14 @@ Function Add-LrPlaybookToCase {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
     #>
 
     [CmdletBinding()]
     Param(
-        [Parameter(
-            Mandatory = $true, 
-            Position = 0
-        )]
+        [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
 
 
         [Parameter(
@@ -45,7 +45,7 @@ Function Add-LrPlaybookToCase {
         )]
         [object] $Id,
 
-        
+
         [Parameter(
             Mandatory = $true,
             Position = 2
@@ -56,44 +56,40 @@ Function Add-LrPlaybookToCase {
 
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
         $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
-
-        # Verbose Parameter
-        $Verbose = $false
-        if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-            $Verbose = $true
-        }
     }
 
 
     Process {
-        # Validate Case Id
+        # Get Case Id
         try {
+            #TEST: [Add-LrPlaybookToCase]: Case is never used?
             $Case = Get-LrCaseById -Credential $Credential -Id $Id -ErrorAction SilentlyContinue
+        } catch {
+            $PSCmdlet.ThrowTerminatingError($PSItem)
         }
-        catch {
-            throw [ArgumentException] "Could not resolve $Id to a valid LogRhythm Case."
-        }
+
 
         # Validate Playbook Ref
         if (Test-Guid $Playbook) {
-            # Check Playbook Guid is Valid
+            # If $Playbook is a valid Guid format
             try {
+                # Get Playbook by Guid
                 $Pb = Get-LrPlaybookById -Credential $Credential -Id $Playbook -ErrorAction SilentlyContinue
-                Write-IfVerbose "Playbook: $Pb" $Verbose -ForegroundColor Blue
+                Write-Verbose "[$Me]: Playbook: $Pb"
             }
             catch {
-                throw [ArgumentException] "Could not resolve $Playbook to a valid LogRhythm Playbook."
+                $PSCmdlet.ThrowTerminatingError($PSItem)
             }
         } else {
-            # Try to find a playbook named $Playbook
-            $Pb = Get-LrPlaybooks -Name $Playbook -Credential $Credential -Exact
-            if ($Pb) {
-                $PlaybookGuid = $FoundPlaybooks.id
-                Write-IfVerbose "Found '$Playbook' with guid $PlaybookGuid." $Verbose -ForegroundColor Yellow
-            } else {
-                throw [ArgumentException] "Could not resolve $Playbook to a valid LogRhythm Playbook."
+            # Get Playbook by Name (Exact)
+            try {
+                $Pb = Get-LrPlaybooks -Name $Playbook -Credential $Credential -Exact
+            }
+            catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
             }
         }
 
@@ -103,18 +99,19 @@ Function Add-LrPlaybookToCase {
         $Headers.Add("Authorization", "Bearer $Token")
         $Headers.Add("Content-Type","application/json")
 
+
         # Request URI
         $Method = $HttpMethod.Post
         $RequestUri = $BaseUrl + "/cases/$Id/playbooks/"
-        Write-IfVerbose "RequestUri: $RequestUri" $Verbose -ForegroundColor Yellow
+        Write-Verbose "[$Me]: RequestUri: $RequestUri"
 
         # Request Body
-
         $Body = [PSCustomObject]@{
             id = $Pb.id
         }
         $Body = $Body | ConvertTo-Json
-        Write-IfVerbose "Body: $Body" $Verbose -ForegroundColor Blue
+        Write-Verbose "[$Me]: Body: $Body"
+
 
         # Request
         try {
@@ -126,7 +123,11 @@ Function Add-LrPlaybookToCase {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$($Err.statusCode)]: $($Err.message)"
+            if ($Err.statusCode -eq "409") {
+                # we know we can use $Pb.name because a 409 wouldn't throw unless the playbook existed.
+                throw [InvalidOperationException] "[409]: Playbook '$($Pb.name)' has already been added to case '$Id'"
+            }
+            $PSCmdlet.ThrowTerminatingError($PSItem)
         }
 
         return $Response

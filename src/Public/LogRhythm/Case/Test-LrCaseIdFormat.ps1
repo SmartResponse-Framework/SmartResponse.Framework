@@ -23,7 +23,7 @@ Function Test-LrCaseIdFormat {
         ------ ------- -----
          False    True 181
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
     #>
 
     [CmdletBinding()]
@@ -33,14 +33,9 @@ Function Test-LrCaseIdFormat {
             ValueFromPipeline = $true,
             Position=0
         )]
+        [ValidateNotNull()]
         [object] $Id
     )
-
-    # Verbose Preference
-    $Verbose = $false
-    if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-        $Verbose = $true
-    }
 
     $OutObject = [PSCustomObject]@{
         IsGuid      =   $false
@@ -49,11 +44,11 @@ Function Test-LrCaseIdFormat {
     }
 
     # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
-    [int]$IdInt = 0
+    $_int = 0
 
     # Check if ID value is an integer
-    if ([int]::TryParse($Id, [ref]$IdInt)) {
-        Write-IfVerbose "Id parses as integer." $Verbose -ForegroundColor Yellow
+    if ([int]::TryParse($Id, [ref]$_int)) {
+        Write-Verbose "[$Me]: Id parses as integer."
         $OutObject.Value = $Id.ToString()
         $OutObject.IsValid = $true
     # Check if ID value is a Guid

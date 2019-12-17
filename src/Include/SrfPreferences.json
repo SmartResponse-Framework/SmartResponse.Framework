@@ -1,16 +1,34 @@
 {
+    "CertPolicyEnabled": false,
     "Vault": {
-        "ServerApiUri": "https://secretserver.domain.com/winauthwebservices/sswinauthwebservice.asmx"
+        "ServerApiUri": "",
+        "SecretList": { }
     },
-    "ActiveDirectory": {
-        "Name": "YOUR_DOMAIN"
+
+    "LrDeployment": {
+        "AdminApiBaseUrl": "https://chr2pr1sc4.chrobinson.com:8501/lr-admin-api",
+        "CaseApiBaseUrl": "https://chr2pr1sc4.chrobinson.com:8501/lr-case-api",
+        "AieApiUrl": "https://chr2pr1sc4.chrobinson.com:8501/lr-drilldown-cache-api",
+        "LrApiToken": "",
+        "DefaultLrUserId": 52
     },
-    "LRDeployment": {
-        "AdminApiBaseUrl": "https://server.domain.com:8501/lr-admin-api",
-        "CaseApiBaseUrl": "https://server.domain.com:8501/lr-case-api",
-        "ApiVaultId": "121212",
-        "PlatformManager": "server.domain.com",
-        "WebConsole": "logrhythm.domain.com",
-        "SrpHost": "server.domain.com"
+
+    "Resources": {
+        "Settings": {
+            "Top": 500
+        },
+        
+        "Graph": {
+            "Resource": "https://graph.microsoft.com",
+            "OAuth2Url": "https://login.microsoftonline.com/d441ad83-6235-46d6-ab1a-89744a91b1d8/oauth2/token",
+            "SecretId": "",
+            "Token": ""
+        },
+        "ATP": {
+            "Resource": "https://graph.windows.net",
+            "OAuth2Url": "https://login.microsoftonline.com/d441ad83-6235-46d6-ab1a-89744a91b1d8/oauth2/token",
+            "SecretId": "",
+            "Token": ""
+        }
     }
 }

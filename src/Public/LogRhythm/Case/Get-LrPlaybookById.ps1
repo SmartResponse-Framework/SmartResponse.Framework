@@ -1,6 +1,6 @@
 using namespace System
 using namespace System.IO
-using namespace System.Collections.Bobric
+using namespace System.Collections.Generic
 
 Function Get-LrPlaybookById {
     <#
@@ -8,14 +8,23 @@ Function Get-LrPlaybookById {
         Get a LogRhythm playbook by its Id.
     .DESCRIPTION
         The Get-LrPlaybookById cmdlet returns a playbook by its Guid (RFC 4122)
+
+        If a match is not found, this cmdlet will throw exception
+        [System.Collections.Generic.KeyNotFoundException]
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+        Note: You can bypass the need to provide a Credential by setting
+        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        with a valid Api Token.
     .PARAMETER Id
         Unique identifier for the playbook, as an RFC 4122 formatted string.
     .INPUTS
         System.String -> [Id] Parameter
     .OUTPUTS
         System.Object representing the returned LogRhythm playbook.
+
+        If a match is not found, this cmdlet will throw exception
+        [System.Collections.Generic.KeyNotFoundException]
     .EXAMPLE
         PS C:\> Get-LrPlaybookById -Credential $Token -Id "F47CF405-CAEC-44BB-9FDB-644C33D58F2A"
             id            : F47CF405-CAEC-44BB-9FDB-644C33D58F2A
@@ -32,17 +41,14 @@ Function Get-LrPlaybookById {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
     #>
 
     [CmdletBinding()]
     Param(
-        [Parameter(
-            Mandatory = $true, 
-            Position = 0
-        )]
+        [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
 
 
         [Parameter(
@@ -55,8 +61,13 @@ Function Get-LrPlaybookById {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Enable self-signed certificates and Tls1.2
+        Enable-TrustAllCertsPolicy        
     }
 
 
@@ -72,10 +83,10 @@ Function Get-LrPlaybookById {
         $Headers.Add("Authorization", "Bearer $Token")
         
 
-        # Request URIs
+        # Request URI
         $Method = $HttpMethod.Get
         $RequestUri = $BaseUrl + "/playbooks/$Id/"
-
+        Write-Verbose "[$Me]: RequestUri: $RequestUri"
 
         # REQUEST
         try {
@@ -86,7 +97,20 @@ Function Get-LrPlaybookById {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$($Err.statusCode)]: $($Err.message)"
+
+            switch ($Err.statusCode) {
+                "404" {
+                    throw [KeyNotFoundException] `
+                        "[404]: Playbook ID $Id not found, or you do not have permission to view it."
+                 }
+                 "401" {
+                     throw [UnauthorizedAccessException] `
+                        "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                 }
+                Default {
+                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                }
+            }
         }
 
         # Return all responses.
