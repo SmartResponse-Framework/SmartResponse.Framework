@@ -20,13 +20,13 @@
         
         "Graph": {
             "Resource": "https://graph.microsoft.com",
-            "OAuth2Url": "https://login.microsoftonline.com/d441ad83-6235-46d6-ab1a-89744a91b1d8/oauth2/token",
+            "OAuth2Url": "https://login.microsoftonline.com/TENANTID/oauth2/token",
             "SecretId": "",
             "Token": ""
         },
         "ATP": {
             "Resource": "https://graph.windows.net",
-            "OAuth2Url": "https://login.microsoftonline.com/d441ad83-6235-46d6-ab1a-89744a91b1d8/oauth2/token",
+            "OAuth2Url": "https://login.microsoftonline.com/TENANTID/oauth2/token",
             "SecretId": "",
             "Token": ""
         }
