@@ -73,10 +73,40 @@ Getting started is easy, if you have some familiarity with Git and PowerShell.
 ```powershell
 PS> git clone https://github.com/SmartResponse-Framework/SmartResponse.Framework
 PS> cd SmartResponse.Framework
+```
+
+Edit the preferences file (replace code with editor of your choice)
+
+```powershell
+PS> code .\src\include\SrfPreferences.json
+```
+
+There are a couple of ways to go about this, but the easiest by far is to save a copy of your LR API Token in an encrypted credentials file:
+
+```powershell
+PS> Get-Credential | Export-CliXml -Path .\tests\cred_LrApiToken.xml
+```
+
+Now back to your terminal, build the module:
+
+```powershell
 PS> .\New-TestBuild.ps1
+===========================================
+> New-TestBuild.ps1 12/19/2019 9:47:52 AM
+===========================================
+Creating new build: [Success]
+Import Build:       [Success]
+Import LrApi Token: [Success]
+===========================================
 ```
 
 You should now have a working copy of the module in your current PowerShell environment!
+
+Give this a shot to check that everything is working:
+
+```powershell
+PS> Get-LrTags
+```
 
 :hammer: For more on how **module builds** work, please review the [Build Process](build/readme.md).
 
