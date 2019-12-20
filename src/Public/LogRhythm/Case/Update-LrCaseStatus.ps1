@@ -10,7 +10,7 @@ Function Update-LrCaseStatus {
         The Update-LrCaseStatus cmdlet updates an existing case's status based on an integer
         representing one of LogRhythm's 5 status codes.
 
-        Case Status must be changed in a particular ordre
+        Case Status must be changed in a particular order.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
