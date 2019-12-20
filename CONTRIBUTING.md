@@ -2,7 +2,7 @@
 
 SmartResponse.Framework has a `master` branch for stable releases and a `develop` branch for daily development. New features and fixes are always submitted to the `develop` branch.
 
-This project follows standard [GitHub flow](https://guides.github.com/introduction/flow/index.html). Please learn and be familiar with how to use Git, how to create a fork of the repository, and how to submit a Pull Request. Contributors are likely willing to help you with using Git if you [ask questions in our slack](https://logrhythmcommunity.slack.com) channel `#smartresponse_framework`.
+This project follows standard [GitHub flow](https://guides.github.com/introduction/flow/index.html). Please learn and be familiar with how to use Git, how to create a fork of the repository, and how to submit a Pull Request. Contributors are likely willing to help you with using Git if you [ask questions in our slack](https://logrhythmcommunity.slack.com) channel `#srf-community`.
 
 After you submit a PR, Project maintainers and contributors will review and discuss your changes, and provide constructive feedback. Once reviewed successfully, your PR will be merged into the `development` branch.
 
