@@ -109,7 +109,7 @@ Function Update-LrCaseEarliestEvidenceFromDrilldown {
         $NewEarliestEvidence = ($EarliestLogDate.ToString("yyyy-MM-ddTHH:mm:ssZ"))
 
         # Send Request
-        $Response = Update-LrCaseEarliestEvidence -Case $IdInfo -Date $NewEarliestEvidence
+        $Response = Update-LrCaseEarliestEvidence -Id $Id -Timestamp $NewEarliestEvidence -Summary
         $ProcessedCount++
 
         # Return

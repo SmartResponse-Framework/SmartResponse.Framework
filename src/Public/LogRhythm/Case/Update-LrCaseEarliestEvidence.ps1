@@ -22,8 +22,8 @@ Function Update-LrCaseEarliestEvidence {
     .PARAMETER Quiet
         Indicates that this cmdlet suppresses all output.
     .INPUTS
-        [System.Object]   ->  Id
-        [System.Date]     ->  Timestamp
+        [System.Object]     ->  Id
+        [System.String]     ->  Timestamp
     .OUTPUTS
         Optional summary output to validate Case Update status.
     .EXAMPLE
@@ -82,35 +82,49 @@ Function Update-LrCaseEarliestEvidence {
         }
 
 
-        # Set Existing EarliestEvidence Date for comparison vs EarliestLogDate
+        # Set Existing EarliestEvidence Date for comparison
         $EarliestEvidence = Get-LrCaseEarliestEvidence -Id $Id
         Write-Verbose "[$Me]: Case: $Id EarliestEvidence: $EarliestEvidence"
 
-        # Set Case Creation Date for comparison vs EarliestLogDate
-        $CaseCreateDate = (Get-LrCaseById -Id $Id).dateCreated
-        Write-Verbose "[$Me]: Case: $Id CaseCreateDate: $CaseCreateDate"
+        # Set Case Creation Date for comparison.  Earliest Evidence !> CaseCreationDate
+        $CaseCreate = (Get-LrCaseById -Id $Id).dateCreated
+        Write-Verbose "[$Me]: Case: $Id CaseCreateDate: $CaseCreate"
 
-        $UpdateEvidence = $false
-        if ($EarliestEvidence -eq $null) {
-            # No Earliest Evidence found in the case
-            $UpdateEvidence = $true
-        } else {
-            $EarliestEvidenceDate = (Get-Date $EarliestEvidence).ToUniversalTime()
-            if ($EarliestLogDate -lt $EarliestEvidenceDate) {
-                # The AIE Cache logs contain an earlier point of evidence
-                $UpdateEvidence = $true
-                
-            }
-            $EarliestEvidenceDate = (Get-Date $CaseCreateDate).ToUniversalTime()
-            if ($EarliestLogDate -lt $EarliestEvidenceDate) {
-                # The AIE Cache logs contain an earlier point of evidence
-                $UpdateEvidence = $true
-            }
+        # Set provided EarliestEvidence Date
+        Try {
+            $RequestedTimestamp = (Get-Date $Timestamp).ToUniversalTime()
+        }
+        Catch {
+            $Err = Get-RestErrorMessage $_
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
 
-        # Convert NewEarliestEvidence date to proper format
-        $NewEarliestEvidence = ($Timestamp.ToString("yyyy-MM-ddTHH:mm:ssZ"))
-        Write-Verbose "[$Me]: NewEarliestEvidence: $NewEarliestEvidence"
+        $UpdateEvidence = $false
+        $CaseCreateDate = (Get-Date $CaseCreate).ToUniversalTime()
+        Write-Verbose "[$Me]: RequestedTimestamp: $RequestedTimestamp CaseCreateDate: $CaseCreateDate"
+        if ($RequestedTimestamp -gt $CaseCreateDate) {
+            # The AIE Cache logs contain an earlier point of evidence
+            $UpdateEvidence = $false
+            $Response = "RequestedTimestamp: $RequestedTimestamp is greater than CaseCreateDate: $CaseCreateDate"
+        } else {
+            if ($EarliestEvidence -eq $null) {
+                # No Earliest Evidence found in the case
+                $UpdateEvidence = $true
+            } else {
+                $EarliestEvidenceDate = (Get-Date $EarliestEvidence).ToUniversalTime()
+                Write-Verbose "[$Me]: RequestedTimestamp: $RequestedTimestamp EarliestEvidenceDate $EarliestEvidenceDate"
+                if ($RequestedTimestamp -lt $EarliestEvidenceDate) {
+                    # The AIE Cache logs contain an earlier point of evidence
+                    $UpdateEvidence = $true
+                    # Convert NewEarliestEvidence date to proper format
+                    $NewEarliestEvidence = ($RequestedTimestamp.ToString("yyyy-MM-ddTHH:mm:ssZ"))
+                    Write-Verbose "[$Me]: NewEarliestEvidence: $NewEarliestEvidence"
+                } else {
+                    $UpdateEvidence = $false
+                    $Response = "RequestedTimestamp: $RequestedTimestamp is greater than EarliestEvidenceDate $EarliestEvidenceDate"
+                }
+            }
+        }
 
         # Case note for API action
         $Note = "SmartResponseFramework: Update EarliestEvidence Timestamp"
@@ -168,7 +182,7 @@ Function Update-LrCaseEarliestEvidence {
             if ($UpdateEvidence -eq $true) {
                 Write-Host "Updated Case: $Id Based on Alarm: $AlarmId Drilldown Date: $NewEarliestEvidence"
             } else {
-                Write-Host "Unable to Update Case: $Id Based on Alarm: $AlarmId Drilldown Date: $NewEarliestEvidence Existing Date: $EarliestEvidenceDate"
+                Write-Host $Response
             }
         }
     }
