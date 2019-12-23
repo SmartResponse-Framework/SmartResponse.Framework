@@ -13,19 +13,6 @@
         "DefaultLrUserId": 52
     },
 
-    "VirusTotal": {
-        "VtApiUri": "http://www.virustotal.com/vtapi/v2",
-        "VtApiToken": "",
-        "PublicApi": "True"
-    },
-
-    "UrlScan": {
-        "UsApiUri": "https://urlscan.io/api/v1",
-        "UsScreenshotUri": "https://urlscan.io/screenshots/",
-        "UsApiToken": "",
-        "PublicScans": "On"
-    },
-
     "Resources": {
         "Settings": {
             "Top": 500
