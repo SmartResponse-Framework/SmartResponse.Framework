@@ -11,9 +11,6 @@ Function Get-LrCasePlaybookProcedures {
         with a playbook that has been assigned to a specific case.
 
         If no PlaybookID is specified the first playbook assigned to the case will be returned.
-
-        If a match is not found, this cmdlet will throw exception
-        [System.Collections.Generic.KeyNotFoundException]
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
@@ -29,21 +26,29 @@ Function Get-LrCasePlaybookProcedures {
     .OUTPUTS
         System.Object representing the returned LogRhythm playbook procedures on the applicable case.
 
-        If a match is not found, this cmdlet will throw exception
-        [System.Collections.Generic.KeyNotFoundException]
+        If no prceodures are found, this cmdlet will return null.
     .EXAMPLE
-        PS C:\> Get-LrCasePlaybookProcedures -Credential $Token -CaseId "F47CF405-CAEC-44BB-9FDB-644C33D58F2A"
-            id            : F47CF405-CAEC-44BB-9FDB-644C33D58F2A
-            name          : Testing
-            description   : Test Playbook
-            permissions   : @{read=privateOwnerOnly; write=privateOwnerOnly}
-            owner         : @{number=35; name=Smith, Bob; disabled=False}
-            retired       : False
-            entities      : {@{number=1; name=Primary Site}}
-            dateCreated   : 2019-10-11T08:46:25.9861938Z
-            dateUpdated   : 2019-10-11T08:46:25.9861938Z
-            lastUpdatedBy : @{number=35; name=Smith, Bob; disabled=False}
-            tags          : {@{number=5; text=Malware}}
+        PS C:\> Get-LrCasePlaybookProcedures -Credential $Token -CaseId 8703 -PlaybookId "4CAB940D-CFF7-442E-A54A-5D4949FA783D"
+        ---
+        id            : C8C47BEC-7E77-44C0-AB7A-3DFA2AF6E9FF
+        name          : Drill down on the alarm to gain additional insight
+        description   :
+        assignee      :
+        status        : NotCompleted
+        dueDate       :
+        notes         :
+        dateUpdated   : 2019-12-23T13:36:04.3544575Z
+        lastUpdatedBy : @{number=227; name=Domo, Derby; disabled=False}
+
+        id            : 1900E73A-B1C2-4C76-95C4-5E251C7E3BC6
+        name          : Determine if the event is an incident
+        description   :
+        assignee      :
+        status        : NotCompleted
+        dueDate       :
+        notes         :
+        dateUpdated   : 2019-12-23T13:36:04.3544575Z
+        lastUpdatedBy : @{number=227; name=Domo, Derby; disabled=False}
     .NOTES
         LogRhythm-API
     .LINK
@@ -92,6 +97,9 @@ Function Get-LrCasePlaybookProcedures {
             throw [ArgumentException] "Parameter [CaseId] should be an RFC 4122 formatted string or an integer."
         }
 
+        # Get Case Guid
+        $CaseGuid = (Get-LrCaseById -Id $CaseId).id
+
         # Validate or Retrieve Playbook Id
         if ($PlaybookId) {
             # Validate Playbook Id
@@ -100,7 +108,7 @@ Function Get-LrCasePlaybookProcedures {
             }
         } else {
             #This will require verification once the function below is validated.
-            $PlaybookId = (Get-LrCasePlaybooks -Id $IdInfo)[0].Pid
+            $PlaybookId = (Get-LrCasePlaybooks -Id $CaseGuid)[0].id
         }
         
         # Request Headers
@@ -110,7 +118,7 @@ Function Get-LrCasePlaybookProcedures {
 
         # Request URI
         $Method = $HttpMethod.Get
-        $RequestUri = $BaseUrl + "/cases/$IdInfo/playbooks/$PlaybookId/procedures/"
+        $RequestUri = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookId/procedures/"
         Write-Verbose "[$Me]: RequestUri: $RequestUri"
 
         # REQUEST

@@ -10,8 +10,7 @@ Function Get-LrCasePlaybooks {
         The Get-LrCasePlaybooks cmdlet returns an object containing all the playbooks
         that has been assigned to a specific case.
 
-        If a match is not found, this cmdlet will throw exception
-        [System.Collections.Generic.KeyNotFoundException]
+        If a match is not found, this cmdlet will return null.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
@@ -27,18 +26,31 @@ Function Get-LrCasePlaybooks {
         If a match is not found, this cmdlet will throw exception
         [System.Collections.Generic.KeyNotFoundException]
     .EXAMPLE
-        PS C:\> Get-LrCasePlaybooks -Credential $Token -Id "F47CF405-CAEC-44BB-9FDB-644C33D58F2A"
-            id            : F47CF405-CAEC-44BB-9FDB-644C33D58F2A
-            name          : Testing
-            description   : Test Playbook
-            permissions   : @{read=privateOwnerOnly; write=privateOwnerOnly}
-            owner         : @{number=35; name=Smith, Bob; disabled=False}
-            retired       : False
-            entities      : {@{number=1; name=Primary Site}}
-            dateCreated   : 2019-10-11T08:46:25.9861938Z
-            dateUpdated   : 2019-10-11T08:46:25.9861938Z
-            lastUpdatedBy : @{number=35; name=Smith, Bob; disabled=False}
-            tags          : {@{number=5; text=Malware}}
+        PS C:\> Get-LrCasePlaybooks -Credential $Token -Id 8703
+        ---
+        id                 : E560822B-3685-48DE-AC25-0314B1C4124F
+        name               : Phishing
+        description        : Use this Playbook when someone has received a malicious phishing email that contains malicious code, a link to malicious code, or is employing social engineering to
+                            obtain user credentials.
+
+        originalPlaybookId : 510C7D5B-F058-4748-A948-233FAECB8348
+        dateAdded          : 2019-12-23T13:31:26.0410191Z
+        dateUpdated        : 2019-12-23T13:37:08.0763176Z
+        lastUpdatedBy      : @{number=227; name=Domo, Derby; disabled=False}
+        pinned             : False
+        datePinned         :
+        procedures         : @{total=7; notCompleted=7; completed=0; skipped=0; pastDue=0}
+
+        id                 : 4CAB940D-CFF7-442E-A54A-5D4949FA783D
+        name               : Compromised Account
+        description        : This playbook assists analysts in handling expected cases of a compromised account.
+        originalPlaybookId : 5CD58351-503E-41E4-B36C-F9C29BDD1508
+        dateAdded          : 2019-12-23T13:36:04.3544575Z
+        dateUpdated        : 2019-12-23T13:37:12.0184697Z
+        lastUpdatedBy      : @{number=227; name=Domo, Derby; disabled=False}
+        pinned             : False
+        datePinned         :
+        procedures         : @{total=6; notCompleted=6; completed=0; skipped=0; pastDue=0}
     .NOTES
         LogRhythm-API
     .LINK
@@ -84,10 +96,14 @@ Function Get-LrCasePlaybooks {
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
         
+        # Retrieve Case Guid
+        $CaseGuid = (Get-LrCaseById -Id $Id).id
+
+        
 
         # Request URI
         $Method = $HttpMethod.Get
-        $RequestUri = $BaseUrl + "/cases/$IdInfo/playbooks/"
+        $RequestUri = $BaseUrl + "/cases/$CaseGuid/playbooks/"
         Write-Verbose "[$Me]: RequestUri: $RequestUri"
 
         # REQUEST
@@ -103,7 +119,7 @@ Function Get-LrCasePlaybooks {
             switch ($Err.statusCode) {
                 "404" {
                     throw [KeyNotFoundException] `
-                        "[404]: Case Id $Id not found, or you do not have permission to view it."
+                        "[404]: Playbook Id $Id not found, or you do not have permission to view it."
                  }
                  "401" {
                      throw [UnauthorizedAccessException] `
