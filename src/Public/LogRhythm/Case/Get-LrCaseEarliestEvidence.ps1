@@ -39,7 +39,11 @@ function Get-LrCaseEarliestEvidence
         [ValidateNotNull()]
         [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
 
-		[string] [Parameter(Mandatory=$true, Position = 1)] $Id
+		[Parameter(
+            Mandatory=$true, 
+            Position = 1
+        )] 
+        [object] $Id
 	)
     
     Begin {

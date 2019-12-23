@@ -105,77 +105,11 @@ Function Update-LrCaseEarliestEvidenceFromDrilldown {
         $EarliestLogDate = (Get-Date "1970-01-01T00:00:00").AddMilliseconds($EarliestLog)
         Write-Verbose "[$Me]: Alarm: $AlarmId EarliestLogDate: $EarliestLogDate"
 
-        # Set Existing EarliestEvidence Date for comparison vs EarliestLogDate
-        $EarliestEvidence = Get-LrCaseEarliestEvidence -Id $Id
-        Write-Verbose "[$Me]: Case: $Id EarliestEvidence: $EarliestEvidence"
-
-        # Set Case Creation Date for comparison vs EarliestLogDate
-        $CaseCreateDate = (Get-LrCaseById -Id $Id).dateCreated
-        Write-Verbose "[$Me]: Case: $Id CaseCreateDate: $CaseCreateDate"
-        $UpdateEvidence = $false
-        if ($EarliestEvidence -eq $null) {
-            # No Earliest Evidence found in the case
-            $UpdateEvidence = $true
-        } else {
-            $EarliestEvidenceDate = (Get-Date $EarliestEvidence).ToUniversalTime()
-            if ($EarliestLogDate -lt $EarliestEvidenceDate) {
-                # The AIE Cache logs contain an earlier point of evidence
-                $UpdateEvidence = $true
-                
-            }
-            $EarliestEvidenceDate = (Get-Date $CaseCreateDate).ToUniversalTime()
-            if ($EarliestLogDate -lt $EarliestEvidenceDate) {
-                # The AIE Cache logs contain an earlier point of evidence
-                $UpdateEvidence = $true
-            }
-        }
-
         # Convert NewEarliestEvidence date to proper format
         $NewEarliestEvidence = ($EarliestLogDate.ToString("yyyy-MM-ddTHH:mm:ssZ"))
-        Write-Verbose "[$Me]: NewEarliestEvidence: $NewEarliestEvidence"
 
-        # Case note for API action
-        $Note = "SmartResponseFramework: Alarm ID $AlarmId drilldown results"
-
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-
-
-        # Request URI
-        $Method = $HttpMethod.Put
-        $RequestUri = $BaseUrl + "/cases/$Id/metrics/"
-
-
-        # Request Body
-        $Body = [PSCustomObject]@{
-            earliestEvidence = [PSCustomObject]@{
-                customDate = $NewEarliestEvidence
-                note = $Note
-            }
-        } | ConvertTo-Json
-
-        
         # Send Request
-        Write-Verbose "[$Me]: request body is:`n$Body"
-        if ($UpdateEvidence -eq $true) {
-            try {
-                $Response = Invoke-RestMethod `
-                    -Uri $RequestUri `
-                    -Headers $Headers `
-                    -Method $Method `
-                    -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
-        } else {
-            Write-Verbose "[$Me]: UpdateEvidence = $UpdateEvidence"
-            return $null
-        }
-
+        $Response = Update-LrCaseEarliestEvidence -Case $IdInfo -Date $NewEarliestEvidence
         $ProcessedCount++
 
         # Return
