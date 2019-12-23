@@ -126,7 +126,7 @@ Function Get-LrCasePlaybookProcedures {
             $Response = Invoke-RestMethod `
                 -Uri $RequestUri `
                 -Headers $Headers `
-                -Method $Method `
+                -Method $Method
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
