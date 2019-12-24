@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Get-LRListGuidByName {
+Function Get-LrListGuidByName {
     <#
     .SYNOPSIS
         Get the unique identifier for a list, based on a search by list name.
@@ -27,9 +27,9 @@ Function Get-LRListGuidByName {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true,Position=0)]
+        [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
 
         [Parameter(Mandatory=$true,Position=1, ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
@@ -37,24 +37,13 @@ Function Get-LRListGuidByName {
     )
 
     Begin {
-        $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
-        $Method = $HttpMethod.Get
-        $Token = $Credential.GetNetworkCredential().Password
     }
 
 
     Process {
-        Write-Verbose $BaseUrl
-
-        ## Script API Setup
-        $Token = $Credential.GetNetworkCredential().Password
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("name", $Name)
-        $RequestUrl = $BaseUrl + "/lists/"
 
         try {
-            $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method
+            $Response = Get-LrLists -Name $Name
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
