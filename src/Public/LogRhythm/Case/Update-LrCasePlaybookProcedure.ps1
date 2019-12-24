@@ -128,11 +128,12 @@ Function Update-LrCasePlaybookProcedure {
         # Get Case Guid
         $CaseGuid = (Get-LrCaseById -Id $CaseId).id
 
-        # Validate or Retrieve Playbook Id
+        
 
         # Populate list of Case Playbooks
         $CasePlaybooks = Get-LrCasePlaybooks -Id $CaseId
-        
+
+        # Validate or Retrieve Playbook Id
         if ($PlaybookId) {
             if ($CasePlaybooks -eq $null) {
                 throw [ArgumentException] "No Playbooks located on case: $CaseId."
@@ -187,10 +188,41 @@ Function Update-LrCasePlaybookProcedure {
             }
         }
 
-        # Design note
-        # Possibility here to support Process by Position.  IE 4th procedure in playbook.
-        if (! (Test-Guid $ProcedureId)) {
-            throw [ArgumentException] "Parameter [ProcedureId] should be an RFC 4122 formatted string."
+        # Populate list of Case Procedures
+        $CaseProcedures = Get-LrCasePlaybookProcedures -CaseId $CaseId -PlaybookId $PlaybookGuid
+        # Validate or Retrieve Procedure Id
+        if ($ProcedureId) {
+            $ProcedureType = Test-LrProcedureIdFormat -Id $ProcedureId
+            if ($CaseProcedures -is [array]) {
+                $CaseProcedures | ForEach-Object {
+                    Write-Verbose "[$Me]: $($_.Name) compared to $($ProcedureId)"
+                    if (($ProcedureType.isguid -eq $false) -and ($ProcedureType.isint -eq $false)) {
+                        if($($_.Name).ToLower() -eq $($ProcedureId).ToLower()) {
+                            Write-Verbose "[$Me]: Matched Procedure Name: $ProcedureId To PlaybookId: $($_.Id)"
+                            $ProcedureGuid = $_.Id
+                        } 
+                    } elseif (($ProcedureType.isguid -eq $true) -and ($ProcedureType.isint -eq $false)) {
+                        if($($_.Id).ToLower() -eq $($ProcedureId).ToLower()) {
+                            Write-Verbose "[$Me]: Matched Procedure Guid: $ProcedureId To PlaybookId: $($_.Id)"
+                            $ProcedureGuid = $_.Id
+                        }
+                    } 
+                }
+                if (($ProcedureType.isguid -eq $false) -and ($ProcedureType.isint -eq $true)) {
+                    if (($ProcedureId -gt $($CaseProcedures.Count)) -Or ($ProcedureId -lt 0)) {
+                        throw [ArgumentException] "Parameter [ProcedureId:$ProcedureId] as integer falls outside of Procedure Count."
+                    } else {
+                        $ProcedureGuid = $CaseProcedures[($ProcedureId - 1)].Id
+                        Write-Verbose "[$Me]: Marking procedure step $ProcedureId as $ProcedureGuid."
+                    }
+                }
+                if ($ProcedureGuid -eq $null) {
+                    throw [ArgumentException] "Parameter [ProcedureId:$ProcedureId] cannot be matched to playbooks on case: $CaseId."
+                }
+            }
+            
+        } else {
+            throw [ArgumentException] "Parameter [ProcedureId] must be provided."
         }
         
         # Request Headers
@@ -199,7 +231,7 @@ Function Update-LrCasePlaybookProcedure {
     
         # Request URI
         $Method = $HttpMethod.Put
-        $RequestUri = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookGuid/procedures/$ProcedureId/"
+        $RequestUri = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookGuid/procedures/$ProcedureGuid/"
         Write-Verbose "[$Me]: RequestUri: $RequestUri"
 
         # Inspect Note for Procedure Limitation
@@ -207,6 +239,17 @@ Function Update-LrCasePlaybookProcedure {
             if ($Notes.Length -gt 1000) {
                 throw [ArgumentException] "Parameter [Notes] exceeded length limit.  1000:$($Notes.Length)"
             }
+        }
+
+        # Inspect Date for proper format
+        # Set provided EarliestEvidence Date
+        Try {
+            $RequestedTimestamp = (Get-Date $DueDate).ToUniversalTime()
+            $NewDueDate = ($RequestedTimestamp.ToString("yyyy-MM-ddTHH:mm:ssZ"))
+        }
+        Catch {
+            $Err = Get-RestErrorMessage $_
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
 
         # Validate Status is proper
@@ -271,7 +314,7 @@ Function Update-LrCasePlaybookProcedure {
             $Body | Add-Member -NotePropertyName notes -NotePropertyValue $Notes
         }
         if ($DueDate) {
-            $Body | Add-Member -NotePropertyName dueDate -NotePropertyValue $Notes
+            $Body | Add-Member -NotePropertyName dueDate -NotePropertyValue $NewDueDate
         }
         if ($Status) {
             $Body | Add-Member -NotePropertyName status -NotePropertyValue $Status
