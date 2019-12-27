@@ -7,8 +7,8 @@ Function Test-LrPlaybookIdFormat {
     .SYNOPSIS
         Displays formatting information for a given LogRhythm Playbook ID.
     .DESCRIPTION
-        The Test-CaseId cmdlet displays information about a given LogRhythm Unique 
-        Case Identifier.
+        The Test-PlaybookId cmdlet displays information about a given LogRhythm Unique 
+        Playbook Identifier.
         LogRhythm Playbooks IDs can be represented as an RFC 4122 formatted string (Guid), 
         or by a string.
     .PARAMETER Id

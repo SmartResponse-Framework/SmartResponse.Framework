@@ -52,10 +52,7 @@ Function Get-LrLists {
 
         [Parameter(Mandatory=$false, Position=3)]
         [ValidateRange(1,1000)]
-        [int] $PageSize,
-
-        [Parameter(Mandatory=$false, Position=4)]
-        [switch] $ValuesOnly
+        [int] $PageSize
     )
 
     #region: BEGIN                                                                       
@@ -113,17 +110,7 @@ Function Get-LrLists {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-            $PSCmdlet.ThrowTerminatingError($PSItem)
-        }
-
-        # Process Results
-        if ($ValuesOnly) {
-            $ReturnList = [List[string]]::new()
-            $Response.items | ForEach-Object {
-                $ReturnList.Add($_.value)
-            }
-            return ,$ReturnList
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
         }
         return $Response
     }

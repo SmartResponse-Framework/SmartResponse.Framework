@@ -46,8 +46,7 @@ Function Get-LrListGuidByName {
             $Response = Get-LrLists -Name $Name
         }
         catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            Write-Error "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)"
+            $PSCmdlet.ThrowTerminatingError($PSItem)
         }
     
         if ($Response) {

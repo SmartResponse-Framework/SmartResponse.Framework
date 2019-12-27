@@ -23,7 +23,7 @@ Function Update-LrCaseEarliestEvidence {
         Indicates that this cmdlet suppresses all output.
     .INPUTS
         [System.Object]     ->  Id
-        [System.String]     ->  Timestamp
+        [System.Datetime]     ->  Timestamp
     .OUTPUTS
         Optional summary output to validate Case Update status.
     .EXAMPLE
@@ -54,7 +54,7 @@ Function Update-LrCaseEarliestEvidence {
 
         [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNullOrEmpty()]
-        [string] $Timestamp,
+        [datetime] $Timestamp,
 
         [Parameter(Mandatory = $false, Position = 3)]
         [switch] $PassThru,
@@ -107,7 +107,7 @@ Function Update-LrCaseEarliestEvidence {
             $UpdateEvidence = $false
             $Response = "RequestedTimestamp: $RequestedTimestamp is greater than CaseCreateDate: $CaseCreateDate"
         } else {
-            if ($EarliestEvidence -eq $null) {
+            if ($null -eq $EarliestEvidence) {
                 # No Earliest Evidence found in the case
                 $UpdateEvidence = $true
             } else {

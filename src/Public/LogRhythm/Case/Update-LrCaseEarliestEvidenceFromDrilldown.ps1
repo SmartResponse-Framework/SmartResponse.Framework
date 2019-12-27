@@ -91,7 +91,7 @@ Function Update-LrCaseEarliestEvidenceFromDrilldown {
             $Logs = $DrilldownResults.Logs
             $MinDate = ($Logs.normalDate | Measure-Object -Minimum).Minimum
             Write-Verbose "[$Me]: MinDate: $MinDate"
-            if ($EarliestLog -eq $null -or $MinDate -lt $EarliestLog) {
+            if (($null -eq $EarliestLog) -or ($MinDate -lt $EarliestLog)) {
                 
                 #Update the Earliest Log if it's earlier
                 $EarliestLog = $MinDate
