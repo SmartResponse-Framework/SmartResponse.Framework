@@ -10,7 +10,7 @@ Function Get-LrCasePlaybookProcedures {
         The Get-LrCasePlaybookProcedures cmdlet returns a list of procedures associated
         with a playbook that has been assigned to a specific case.
 
-        If no PlaybookID is specified the first playbook assigned to the case will be returned.
+        If no Id is specified and only one playbook is assigned, that playbook's procedures will be returned.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
@@ -18,17 +18,17 @@ Function Get-LrCasePlaybookProcedures {
         with a valid Api Token.
     .PARAMETER CaseId
         Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
-    .PARAMETER PlaybookId
-        (Optional) Unique identifier for the playbook, either as an RFC 4122 formatted string, or as a number.
+    .PARAMETER Id
+        (Optional) Unique identifier for the playbook, either as an RFC 4122 formatted string, or as a string.
     .INPUTS
         [System.Object]   ->  CaseId
-        [System.String]   ->  PlaybookId
+        [System.Object]   ->  Id
     .OUTPUTS
         System.Object representing the returned LogRhythm playbook procedures on the applicable case.
 
         If no prceodures are found, this cmdlet will return null.
     .EXAMPLE
-        PS C:\> Get-LrCasePlaybookProcedures -Credential $Token -CaseId 8703 -PlaybookId "4CAB940D-CFF7-442E-A54A-5D4949FA783D"
+        PS C:\> Get-LrCasePlaybookProcedures -Credential $Token -CaseId 8703 -Id "4CAB940D-CFF7-442E-A54A-5D4949FA783D"
         ---
         id            : C8C47BEC-7E77-44C0-AB7A-3DFA2AF6E9FF
         name          : Drill down on the alarm to gain additional insight
@@ -64,7 +64,6 @@ Function Get-LrCasePlaybookProcedures {
 
         [Parameter(
             Mandatory = $true,
-            ValueFromPipeline = $true,
             Position = 1
         )]
         [ValidateNotNullOrEmpty()]
@@ -72,11 +71,11 @@ Function Get-LrCasePlaybookProcedures {
 
         [Parameter(
             Mandatory = $false,
-            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             Position = 2
         )]
         [ValidateNotNullOrEmpty()]
-        [string] $PlaybookId
+        [Object] $Id
     )
 
     Begin {
@@ -95,20 +94,53 @@ Function Get-LrCasePlaybookProcedures {
         $IdInfo = Test-LrCaseIdFormat $CaseId
         if (! $IdInfo.IsValid) {
             throw [ArgumentException] "Parameter [CaseId] should be an RFC 4122 formatted string or an integer."
+        } else {
+            # Convert CaseID Into to Guid
+            if ($IdInfo.IsGuid -eq $false) {
+                # Retrieve Case Guid
+                $CaseGuid = (Get-LrCaseById -Id $CaseId).id
+            } else {
+                $CaseGuid = $CaseId
+            }
         }
+        
 
-        # Get Case Guid
-        $CaseGuid = (Get-LrCaseById -Id $CaseId).id
+        # Populate list of Case Playbooks
+        $CasePlaybooks = Get-LrCasePlaybooks -Id $CaseGuid
 
         # Validate or Retrieve Playbook Id
-        if ($PlaybookId) {
-            # Validate Playbook Id
-            if (! (Test-Guid $PlaybookId)) {
-                throw [ArgumentException] "Parameter [PlaybookId] should be an RFC 4122 formatted string."
+        if ($Id) {
+            if ($null -eq $CasePlaybooks) {
+                throw [ArgumentException] "No Playbooks located on case: $CaseId."
+            } else {
+                # Validate Playbook Id
+                # Step through array of Playbooks assigned to case looking for match
+                $CasePlaybooks | ForEach-Object {
+                    Write-Verbose "[$Me]: $($_.Name) compared to $($Id)"
+                    if (Test-Guid $Id) {
+                        if($($_.Id).ToLower() -eq $Id.ToLower()) {
+                            Write-Verbose "[$Me]: Matched Playbook Guid: $Id To Id: $($_.Id)"
+                            $PlaybookGuid = $_.Id
+                        } 
+                    } else {
+                        if($($_.Name).ToLower() -eq $Id.ToLower()) {
+                            Write-Verbose "[$Me]: Matched Playbook Name: $Id To Id: $($_.Id)"
+                            $PlaybookGuid = $_.Id
+                        }
+                    }
+                }
+                if ($null -eq $PlaybookGuid) {
+                    throw [ArgumentException] "Parameter [Id:$Id] cannot be matched to playbooks on case: $CaseId."
+                }
             }
         } else {
-            #This will require verification once the function below is validated.
-            $PlaybookId = (Get-LrCasePlaybooks -Id $CaseGuid)[0].id
+            # No matches.  Only one playbook assigned to case.  Default to single Playbook assigned to case
+            if (($CasePlaybooks).Count -ge 2) {
+                throw [ArgumentException] "No Playbook specified.  More than one playbook assigned to case: $CaseId."
+            } elseif ($CasePlaybooks) {
+                $PlaybookGuid = $CasePlaybooks.Id
+                Write-Verbose "[$Me]: No Playbook specified.  One Playbook on case, applying Id: $Id"
+            }
         }
         
         # Request Headers
@@ -118,7 +150,7 @@ Function Get-LrCasePlaybookProcedures {
 
         # Request URI
         $Method = $HttpMethod.Get
-        $RequestUri = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookId/procedures/"
+        $RequestUri = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookGuid/procedures/"
         Write-Verbose "[$Me]: RequestUri: $RequestUri"
 
         # REQUEST
@@ -134,14 +166,14 @@ Function Get-LrCasePlaybookProcedures {
             switch ($Err.statusCode) {
                 "404" {
                     throw [KeyNotFoundException] `
-                        "[404]: Case ID $CaseId or Playbook ID $PlaybookId not found, or you do not have permission to view it."
+                        "[404]: Case ID $CaseId or Playbook ID $Id not found, or you do not have permission to view it."
                  }
                  "401" {
                      throw [UnauthorizedAccessException] `
                         "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
                  }
                 Default {
-                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
                 }
             }
         }
