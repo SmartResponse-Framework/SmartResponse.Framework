@@ -20,8 +20,8 @@ Function Update-LrCasePlaybookProcedure {
         Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
     .PARAMETER PlaybookId
         Unique identifier for the playbook as an RFC 4122 formatted string, or as the playbook name.
-    .PARAMETER ProcedureId
-        Unique identifier for the procedure, either as an RFC 4122 formatted string.
+    .PARAMETER Id
+        Unique identifier for the procedure, either as an RFC 4122 formatted string or as an integer.
     .PARAMETER Assignee
         Unique, numeric identifier, or user name, for the person to which procedure is assigned.
     .PARAMETER Notes
@@ -32,8 +32,8 @@ Function Update-LrCasePlaybookProcedure {
         Status of the procedure.  Valid Values: "NotCompleted" "Completed" "Skipped" 
     .INPUTS
         [System.Object]   ->  CaseId
-        [System.String]   ->  PlaybookId
-        [System.String]   ->  ProcedureId
+        [System.Object]   ->  PlaybookId
+        [System.Object]   ->  Id
         [System.String]   ->  Assignee
         [System.String]   ->  Notes
         [System.DateTime] ->  DueDate
@@ -69,14 +69,15 @@ Function Update-LrCasePlaybookProcedure {
             Position = 2
         )]
         [ValidateNotNullOrEmpty()]
-        [string] $PlaybookId,
+        [object] $PlaybookId,
 
         [Parameter(
             Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
             Position = 3
         )]
         [ValidateNotNullOrEmpty()]
-        [string] $ProcedureId,
+        [object] $Id,
 
         [Parameter(
             Mandatory = $false,
@@ -122,60 +123,44 @@ Function Update-LrCasePlaybookProcedure {
         # Get Case Id
         $IdInfo = Test-LrCaseIdFormat $CaseId
         if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [CaseId] should be an RFC 4122 formatted string or an integer."
+            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
+        } else {
+            # Convert CaseID Into to Guid
+            if ($IdInfo.IsGuid -eq $false) {
+                # Retrieve Case Guid
+                $CaseGuid = (Get-LrCaseById -Id $CaseId).id
+            } else {
+                $CaseGuid = $CaseId
+            }
         }
-
-        # Get Case Guid
-        $CaseGuid = (Get-LrCaseById -Id $CaseId).id
 
         
 
         # Populate list of Case Playbooks
-        $CasePlaybooks = Get-LrCasePlaybooks -Id $CaseId
+        $CasePlaybooks = Get-LrCasePlaybooks -Id $CaseGuid
 
         # Validate or Retrieve Playbook Id
         if ($PlaybookId) {
             if ($null -eq $CasePlaybooks) {
                 throw [ArgumentException] "No Playbooks located on case: $CaseId."
             } else {
-                # Validate Playbook Id
-                $PlaybookType = Test-LrPlaybookIdFormat -Id $PlaybookId
                 # Step through array of Playbooks assigned to case looking for match
-                if ($CasePlaybooks -is [array]) {
-                    $CasePlaybooks | ForEach-Object {
-                        Write-Verbose "[$Me]: $($_.Name) compared to $($PlaybookId)"
-                        if ($PlaybookType.isguid -eq $false) {
-                            if($($_.Name).ToLower() -eq $($PlaybookId).ToLower()) {
-                                Write-Verbose "[$Me]: Matched Playbook Name: $PlaybookId To PlaybookId: $($_.Id)"
-                                $PlaybookGuid = $_.Id
-                            } 
-                        } elseif ($PlaybookType.isguid -eq $true) {
-                            if($($_.Id).ToLower() -eq $($PlaybookId).ToLower()) {
-                                Write-Verbose "[$Me]: Matched Playbook Name: $PlaybookId To PlaybookId: $($_.Id)"
-                                $PlaybookGuid = $_.Id
-                            }
+                $CasePlaybooks | ForEach-Object {
+                    Write-Verbose "[$Me]: $($_.Name) compared to $($PlaybookId)"
+                    if (Test-Guid $PlaybookId) {
+                        if($($_.Id).ToLower() -eq $PlaybookId.ToLower()) {
+                            Write-Verbose "[$Me]: Matched Playbook Guid: $PlaybookId To Id: $($_.Id)"
+                            $PlaybookGuid = $_.Id
                         }
-                    } 
-                    if ($null -eq $PlaybookGuid) {
-                        throw [ArgumentException] "Parameter [PlayBookId:$PlaybookId] cannot be matched to playbooks on case: $CaseId."
-                    }
-                } else {
-                    # Step through single Playbook assigned to case looking for match
-                    if ($PlaybookType.isguid -eq $false) {
-                        if($($CasePlaybooks.Name).ToLower() -eq $($PlaybookId).ToLower()) {
-                            Write-Verbose "[$Me]: Matched Playbook Name: $PlaybookId To PlaybookId: $($CasePlaybooks.Id)"
-                            $PlaybookGuid = $CasePlaybooks.Id
-                        } else {
-                            throw [ArgumentException] "Parameter [PlayBookId:$PlaybookId] cannot be located on case: $CaseId."
-                        }
-                    } elseif ($PlaybookType.isguid -eq $true) {
-                        if($($CasePlaybooks.Id).ToLower() -eq $($PlaybookId).ToLower()) {
-                            Write-Verbose "[$Me]: Matched Playbook Name: $PlaybookId To PlaybookId: $($CasePlaybooks.Id)"
-                            $PlaybookGuid = $CasePlaybooks.Id
-                        } else {
-                            throw [ArgumentException] "Parameter [PlayBookId:$PlaybookId] cannot be located on case: $CaseId."
+                    } else {
+                        if($($_.Name).ToLower() -eq $PlaybookId.ToLower()) {
+                            Write-Verbose "[$Me]: Matched Playbook Name: $PlaybookId To Id: $($_.Id)"
+                            $PlaybookGuid = $_.Id
                         }
                     }
+                } 
+                if ($null -eq $PlaybookGuid) {
+                    throw [ArgumentException] "Parameter [PlayBookId:$PlaybookId] cannot be matched to playbooks on case: $CaseId."
                 }
             }
         } else {
@@ -189,40 +174,41 @@ Function Update-LrCasePlaybookProcedure {
         }
 
         # Populate list of Case Procedures
-        $CaseProcedures = Get-LrCasePlaybookProcedures -CaseId $CaseId -PlaybookId $PlaybookGuid
+        $CaseProcedures = Get-LrCasePlaybookProcedures -CaseId $CaseId -Id $PlaybookGuid
+
         # Validate or Retrieve Procedure Id
-        if ($ProcedureId) {
-            $ProcedureType = Test-LrProcedureIdFormat -Id $ProcedureId
-            if ($CaseProcedures -is [array]) {
-                $CaseProcedures | ForEach-Object {
-                    Write-Verbose "[$Me]: $($_.Name) compared to $($ProcedureId)"
-                    if (($ProcedureType.isguid -eq $false) -and ($ProcedureType.isint -eq $false)) {
-                        if($($_.Name).ToLower() -eq $($ProcedureId).ToLower()) {
-                            Write-Verbose "[$Me]: Matched Procedure Name: $ProcedureId To PlaybookId: $($_.Id)"
-                            $ProcedureGuid = $_.Id
-                        } 
-                    } elseif (($ProcedureType.isguid -eq $true) -and ($ProcedureType.isint -eq $false)) {
-                        if($($_.Id).ToLower() -eq $($ProcedureId).ToLower()) {
-                            Write-Verbose "[$Me]: Matched Procedure Guid: $ProcedureId To PlaybookId: $($_.Id)"
-                            $ProcedureGuid = $_.Id
-                        }
-                    } 
-                }
-                if (($ProcedureType.isguid -eq $false) -and ($ProcedureType.isint -eq $true)) {
-                    if (($ProcedureId -gt $($CaseProcedures.Count)) -Or ($ProcedureId -lt 0)) {
-                        throw [ArgumentException] "Parameter [ProcedureId:$ProcedureId] as integer falls outside of Procedure Count."
-                    } else {
-                        $ProcedureGuid = $CaseProcedures[($ProcedureId - 1)].Id
-                        Write-Verbose "[$Me]: Marking procedure step $ProcedureId as $ProcedureGuid."
+        if ($Id) {
+            $ProcedureType = Test-LrProcedureIdFormat -Id $Id
+            $CaseProcedures | ForEach-Object {
+                Write-Verbose "[$Me]: $($_.Name) compared to $($Id)" 
+                if (($ProcedureType.isguid -eq $false) -and ($ProcedureType.isint -eq $false)) {
+                    # Looking for procedure by the procedure name
+                    if($($_.Name).ToLower() -eq $Id.ToLower()) {
+                        Write-Verbose "[$Me]: Matched Procedure Name: $Id To PlaybookId: $($_.Id)"
+                        $ProcedureGuid = $_.Id
+                    }
+                } elseif (($ProcedureType.isguid -eq $true) -and ($ProcedureType.isint -eq $false)) {
+                    #Looking for procedure by procedure guid
+                    if($($_.Id).ToLower() -eq $Id.ToLower()) {
+                        Write-Verbose "[$Me]: Matched Procedure Guid: $Id To PlaybookId: $($_.Id)"
+                        $ProcedureGuid = $_.Id
                     }
                 }
-                if ($null -eq $ProcedureGuid) {
-                    throw [ArgumentException] "Parameter [ProcedureId:$ProcedureId] cannot be matched to playbooks on case: $CaseId."
+            }
+            if (($ProcedureType.isguid -eq $false) -and ($ProcedureType.isint -eq $true)) {
+                # Setting the procedure to the integer position/step count
+                if (($Id -gt $($CaseProcedures.Count)) -Or ($Id -lt 0)) {
+                    throw [ArgumentException] "Parameter [Id:$Id] as integer falls outside of Procedure Count."
+                } else {
+                    $ProcedureGuid = $CaseProcedures[($Id - 1)].Id
+                    Write-Verbose "[$Me]: Marking procedure step $Id as $ProcedureGuid."
                 }
             }
-            
+            if ($null -eq $ProcedureGuid) {
+                throw [ArgumentException] "Parameter [Id:$Id] cannot be matched to playbooks on case: $CaseId."
+            }
         } else {
-            throw [ArgumentException] "Parameter [ProcedureId] must be provided."
+            throw [ArgumentException] "Parameter [Id] must be provided for applicable Procedure ID."
         }
         
         # Request Headers
@@ -243,13 +229,14 @@ Function Update-LrCasePlaybookProcedure {
 
         # Inspect Date for proper format
         # Set provided EarliestEvidence Date
-        Try {
-            $RequestedTimestamp = (Get-Date $DueDate).ToUniversalTime()
-            $NewDueDate = ($RequestedTimestamp.ToString("yyyy-MM-ddTHH:mm:ssZ"))
-        }
-        Catch {
-            $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+        if ($DueDate) {
+            Try {
+                $RequestedTimestamp = (Get-Date $DueDate).ToUniversalTime()
+                $NewDueDate = ($RequestedTimestamp.ToString("yyyy-MM-ddTHH:mm:ssZ"))
+            }
+            Catch {
+                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
+            }
         }
 
         # Validate Status is proper
@@ -310,7 +297,7 @@ Function Update-LrCasePlaybookProcedure {
         if ($Assignee) {
             $Body | Add-Member -NotePropertyName assignee -NotePropertyValue $AssigneeNumber
         }
-        if ($notes) {
+        if ($Notes) {
             $Body | Add-Member -NotePropertyName notes -NotePropertyValue $Notes
         }
         if ($DueDate) {
@@ -328,7 +315,7 @@ Function Update-LrCasePlaybookProcedure {
                 -Uri $RequestUri `
                 -Headers $Headers `
                 -Method $Method `
-                -Body $Body`
+                -Body $Body
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
@@ -343,7 +330,7 @@ Function Update-LrCasePlaybookProcedure {
                         "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
                  }
                 Default {
-                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
                 }
             }
         }
