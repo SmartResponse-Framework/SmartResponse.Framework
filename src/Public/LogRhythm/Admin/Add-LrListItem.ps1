@@ -40,85 +40,110 @@ Function Add-LrListItem {
         [object] $Identity,
 
         [Parameter(Mandatory=$false, Position=2)]
-        [ValidateRange(1,1000)]
-        [int] $MaxItemsThreshold,
+        [string] $Value,
 
         [Parameter(Mandatory=$false, Position=3)]
-        [switch] $ValuesOnly
+        [switch] $LoadListItems
     )
 
-    # Process Identity Object
-    if (($Identity.GetType() -eq [System.Guid]) -Or (Test-Guid $Identity)) {
-        $Guid = $Identity.ToString()
-    } else {
-        try {
-            $Guid = Get-LRListGuidByName -Name $Identity.ToString()
-            if ($Guid -is [array]) {
-                throw [Exception] "Get-LrListGuidbyName returned an array of GUID.  Provide specific List Name."
-            } else {
-                $LrListDetails = Get-LrList -Identity $Guid
-                $LrListType = $LrListDetails.ListType
+    #region: BEGIN                                                                       
+    Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
+        Enable-TrustAllCertsPolicy
+    }
+
+    Process {
+        # Process Identity Object
+        if (($Identity.GetType() -eq [System.Guid]) -Or (Test-Guid $Identity)) {
+            $Guid = $Identity.ToString()
+        } else {
+            try {
+                $Guid = Get-LRListGuidByName -Name $Identity.ToString()
+                if ($Guid -is [array]) {
+                    throw [Exception] "Get-LrListGuidbyName returned an array of GUID.  Provide specific List Name."
+                } else {
+                    $LrListDetails = Get-LrList -Identity $Guid
+                    $LrListType = $LrListDetails.ListType
+                }
+            }
+            catch {
+                $Err = Get-RestErrorMessage $_
+                throw [Exception] "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)"
             }
         }
-        catch {
+
+        # Map listItemDataType
+        switch ($LrListType) {
+            GeneralValue { 
+                $ListItemDataType = "String"
+                $ListItemType = "StringValue"
+            }
+            Host {
+                $ListItemDataType = "String"
+                $ListItemType = "HostName"
+            }
+            IP {
+                $ListItemDataType = "IP"
+                $ListItemType = "IP"
+                #foreach ($Item in $Value) {
+                #    Test-ValidIP $Item
+                #}
+            }
+            Default {}
+        }
+
+        # Map listItemType
+
+
+        # General Setup  
+        $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
+        $Token = $Credential.GetNetworkCredential().Password
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+        if ($LoadListItems) {
+            $Headers.Add("loadListItems",$LoadListItems)
+        }
+
+        $ExpDate = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
+
+        # Request Setup
+        $Method = $HttpMethod.Post
+        $RequestUrl = $BaseUrl + "/lists/$Guid/items/"
+
+        # Request Body
+        $BodyContents = [PSCustomObject]@{
+            items = @(
+                [PSCustomObject]@{
+                    displayValue = 'List'
+                    expirationDate = $ExpDate
+                    isExpired =  $false
+                    isListItem = $false
+                    isPattern = $false
+                    listItemDataType = $ListItemDataType
+                    listItemType = $ListItemType
+                    value = $Value
+                    valueAsListReference = [PSCustomObject]@{
+                    }
+                }
+            )
+        }
+
+        $Body = $BodyContents | ConvertTo-Json -Depth 3 -Compress
+        Write-Verbose "[$Me] Request Body:`n$Body"
+
+        # Send Request
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+        }
+        catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)"
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
     }
-
-    # Map listItemDataType
-
     
-    # Map listItemType
-
-
-    # General Setup  
-    $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
-    $Token = $Credential.GetNetworkCredential().Password
-    $Headers = [Dictionary[string,string]]::new()
-    $Headers.Add("Authorization", "Bearer $Token")
-
-
-    # Request Setup
-    $Method = $HttpMethod.Post
-    $Headers.Add("maxItemsThreshold", $MaxItemsThreshold)
-    $RequestUrl = $BaseUrl + "/lists/$Guid/items/"
-
-    # Request Body
-    $ItemValue = [PSObject]@{}
-    $Value = "Test"
-    $ListItemDataType = "TestItemDataType"
-    $ListItemType = "TestItemType"
-
-    if ($Value) {
-        $ItemValue | Add-Member -NotePropertyName displayValue -NotePropertyValue $Value
-        $ItemValue | Add-Member -NotePropertyName isExpired -NotePropertyValue $false
-        $ItemValue | Add-Member -NotePropertyName isListItem -NotePropertyValue $false
-        $ItemValue | Add-Member -NotePropertyName isPattern -NotePropertyValue $false
-        $ItemValue | Add-Member -NotePropertyName listItemDataType -NotePropertyValue $ListItemDataType
-        $ItemValue | Add-Member -NotePropertyName listItemType -NotePropertyValue $ListItemType
-        $ItemValue | Add-Member -NotePropertyName value -NotePropertyValue $Value
+    End {
+        return $Response
     }
-    $Body = [PSObject]@{ items = $ItemValue }
-    $Body = $Body | ConvertTo-Json
-
-    # Send Request
-    try {
-        $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-    }
-    catch [System.Net.WebException] {
-        $Err = Get-RestErrorMessage $_
-        Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-        $PSCmdlet.ThrowTerminatingError($PSItem)
-    }
-
-    # Process Results
-    if ($ValuesOnly) {
-        $ReturnList = [List[string]]::new()
-        $Response.items | ForEach-Object {
-            $ReturnList.Add($_.value)
-        }
-        return ,$ReturnList
-    }
-    return $Response
 }
