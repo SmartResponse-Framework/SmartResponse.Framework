@@ -92,7 +92,7 @@ Function Add-LrAlarmToCase {
         $Body = [PSCustomObject]@{
             alarmNumbers = $AlarmNumbers
         } | ConvertTo-Json
-        Write-Verbose "[$Me] Request Body: $Body"
+        Write-Verbose "[$Me] Request Body:`n$Body"
         #endregion
 
 
