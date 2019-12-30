@@ -52,7 +52,10 @@ Function Get-LrLists {
 
         [Parameter(Mandatory=$false, Position=3)]
         [ValidateRange(1,1000)]
-        [int] $PageSize
+        [int] $PageSize,
+
+        [Parameter(Mandatory = $false, Position=4)]
+        [switch] $Exact
     )
 
     #region: BEGIN                                                                       
@@ -112,7 +115,22 @@ Function Get-LrLists {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
         }
-        return $Response
+
+        # [Exact] Parameter
+        # Search "Malware" normally returns both "Malware" and "Malware Options"
+        # This would only return "Malware"
+        if ($Exact) {
+            $Pattern = "^$Name$"
+            $Response | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
+                }
+            }
+        } else {
+            return $Response
+        }
     }
 
     End { }
