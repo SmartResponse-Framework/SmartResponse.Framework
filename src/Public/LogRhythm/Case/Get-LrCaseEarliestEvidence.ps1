@@ -87,20 +87,21 @@ function Get-LrCaseEarliestEvidence
         $ProcessedCount++
 
         
-        if ($Response -and $Response.earliestEvidence) {
+        if ($Response -and $Response.earliestEvidence) { 
             if ($null -ne $Response.earliestEvidence.customDate) 
             {
                 # Custom Date is defined
-                return $Response.earliestEvidence.customDate
+                [datetime] $EarliestDate = $Response.earliestEvidence.customDate
             } elseif ($null -ne $Response.earliestEvidence.date) 
             {
                 # Normal evidence date (if it hasn't been over-written)
-                return $Response.earliestEvidence.date
+                [datetime] $EarliestDate = $Response.earliestEvidence.date
             } elseif ($null -ne $Response.earliestEvidence.originalDate)
             {
                 # Neither Custom or Normal Evidence date defined; use original
-                return $Response.earliestEvidence.originalDate
+                [datetime] $EarliestDate = $Response.earliestEvidence.originalDate
             }
+            return $EarliestDate
         } 
 
 
