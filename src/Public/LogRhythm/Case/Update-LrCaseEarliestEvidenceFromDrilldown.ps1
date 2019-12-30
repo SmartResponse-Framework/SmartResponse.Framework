@@ -67,10 +67,6 @@ Function Update-LrCaseEarliestEvidenceFromDrilldown {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        
-        $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
-        $Token = $Credential.GetNetworkCredential().Password
-
         $ProcessedCount = 0
     }
 

@@ -36,7 +36,7 @@ Function Update-LrCasePlaybookProcedure {
         [System.String]   ->  ProcedureId
         [System.String]   ->  Assignee
         [System.String]   ->  Notes
-        [System.String]   ->  DueDate
+        [System.DateTime] ->  DueDate
         [System.String]   ->  Status
     .OUTPUTS
         System.Object representing the returned LogRhythm playbook procedures on the applicable case.
@@ -97,7 +97,7 @@ Function Update-LrCasePlaybookProcedure {
             Position = 6
         )]
         [ValidateNotNullOrEmpty()]
-        [string] $DueDate,
+        [datetime] $DueDate,
 
         [Parameter(
             Mandatory = $false,
@@ -135,7 +135,7 @@ Function Update-LrCasePlaybookProcedure {
 
         # Validate or Retrieve Playbook Id
         if ($PlaybookId) {
-            if ($CasePlaybooks -eq $null) {
+            if ($null -eq $CasePlaybooks) {
                 throw [ArgumentException] "No Playbooks located on case: $CaseId."
             } else {
                 # Validate Playbook Id
@@ -156,7 +156,7 @@ Function Update-LrCasePlaybookProcedure {
                             }
                         }
                     } 
-                    if ($PlaybookGuid -eq $null) {
+                    if ($null -eq $PlaybookGuid) {
                         throw [ArgumentException] "Parameter [PlayBookId:$PlaybookId] cannot be matched to playbooks on case: $CaseId."
                     }
                 } else {
@@ -216,7 +216,7 @@ Function Update-LrCasePlaybookProcedure {
                         Write-Verbose "[$Me]: Marking procedure step $ProcedureId as $ProcedureGuid."
                     }
                 }
-                if ($ProcedureGuid -eq $null) {
+                if ($null -eq $ProcedureGuid) {
                     throw [ArgumentException] "Parameter [ProcedureId:$ProcedureId] cannot be matched to playbooks on case: $CaseId."
                 }
             }

@@ -18,19 +18,18 @@ Function Update-LrCaseEarliestEvidence {
     .PARAMETER Id
         Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
     .PARAMETER Timestamp
-        Timestamp in %format
+        Timestamp in DateTime format
     .PARAMETER Quiet
         Indicates that this cmdlet suppresses all output.
     .INPUTS
         [System.Object]     ->  Id
-        [System.Datetime]     ->  Timestamp
+        [System.Datetime]   ->  Timestamp
     .OUTPUTS
         Optional summary output to validate Case Update status.
     .EXAMPLE
         PS C:\> Update-LrCaseEarliestEvidenceFromDrilldown -Id 8699 -Timestamp %TIME -Summary
         ---
-        Updated Case: 8699 Based on Alarm: 396658 Drilldown Date: 2019-12-19T08:58:40Z
-        
+        Updated Case: 8699 Earliest Evidence to Date: 2019-12-19T08:58:40Z
     .NOTES
         LogRhythm-API
     .LINK
@@ -180,7 +179,7 @@ Function Update-LrCaseEarliestEvidence {
     End {
         if ($Summary) {
             if ($UpdateEvidence -eq $true) {
-                Write-Host "Updated Case: $Id Based on Alarm: $AlarmId Drilldown Date: $NewEarliestEvidence"
+                Write-Host "Updated Case: $Id Earliest Evidence to Date: $NewEarliestEvidence"
             } else {
                 Write-Host $Response
             }
