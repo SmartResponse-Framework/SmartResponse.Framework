@@ -89,16 +89,20 @@ Function Get-LrCasePlaybooks {
         $IdInfo = Test-LrCaseIdFormat $Id
         if (! $IdInfo.IsValid) {
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
+        } else {
+            # Convert CaseID Into to Guid
+            if ($IdInfo.IsGuid -eq $false) {
+                # Retrieve Case Guid
+                $CaseGuid = (Get-LrCaseById -Id $Id).id
+            } else {
+                $CaseGuid = $Id
+            }
         }
 
         
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        
-        # Retrieve Case Guid
-        $CaseGuid = (Get-LrCaseById -Id $Id).id
-
         
 
         # Request URI
