@@ -18,6 +18,8 @@ Function Get-LrListItems {
     .PARAMETER MaxItemsThreshold
         The maximum number of list items to retrieve from LogRhythm.
         The default value for this parameter is set to 1000.
+    .PARAMETER Exact
+        Switch to force PARAMETER Name to be matched explicitly.
     .INPUTS
         The Name parameter can be provided via the PowerShell pipeline.
     .OUTPUTS

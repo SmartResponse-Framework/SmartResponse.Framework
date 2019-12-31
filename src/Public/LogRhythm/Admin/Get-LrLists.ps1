@@ -13,7 +13,7 @@ Function Get-LrLists {
         is less than the number of actual items in the list, this cmdlet will return an http 400 error.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
-    .PARAMETER Identity
+    .PARAMETER Name
         [System.String] (Name or Guid) or [System.Guid]
         Specifies a LogRhythm list object by providing one of the following property values:
           + List Name (as System.String), e.g. "LogRhythm: Suspicious Hosts"
@@ -21,8 +21,10 @@ Function Get-LrLists {
     .PARAMETER MaxItemsThreshold
         The maximum number of list items to retrieve from LogRhythm.
         The default value for this parameter is set to 1001.
+    .PARAMETER Exact
+        Switch to force PARAMETER Name to be matched explicitly.
     .INPUTS
-        The Identity parameter can be provided via the PowerShell pipeline.
+        The Name parameter can be provided via the PowerShell pipeline.
     .OUTPUTS
         PSCustomObject representing the specified LogRhythm List and its contents.
 
@@ -46,7 +48,7 @@ Function Get-LrLists {
         [ValidateNotNull()]
         [string] $Name,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=2)]
+        [Parameter(Mandatory=$false, Position=2)]
         [ValidateNotNull()]
         [string] $ListType,
 

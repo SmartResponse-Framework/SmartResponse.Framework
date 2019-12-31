@@ -19,7 +19,7 @@ Function Test-LrListType {
         C:\PS> Test-LrListType "commonevent"
         IsValid    Value
         -------    -----
-           True    CommonEvent
+        True    CommonEvent
     .LINK
         https://github.com/SmartResponse-Framework/SmartResponse.Framework        
     #>

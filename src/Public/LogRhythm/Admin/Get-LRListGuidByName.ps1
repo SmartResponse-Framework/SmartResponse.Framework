@@ -13,7 +13,7 @@ Function Get-LrListGuidByName {
     .PARAMETER Name
         The name of the object or regex match.
     .PARAMETER Exact
-
+        Switch to force PARAMETER Name to be matched explicitly.
     .INPUTS
         The Name parameter can be passed through the pipeline. (Does not support array)
     .OUTPUTS
@@ -53,7 +53,6 @@ Function Get-LrListGuidByName {
             } else {
                 $Response = Get-LrLists -Name $Name
             }
-            
         }
         catch [System.Net.WebException] {
             $PSCmdlet.ThrowTerminatingError($PSItem)

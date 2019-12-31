@@ -17,7 +17,7 @@ Function Test-LrListValue {
           + List Name (as System.String), e.g. "LogRhythm: Suspicious Hosts"
           + List Guid (as System.String or System.Guid), e.g. D378A76F-1D83-4714-9A7C-FC04F9A2EB13   
     .INPUTS
-        [System.String] -> Value
+        [System.String] -> Value   The Value parameter can be provided via the PowerShell pipeline.
         [System.String] -> Name
     .OUTPUTS
         System.Object with IsPresent, Value, ValueType, ListValid, ListName, ListGuid
