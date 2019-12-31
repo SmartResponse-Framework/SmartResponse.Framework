@@ -12,6 +12,8 @@ Function Get-LrListGuidByName {
         PSCredential containing an API Token in the Password field.
     .PARAMETER Name
         The name of the object or regex match.
+    .PARAMETER Exact
+
     .INPUTS
         The Name parameter can be passed through the pipeline. (Does not support array)
     .OUTPUTS
@@ -33,7 +35,10 @@ Function Get-LrListGuidByName {
 
         [Parameter(Mandatory=$true,Position=1, ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Name
+        [string] $Name,
+
+        [Parameter(Mandatory = $false, Position=2)]
+        [switch] $Exact
     )
 
     Begin {
@@ -43,7 +48,12 @@ Function Get-LrListGuidByName {
     Process {
 
         try {
-            $Response = Get-LrLists -Name $Name
+            if ($Exact) {
+                $Response = Get-LrLists -Name $Name -Exact
+            } else {
+                $Response = Get-LrLists -Name $Name
+            }
+            
         }
         catch [System.Net.WebException] {
             $PSCmdlet.ThrowTerminatingError($PSItem)
