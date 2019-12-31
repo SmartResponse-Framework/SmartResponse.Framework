@@ -1,5 +1,6 @@
 using namespace System
 using namespace System.IO
+using namespace System.Net
 using namespace System.Collections.Generic
 
 Function Add-LrListItem {
@@ -43,6 +44,9 @@ Function Add-LrListItem {
         [string] $Value,
 
         [Parameter(Mandatory=$false, Position=3)]
+        [string] $ItemType,
+
+        [Parameter(Mandatory=$false, Position=4)]
         [switch] $LoadListItems
     )
 
@@ -75,6 +79,34 @@ Function Add-LrListItem {
 
         # Map listItemDataType
         switch ($LrListType) {
+            Application {
+                if ($Value -like "*,*" -Or $ItemType.tolower() -eq "portrange") {
+                    # Pair of Integer for TCP/UDP Port
+                    if ($Value.split(",").Count -gt 2) {
+                        throw [Exception] "Improper value PortRange Value Count: $($Value.split(",").Count) - Valid Count: 2"
+                    }
+                    $Value.split(",").Trim() | ForEach-Object {
+                        # Validate each port
+                        $PortValid = Test-ValidTCPUDPPort $_
+                        if ($PortValid.IsValid -eq $false) {
+                            throw [Exception] "Improper value PortRange Value: $_"
+                        }
+                    }
+                    # Set List metadata type
+                    $ListItemDataType = "PortRange"
+                    $ListItemType = "PortRange"
+
+                } else {
+                    # Single Integer for TCP/UDP Port
+                    # Validate each port
+                    $PortValid = Test-ValidTCPUDPPort $Value
+                    if ($PortValid.IsValid -eq $false) {
+                        throw [Exception] "Improper Value for Port: $Value"
+                    }
+                    $ListItemDataType = "Int32"
+                    $ListItemType = "Port"
+                }
+            }
             GeneralValue { 
                 $ListItemDataType = "String"
                 $ListItemType = "StringValue"
@@ -84,11 +116,29 @@ Function Add-LrListItem {
                 $ListItemType = "HostName"
             }
             IP {
+                $IPValid = $Value -as [IPAddress] -as [Bool]
+                if ($IPValid -eq $false) {
+                    throw [Exception] "Improper IP Address Value: $Value"
+                }
                 $ListItemDataType = "IP"
                 $ListItemType = "IP"
-                #foreach ($Item in $Value) {
-                #    Test-ValidIP $Item
-                #}
+            }
+            IPRange {
+                # Range of IP Addresses
+                if ($Value.split(",").Count -ne 2) {
+                    throw [Exception] "Improper value IPRange Value Count: $($Value.split(",").Count) - Valid Count: 2"
+                }
+                $Value.split(",").Trim() | ForEach-Object {
+                    # Validate each IP Address
+                    $IPValid = $_ -as [IPAddress] -as [Bool]
+                    if ($IPValid -eq $false) {
+                        throw [Exception] "Improper IP Address Value: $_"
+                    }
+                }
+                $Value = $Value.replace(",","")
+                #$Value = $Value.split(",")[0].Trim() +" to "+ $Value.split(",")[1].Trim()
+                $ListItemDataType = "IPRange"
+                $ListItemType = "IPRange"
             }
             Default {}
         }
