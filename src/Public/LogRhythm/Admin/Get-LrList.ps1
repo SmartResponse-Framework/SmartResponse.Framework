@@ -12,7 +12,7 @@ Function Get-LrList {
         is less than the number of actual items in the list, this cmdlet will return an http 400 error.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
-    .PARAMETER Identity
+    .PARAMETER Name
         [System.String] (Name or Guid) or [System.Guid]
         Specifies a LogRhythm list object by providing one of the following property values:
           + List Name (as System.String), e.g. "LogRhythm: Suspicious Hosts"
@@ -21,13 +21,13 @@ Function Get-LrList {
         The maximum number of list items to retrieve from LogRhythm.
         The default value for this parameter is set to 1001.
     .INPUTS
-        The Identity parameter can be provided via the PowerShell pipeline.
+        The Name parameter can be provided via the PowerShell pipeline.
     .OUTPUTS
         PSCustomObject representing the specified LogRhythm List and its contents.
         If parameter ListItemsOnly is specified, a string collection is returned containing the
         list's item values.
     .EXAMPLE
-        PS C:\> Get-LrList -Identity "edea82e3-8d0b-4370-86f0-d96bcd4b6c19" -Credential $MyKey
+        PS C:\> Get-LrList -Name "edea82e3-8d0b-4370-86f0-d96bcd4b6c19" -Credential $MyKey
     .NOTES
         LogRhythm-API        
     .LINK
@@ -42,22 +42,29 @@ Function Get-LrList {
 
         [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
         [ValidateNotNull()]
-        [object] $Identity,
+        [object] $Name,
 
         [Parameter(Mandatory=$false, Position=2)]
         [ValidateRange(1,1000)]
         [int] $MaxItemsThreshold,
 
         [Parameter(Mandatory=$false, Position=3)]
-        [switch] $ValuesOnly
+        [switch] $ValuesOnly,
+
+        [Parameter(Mandatory = $false, Position=4)]
+        [switch] $Exact
     )
 
-    # Process Identity Object
-    if (($Identity.GetType() -eq [System.Guid]) -Or (Test-Guid $Identity)) {
-        $Guid = $Identity.ToString()
+    # Process Name Object
+    if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
+        $Guid = $Name.ToString()
     } else {
         try {
-            $Guid = Get-LRListGuidByName -Name $Identity.ToString()
+            if ($Exact) {
+                $Guid = Get-LRListGuidByName -Name $Name.ToString() -Exact
+            } else {
+                $Guid = Get-LRListGuidByName -Name $Name.ToString()
+            }
         }
         catch {
             $Err = Get-RestErrorMessage $_
