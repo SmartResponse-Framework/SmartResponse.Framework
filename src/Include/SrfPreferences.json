@@ -6,11 +6,20 @@
     },
 
     "LrDeployment": {
-        "AdminApiBaseUrl": "https://server.domain.com:8501/lr-admin-api",
-        "CaseApiBaseUrl": "https://server.domain.com:8501/lr-case-api",
-        "AieApiUrl": "https://server.domain.com:8501/lr-drilldown-cache-api",
-        "LrApiToken": "",
-        "DefaultLrUserId": 52
+        "Instructions": [
+            "1. [Required]: Update URLs to point to your Platform Manager / AI Engine server.",
+            "2. [Optional]: You may save your LogRhythm API token in an encrypted PSCredential file (using Export-CliXml) and the module will load it when needed.",
+            "  LrApiCredential is a .NET [PSCredential] object. Your LogRhythm api token can be kept in the password property of this object.",
+            "    -> The [username] property should be set to the name of the API User that owns the token, but is not mandatory.",
+            "    -> The [password] property should contain the token string obtained from LogRhythm, and is used for authentication.",
+            "   If you'd like to save your api token in an encrypted file (exported by Export-CliXml), the module will automatically load it. LrApiCredentialPath.",
+            "(Warning) Never set a value for LrApiCredential in the SrfPreferences.json file."
+        ],
+        "AdminApiBaseUrl": "https://server.comain.com:8501/lr-admin-api",
+        "CaseApiBaseUrl": "https://server.comain.com:8501/lr-case-api",
+        "AieApiUrl": "https://server.comain.com:8501/lr-drilldown-cache-api",
+        "LrApiCredentialPath": "C:\\repos\\SmartResponse.Framework\\tests\\cred_LrApiToken.xml",
+        "LrApiCredential": ""
     },
 
     "Resources": {
