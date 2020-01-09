@@ -38,7 +38,7 @@ Here are a few simple rules and suggestions to remember when contributing to Sma
 
 ### About Command Output
 
-For *displaying information to a user*, use `Write-Host` or `Write-IfVerbose` (included in this module). Never use `Write-Output` in any situation, unless there is a very specific reason to do so.
+For *displaying information to a user*, use `Write-Host` or, preferably, `Write-Verbose`. Never use `Write-Output` in any situation, unless there is a very specific reason to do so.
 
 Use of `Write-Host` has been a controversial topic, in particular because of the limitations in doing anything with the output (redirect to `stdout`, etc) and confusion around what goes into the PowerShell pipeline. For the purposes of conveying information, we do **not** want that text getting into the pipeline.
 
@@ -49,8 +49,6 @@ Example of redirecting `Write-Host`
 ```powershell
 PS> Write-Host "Somebody said today that I’m lazy. I nearly answered him." 6> c:\tmp\out.txt
 ```
-
-The `Write-IfVerbose` command in the SmartResponse.Framework module is implemented using `Write-Host`. It is intended to replace `Write-Verbose`, which lacks the formatting capability of `Write-Host` - while still making use of the `-Verbose` parameter provided by `CmdletBinding`.
 
 ## Licensing
 
