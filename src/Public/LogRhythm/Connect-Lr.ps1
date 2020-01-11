@@ -52,6 +52,7 @@ Function Connect-Lr {
 
     #region: LR API Token                                                                
     if (! (Test-Path "$SrfAppData\LrApiToken.xml")) {
+        Write-Host ""
         # Prompt the user for username and password.
         $_u = ""
         $_p = ""
