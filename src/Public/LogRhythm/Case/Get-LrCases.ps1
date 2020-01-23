@@ -19,7 +19,7 @@ Function Get-LrCases {
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        the preference variable $SrfPreferences.LrDeployment.LrApiCredential
         with a valid Api Token.
     .PARAMETER DueBefore
         Filter results that have a due date before the specified date.
@@ -117,7 +117,7 @@ Function Get-LrCases {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
         [Parameter(Mandatory = $false, Position = 16)]
         [switch] $Summary,
