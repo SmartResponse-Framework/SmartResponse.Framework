@@ -83,7 +83,6 @@ $StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 Get-Module SmartResponse.Framework | Remove-Module -Force
 
 
-
 #region: Remove Old Builds                                                               
 if ($RemoveOld) {
     $Removed = 0

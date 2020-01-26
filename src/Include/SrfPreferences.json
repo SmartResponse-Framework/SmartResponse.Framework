@@ -12,9 +12,9 @@
             "   If you'd like to save your api token in an encrypted file (exported by Export-CliXml), the module will automatically load it. LrApiCredentialPath.",
             "(Warning) Never set a value for LrApiCredential in the SrfPreferences.json file."
         ],
-        "AdminApiBaseUrl": "https://server.domain.com:8501/lr-admin-api",
-        "CaseApiBaseUrl": "https://server.domain.com:8501/lr-case-api",
-        "AieApiUrl": "https://server.domain.com:8501/lr-drilldown-cache-api",
+        "AdminApiBaseUrl": "https://SERVER:8501/lr-admin-api",
+        "CaseApiBaseUrl": "https://SERVER:8501/lr-case-api",
+        "AieApiUrl": "https://SERVER:8501/lr-drilldown-cache-api",
         "LrApiCredentialPath": "C:\\repos\\SmartResponse.Framework\\tests\\cred_LrApiToken.xml",
         "LrApiCredential": ""
     },
