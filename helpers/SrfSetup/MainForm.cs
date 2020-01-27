@@ -18,7 +18,7 @@ namespace SrfSetup
     public partial class MainForm : DarkForm
     {
         #region [ Properties ]
-
+        protected PreferencesManager PrefManager { get; set; }
         #endregion
 
 
@@ -32,34 +32,54 @@ namespace SrfSetup
 
 
 
-
+        #region [ Load ]
         private void MainForm_Load(object sender, EventArgs e)
         {
-            //get the full location of the assembly with DaoTests in it
-            LoadSrfPreferences();
-            
-            //get the folder that's in
-            //FileInfo f = new FileInfo(_path);
-            //Debug.Write($"Path: {_path}");
+            PrefManager = new PreferencesManager();
+            PrefManager.Load();
+        }
+        #endregion
+
+        private void Btn_SaveCredential_Click(object sender, EventArgs e)
+        {
+            // PrefManager.Save();
         }
 
-
-        private void LoadSrfPreferences()
+        private void Btn_PopFolderBrowser_Click(object sender, EventArgs e)
         {
-            // Movie movie1 = JsonConvert.DeserializeObject<Movie>(File.ReadAllText(@"c:\movie.json"));
-            FileInfo exePath = new FileInfo(Assembly.GetExecutingAssembly().Location);
+            if (FolderBrowser_SysMonConfigDir.ShowDialog() == DialogResult.OK)
+            {
+                TxtBx_SysMonConfigDir.Text = FolderBrowser_SysMonConfigDir.SelectedPath;
+            }
 
-            string _srfPreferencesPath = Path.Combine(exePath.Directory.FullName, SrfResources.SrfPreferencesPath);
-            if (! File.Exists(_srfPreferencesPath)) 
+        }
+
+        private void Check_SysMonHost_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Check_SysMonHost.Checked)
             {
-                throw new FileNotFoundException($"Unable to load SrfPreferences.json file. Path: {_srfPreferencesPath}");
+                TxtBx_SysMonConfigDir.Enabled = true;
+                Btn_PopFolderBrowser.Enabled = true;
+                StatusStripLabel.Text = "SysMon Host Enabled";
+                return;
             }
-            // deserialize JSON directly from a file
-            using (StreamReader file = File.OpenText(_srfPreferencesPath))
+            TxtBx_SysMonConfigDir.Enabled = false;
+            Btn_PopFolderBrowser.Enabled = false;
+            StatusStripLabel.Text = "SysMon Host Disabled";
+        }
+
+        private void SysMonConfigDir_Validate(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (! Directory.Exists(TxtBx_SysMonConfigDir.Text))
             {
-                JsonSerializer serializer = new JsonSerializer();
-                LrDeployment deployment = (LrDeployment)serializer.Deserialize(file, typeof(LrDeployment));
+                StatusStripLabel.Text = "Directory does not exist.";
+                StatusStripLabel.ForeColor = Color.Red;
+                TxtBx_SysMonConfigDir.Focus();
+                TxtBx_SysMonConfigDir.SelectAll();
+                return;
             }
+            StatusStripLabel.Text = "Ready";
+            StatusStripLabel.ForeColor = Color.FromArgb(220, 220, 220);
         }
     }
 }

@@ -61,6 +61,16 @@ namespace SrfSetup {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap folder_outline_small {
+            get {
+                object obj = ResourceManager.GetObject("folder_outline_small", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to src\include\SrfPreferences.json.
         /// </summary>
         internal static string SrfPreferencesPath {

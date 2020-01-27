@@ -9,7 +9,7 @@ namespace SrfSetup
         public Uri CaseApiBaseUrl { get; set; }
         public Uri AieApiUrl { get; set; }
         public string LrApiCredentialPath { get; set; }
-        public PSCredential LrApiCredential { get; set; }
+        public string LrApiCredential { get; set; }
         #endregion
     }
 }
