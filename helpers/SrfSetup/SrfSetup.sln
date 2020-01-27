@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SrfSetup", "SrfSetup.csproj", "{1A0F9B2A-5558-40D4-A8E1-A28E56B1E4C6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1A0F9B2A-5558-40D4-A8E1-A28E56B1E4C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A0F9B2A-5558-40D4-A8E1-A28E56B1E4C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A0F9B2A-5558-40D4-A8E1-A28E56B1E4C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A0F9B2A-5558-40D4-A8E1-A28E56B1E4C6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5A4F1F05-C4CC-48DF-BF81-AD5B37ED074D}
+	EndGlobalSection
+EndGlobal
