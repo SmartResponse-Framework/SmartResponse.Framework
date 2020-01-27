@@ -41,18 +41,23 @@
             this.Title_UserName = new DarkUI.Controls.DarkTitle();
             this.SectionPanel_Preferences = new DarkUI.Controls.DarkSectionPanel();
             this.Panel_Preferences_Left = new System.Windows.Forms.Panel();
+            this.Panel_SysMonConfigDir = new System.Windows.Forms.Panel();
+            this.TxtBx_SysMonConfigDir = new DarkUI.Controls.DarkTextBox();
+            this.Btn_PopFolderBrowser = new System.Windows.Forms.Button();
+            this.darkTitle1 = new DarkUI.Controls.DarkTitle();
             this.Check_SysMonHost = new DarkUI.Controls.DarkCheckBox();
             this.FolderBrowser_SysMonConfigDir = new System.Windows.Forms.FolderBrowserDialog();
-            this.Btn_PopFolderBrowser = new System.Windows.Forms.Button();
-            this.TxtBx_SysMonConfigDir = new DarkUI.Controls.DarkTextBox();
-            this.Panel_SysMonConfigDir = new System.Windows.Forms.Panel();
-            this.darkTitle1 = new DarkUI.Controls.DarkTitle();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.darkTextBox1 = new DarkUI.Controls.DarkTextBox();
+            this.button1 = new System.Windows.Forms.Button();
+            this.darkTitle2 = new DarkUI.Controls.DarkTitle();
             this.StatusStrip.SuspendLayout();
             this.SectionPanel_ApiToken.SuspendLayout();
             this.Panel_ApiToken.SuspendLayout();
             this.SectionPanel_Preferences.SuspendLayout();
             this.Panel_Preferences_Left.SuspendLayout();
             this.Panel_SysMonConfigDir.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // Btn_SaveCredential
@@ -76,7 +81,7 @@
             this.StatusStrip.Location = new System.Drawing.Point(0, 283);
             this.StatusStrip.Name = "StatusStrip";
             this.StatusStrip.Padding = new System.Windows.Forms.Padding(0, 5, 0, 3);
-            this.StatusStrip.Size = new System.Drawing.Size(652, 24);
+            this.StatusStrip.Size = new System.Drawing.Size(738, 24);
             this.StatusStrip.SizingGrip = false;
             this.StatusStrip.TabIndex = 1;
             this.StatusStrip.Text = "Test";
@@ -177,11 +182,12 @@
             this.SectionPanel_Preferences.Location = new System.Drawing.Point(180, 0);
             this.SectionPanel_Preferences.Name = "SectionPanel_Preferences";
             this.SectionPanel_Preferences.SectionHeader = "Preferences";
-            this.SectionPanel_Preferences.Size = new System.Drawing.Size(472, 283);
+            this.SectionPanel_Preferences.Size = new System.Drawing.Size(558, 283);
             this.SectionPanel_Preferences.TabIndex = 3;
             // 
             // Panel_Preferences_Left
             // 
+            this.Panel_Preferences_Left.Controls.Add(this.panel1);
             this.Panel_Preferences_Left.Controls.Add(this.Panel_SysMonConfigDir);
             this.Panel_Preferences_Left.Controls.Add(this.Check_SysMonHost);
             this.Panel_Preferences_Left.Dock = System.Windows.Forms.DockStyle.Left;
@@ -191,15 +197,29 @@
             this.Panel_Preferences_Left.Size = new System.Drawing.Size(412, 257);
             this.Panel_Preferences_Left.TabIndex = 0;
             // 
-            // Check_SysMonHost
+            // Panel_SysMonConfigDir
             // 
-            this.Check_SysMonHost.Dock = System.Windows.Forms.DockStyle.Top;
-            this.Check_SysMonHost.Location = new System.Drawing.Point(10, 10);
-            this.Check_SysMonHost.Name = "Check_SysMonHost";
-            this.Check_SysMonHost.Size = new System.Drawing.Size(392, 17);
-            this.Check_SysMonHost.TabIndex = 0;
-            this.Check_SysMonHost.Text = "Configure for SysMon Host";
-            this.Check_SysMonHost.CheckedChanged += new System.EventHandler(this.Check_SysMonHost_CheckedChanged);
+            this.Panel_SysMonConfigDir.Controls.Add(this.TxtBx_SysMonConfigDir);
+            this.Panel_SysMonConfigDir.Controls.Add(this.Btn_PopFolderBrowser);
+            this.Panel_SysMonConfigDir.Controls.Add(this.darkTitle1);
+            this.Panel_SysMonConfigDir.Dock = System.Windows.Forms.DockStyle.Top;
+            this.Panel_SysMonConfigDir.Location = new System.Drawing.Point(10, 27);
+            this.Panel_SysMonConfigDir.Name = "Panel_SysMonConfigDir";
+            this.Panel_SysMonConfigDir.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
+            this.Panel_SysMonConfigDir.Size = new System.Drawing.Size(392, 49);
+            this.Panel_SysMonConfigDir.TabIndex = 1;
+            // 
+            // TxtBx_SysMonConfigDir
+            // 
+            this.TxtBx_SysMonConfigDir.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(69)))), ((int)(((byte)(73)))), ((int)(((byte)(74)))));
+            this.TxtBx_SysMonConfigDir.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TxtBx_SysMonConfigDir.Dock = System.Windows.Forms.DockStyle.Left;
+            this.TxtBx_SysMonConfigDir.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            this.TxtBx_SysMonConfigDir.Location = new System.Drawing.Point(0, 23);
+            this.TxtBx_SysMonConfigDir.Name = "TxtBx_SysMonConfigDir";
+            this.TxtBx_SysMonConfigDir.Size = new System.Drawing.Size(356, 22);
+            this.TxtBx_SysMonConfigDir.TabIndex = 3;
+            this.TxtBx_SysMonConfigDir.Validating += new System.ComponentModel.CancelEventHandler(this.SysMonConfigDir_Validate);
             // 
             // Btn_PopFolderBrowser
             // 
@@ -214,30 +234,6 @@
             this.Btn_PopFolderBrowser.UseVisualStyleBackColor = true;
             this.Btn_PopFolderBrowser.Click += new System.EventHandler(this.Btn_PopFolderBrowser_Click);
             // 
-            // TxtBx_SysMonConfigDir
-            // 
-            this.TxtBx_SysMonConfigDir.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(69)))), ((int)(((byte)(73)))), ((int)(((byte)(74)))));
-            this.TxtBx_SysMonConfigDir.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.TxtBx_SysMonConfigDir.Dock = System.Windows.Forms.DockStyle.Left;
-            this.TxtBx_SysMonConfigDir.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
-            this.TxtBx_SysMonConfigDir.Location = new System.Drawing.Point(0, 23);
-            this.TxtBx_SysMonConfigDir.Name = "TxtBx_SysMonConfigDir";
-            this.TxtBx_SysMonConfigDir.Size = new System.Drawing.Size(356, 22);
-            this.TxtBx_SysMonConfigDir.TabIndex = 3;
-            this.TxtBx_SysMonConfigDir.Validating += new System.ComponentModel.CancelEventHandler(this.SysMonConfigDir_Validate);
-            // 
-            // Panel_SysMonConfigDir
-            // 
-            this.Panel_SysMonConfigDir.Controls.Add(this.TxtBx_SysMonConfigDir);
-            this.Panel_SysMonConfigDir.Controls.Add(this.Btn_PopFolderBrowser);
-            this.Panel_SysMonConfigDir.Controls.Add(this.darkTitle1);
-            this.Panel_SysMonConfigDir.Dock = System.Windows.Forms.DockStyle.Top;
-            this.Panel_SysMonConfigDir.Location = new System.Drawing.Point(10, 27);
-            this.Panel_SysMonConfigDir.Name = "Panel_SysMonConfigDir";
-            this.Panel_SysMonConfigDir.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
-            this.Panel_SysMonConfigDir.Size = new System.Drawing.Size(392, 49);
-            this.Panel_SysMonConfigDir.TabIndex = 1;
-            // 
             // darkTitle1
             // 
             this.darkTitle1.Dock = System.Windows.Forms.DockStyle.Top;
@@ -247,11 +243,65 @@
             this.darkTitle1.TabIndex = 0;
             this.darkTitle1.Text = "SysMon Config Dir";
             // 
+            // Check_SysMonHost
+            // 
+            this.Check_SysMonHost.Dock = System.Windows.Forms.DockStyle.Top;
+            this.Check_SysMonHost.Location = new System.Drawing.Point(10, 10);
+            this.Check_SysMonHost.Name = "Check_SysMonHost";
+            this.Check_SysMonHost.Size = new System.Drawing.Size(392, 17);
+            this.Check_SysMonHost.TabIndex = 0;
+            this.Check_SysMonHost.Text = "Configure for SysMon Host";
+            this.Check_SysMonHost.CheckedChanged += new System.EventHandler(this.Check_SysMonHost_CheckedChanged);
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.darkTextBox1);
+            this.panel1.Controls.Add(this.button1);
+            this.panel1.Controls.Add(this.darkTitle2);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel1.Location = new System.Drawing.Point(10, 76);
+            this.panel1.Name = "panel1";
+            this.panel1.Padding = new System.Windows.Forms.Padding(0, 10, 0, 0);
+            this.panel1.Size = new System.Drawing.Size(392, 54);
+            this.panel1.TabIndex = 2;
+            // 
+            // darkTextBox1
+            // 
+            this.darkTextBox1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(69)))), ((int)(((byte)(73)))), ((int)(((byte)(74)))));
+            this.darkTextBox1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.darkTextBox1.Dock = System.Windows.Forms.DockStyle.Left;
+            this.darkTextBox1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            this.darkTextBox1.Location = new System.Drawing.Point(0, 28);
+            this.darkTextBox1.Name = "darkTextBox1";
+            this.darkTextBox1.Size = new System.Drawing.Size(356, 22);
+            this.darkTextBox1.TabIndex = 6;
+            // 
+            // button1
+            // 
+            this.button1.Dock = System.Windows.Forms.DockStyle.Right;
+            this.button1.FlatAppearance.BorderSize = 0;
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button1.Image = global::SrfSetup.SrfResources.folder_outline_small;
+            this.button1.Location = new System.Drawing.Point(362, 28);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(30, 26);
+            this.button1.TabIndex = 5;
+            this.button1.UseVisualStyleBackColor = true;
+            // 
+            // darkTitle2
+            // 
+            this.darkTitle2.Dock = System.Windows.Forms.DockStyle.Top;
+            this.darkTitle2.Location = new System.Drawing.Point(0, 10);
+            this.darkTitle2.Name = "darkTitle2";
+            this.darkTitle2.Size = new System.Drawing.Size(392, 18);
+            this.darkTitle2.TabIndex = 4;
+            this.darkTitle2.Text = "Cmdlet Log Dir";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(652, 307);
+            this.ClientSize = new System.Drawing.Size(738, 307);
             this.Controls.Add(this.SectionPanel_Preferences);
             this.Controls.Add(this.SectionPanel_ApiToken);
             this.Controls.Add(this.StatusStrip);
@@ -268,6 +318,8 @@
             this.Panel_Preferences_Left.ResumeLayout(false);
             this.Panel_SysMonConfigDir.ResumeLayout(false);
             this.Panel_SysMonConfigDir.PerformLayout();
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -292,6 +344,10 @@
         private DarkUI.Controls.DarkTextBox TxtBx_SysMonConfigDir;
         private System.Windows.Forms.Panel Panel_SysMonConfigDir;
         private DarkUI.Controls.DarkTitle darkTitle1;
+        private System.Windows.Forms.Panel panel1;
+        private DarkUI.Controls.DarkTextBox darkTextBox1;
+        private System.Windows.Forms.Button button1;
+        private DarkUI.Controls.DarkTitle darkTitle2;
     }
 }
 
