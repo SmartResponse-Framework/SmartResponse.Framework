@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CredentialHelper.cs" />
     <Compile Include="LrDeployment.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>

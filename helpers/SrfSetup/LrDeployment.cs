@@ -1,15 +1,88 @@
 ﻿using System;
-using System.Management.Automation;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
+
 namespace SrfSetup
 {
-    public class LrDeployment
+    public class LrDeployment : INotifyPropertyChanged
     {
+        #region [ INotifyPropertyChanged ]
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+
+
         #region [ Properties ]
-        public Uri AdminApiBaseUrl { get; set; }
-        public Uri CaseApiBaseUrl { get; set; }
-        public Uri AieApiUrl { get; set; }
-        public string LrApiCredentialPath { get; set; }
-        public string LrApiCredential { get; set; }
+
+        private Uri _adminApiBaseUrl;
+        public Uri AdminApiBaseUrl
+        {
+            get { return _adminApiBaseUrl; }
+            set
+            {
+                if (Equals(value, _adminApiBaseUrl)) return;
+                _adminApiBaseUrl = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        private Uri _caseApiBaseUrl;
+        public Uri CaseApiBaseUrl
+        {
+            get { return _caseApiBaseUrl; }
+            set
+            {
+                if (Equals(value, _caseApiBaseUrl)) return;
+                _caseApiBaseUrl = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        private Uri _aieApiUrl;
+        public Uri AieApiUrl
+        {
+            get { return _aieApiUrl; }
+            set
+            {
+                if (Equals(value, _aieApiUrl)) return;
+                _aieApiUrl = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        private string _lrApiCredentialPath;
+        public string LrApiCredentialPath
+        {
+            get { return _lrApiCredentialPath; }
+            set
+            {
+                if (Equals(value, _lrApiCredentialPath)) return;
+                _lrApiCredentialPath = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        private string _lrApiCredential;
+        public string LrApiCredential
+        {
+            get { return _lrApiCredential; }
+            set
+            {
+                if (Equals(value, _lrApiCredential)) return;
+                _lrApiCredential = value;
+                OnPropertyChanged();
+            }
+        }
+
         #endregion
     }
 }
