@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Get-LRListGuidByName {
+Function Get-LrListGuidByName {
     <#
     .SYNOPSIS
         Get the unique identifier for a list, based on a search by list name.
@@ -12,6 +12,8 @@ Function Get-LRListGuidByName {
         PSCredential containing an API Token in the Password field.
     .PARAMETER Name
         The name of the object or regex match.
+    .PARAMETER Exact
+        Switch to force PARAMETER Name to be matched explicitly.
     .INPUTS
         The Name parameter can be passed through the pipeline. (Does not support array)
     .OUTPUTS
@@ -27,38 +29,33 @@ Function Get-LRListGuidByName {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true,Position=0)]
+        [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
 
         [Parameter(Mandatory=$true,Position=1, ValueFromPipeline=$true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Name
+        [string] $Name,
+
+        [Parameter(Mandatory = $false, Position=2)]
+        [switch] $Exact
     )
 
     Begin {
-        $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
-        $Method = $HttpMethod.Get
-        $Token = $Credential.GetNetworkCredential().Password
     }
 
 
     Process {
-        Write-Verbose $BaseUrl
-
-        ## Script API Setup
-        $Token = $Credential.GetNetworkCredential().Password
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("name", $Name)
-        $RequestUrl = $BaseUrl + "/lists/"
 
         try {
-            $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method
+            if ($Exact) {
+                $Response = Get-LrLists -Name $Name -Exact
+            } else {
+                $Response = Get-LrLists -Name $Name
+            }
         }
         catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            Write-Error "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)"
+            $PSCmdlet.ThrowTerminatingError($PSItem)
         }
     
         if ($Response) {

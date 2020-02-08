@@ -82,7 +82,7 @@ Function Get-Secret {
         $Verbose = $true
     }
     # Trust all certs, use Tls1.2
-    Write-IfVerbose "Calling Enable-TrustAllCertsPolicy from ApiHelper.dll" $Verbose -ForegroundColor Yellow
+    Write-Verbose "Calling Enable-TrustAllCertsPolicy from ApiHelper.dll"
     Enable-TrustAllCertsPolicy
     # Set Return Object
     $ReturnCredential = $null
@@ -94,7 +94,7 @@ Function Get-Secret {
     # Load Credential File if provided.
     if ($AuthFilePath) {
         if (Test-Path $AuthFilePath) {
-            Write-IfVerbose "Loading SecretServer credential from: $AuthFilePath" $Verbose
+            Write-Verbose "Loading SecretServer credential from: $AuthFilePath"
             try {
                 $Credential = Import-CliXml -Path $AuthFilePath
             }
@@ -112,7 +112,7 @@ Function Get-Secret {
     #region: Authenticate to Secret Server
     try {
         if ($Credential) {
-            Write-IfVerbose "SecretServer authentication $($Credential.UserName)" $Verbose -ForegroundColor Yellow
+            Write-Verbose "SecretServer authentication $($Credential.UserName)"
             $SecretServerService = New-WebServiceProxy -uri $SecretServerUrl -Credential $Credential -ErrorAction Stop
         } else {
             $SecretServerService = New-WebServiceProxy -uri $SecretServerUrl -UseDefaultCredential -ErrorAction Stop

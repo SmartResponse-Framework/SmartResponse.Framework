@@ -5,9 +5,8 @@
     }],
 	"settings": 
 	{
-		"workbench.colorCustomizations": { "titleBar.activeBackground": "#704172" },
+		"workbench.colorCustomizations": { "titleBar.activeBackground": "#258525" },
 		"window.title": "(Community) SmartResponse.Framework",
-		"explorer.decorations.badges": false,
 
 		"files.exclude": {
 			"*.code-workspace": true,

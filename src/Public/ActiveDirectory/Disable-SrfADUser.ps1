@@ -29,13 +29,13 @@ Function Disable-SrfADUser {
     # Get Domain
     $Domain = Get-ADDomain
     if (!$Domain) {
-        Write-IfVerbose "[$ThisFunction]: Could not determine current domain." $Verbose 
+        Write-Verbose "[$ThisFunction]: Could not determine current domain."
         return $false
     }
 
     # Check User Account
     if (!(Test-SrfADUserExists $Identity)) {
-        Write-IfVerbose "[$ThisFunction]: Could not find user [$Identity]" $Verbose
+        Write-Verbose "[$ThisFunction]: Could not find user [$Identity]."
         return $false
     }
 
@@ -43,13 +43,13 @@ Function Disable-SrfADUser {
         Get-ADUser -Identity $Identity | Disable-ADAccount -Credential $Credential -ErrorAction Stop
     }
     catch [exception] {
-        Write-IfVerbose "[$ThisFunction]: Error encoutered while trying to disable [$Identity]" $Verbose 
+        Write-Verbose "[$ThisFunction]: Error encoutered while trying to disable [$Identity]"
         return $false
     }
 
     $Detail = Get-ADUser -Identity $Identity -Properties Enabled
     if (-not ($Detail.Enabled)) {
-        Write-IfVerbose "Account successfully disabled"  $Verbose -ForegroundColor Green
+        Write-Verbose "Account successfully disabled."
         return $true
     } else {
         return $false

@@ -56,7 +56,7 @@ Function Get-LrAieDrilldown {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $SrfPreferences.LRDeployment.AieApiUrl
+        $BaseUrl = $SrfPreferences.LrDeployment.AieApiUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2

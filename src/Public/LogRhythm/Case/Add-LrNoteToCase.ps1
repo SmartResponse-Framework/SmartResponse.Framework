@@ -80,7 +80,7 @@ Function Add-LrNoteToCase {
 
         # Request Body
         $Body = [PSCustomObject]@{ text = $Text } | ConvertTo-Json
-        Write-Verbose "Body:`n$Body"
+        Write-Verbose "[$Me] Request Body:`n$Body"
 
         # REQUEST
         try {
