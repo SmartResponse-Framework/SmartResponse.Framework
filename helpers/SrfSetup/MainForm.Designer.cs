@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.Btn_SaveCredential = new DarkUI.Controls.DarkButton();
             this.StatusStrip = new DarkUI.Controls.DarkStatusStrip();
@@ -36,25 +37,29 @@
             this.Panel_ApiToken = new System.Windows.Forms.Panel();
             this.TxtBx_Password = new DarkUI.Controls.DarkTextBox();
             this.Title_Password = new DarkUI.Controls.DarkTitle();
-            this.darkLabel1 = new DarkUI.Controls.DarkLabel();
+            this._labelSpacer = new DarkUI.Controls.DarkLabel();
             this.TxtBx_UserName = new DarkUI.Controls.DarkTextBox();
             this.Title_UserName = new DarkUI.Controls.DarkTitle();
             this.SectionPanel_Preferences = new DarkUI.Controls.DarkSectionPanel();
-            this.Panel_Preferences_Left = new System.Windows.Forms.Panel();
-            this.Panel_Buffer = new System.Windows.Forms.Panel();
-            this.Panel_SysMonConfigDir = new System.Windows.Forms.Panel();
-            this.TxtBx_SysMonConfigDir = new DarkUI.Controls.DarkTextBox();
-            this.Btn_PopFolderBrowser = new System.Windows.Forms.Button();
-            this.darkTitle1 = new DarkUI.Controls.DarkTitle();
-            this.Check_SysMonHost = new DarkUI.Controls.DarkCheckBox();
+            this.SectionPanel_ModuleStatus = new DarkUI.Controls.DarkSectionPanel();
+            this.Table_ModuleStatus = new System.Windows.Forms.TableLayoutPanel();
+            this.Label_Installed = new DarkUI.Controls.DarkLabel();
+            this._label_Installed = new DarkUI.Controls.DarkLabel();
+            this.Panel_PlatformMgr = new System.Windows.Forms.Panel();
+            this.TxtBx_PM = new DarkUI.Controls.DarkTextBox();
+            this.Label_PM = new DarkUI.Controls.DarkTitle();
             this.FolderBrowser_SysMonConfigDir = new System.Windows.Forms.FolderBrowserDialog();
             this.Save_TokenDialog = new System.Windows.Forms.SaveFileDialog();
+            this.Tip_Token = new System.Windows.Forms.ToolTip(this.components);
+            this.darkLabel1 = new DarkUI.Controls.DarkLabel();
+            this.darkLabel2 = new DarkUI.Controls.DarkLabel();
             this.StatusStrip.SuspendLayout();
             this.SectionPanel_ApiToken.SuspendLayout();
             this.Panel_ApiToken.SuspendLayout();
             this.SectionPanel_Preferences.SuspendLayout();
-            this.Panel_Preferences_Left.SuspendLayout();
-            this.Panel_SysMonConfigDir.SuspendLayout();
+            this.SectionPanel_ModuleStatus.SuspendLayout();
+            this.Table_ModuleStatus.SuspendLayout();
+            this.Panel_PlatformMgr.SuspendLayout();
             this.SuspendLayout();
             // 
             // Btn_SaveCredential
@@ -108,7 +113,7 @@
             // 
             this.Panel_ApiToken.Controls.Add(this.TxtBx_Password);
             this.Panel_ApiToken.Controls.Add(this.Title_Password);
-            this.Panel_ApiToken.Controls.Add(this.darkLabel1);
+            this.Panel_ApiToken.Controls.Add(this._labelSpacer);
             this.Panel_ApiToken.Controls.Add(this.TxtBx_UserName);
             this.Panel_ApiToken.Controls.Add(this.Title_UserName);
             this.Panel_ApiToken.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -141,14 +146,14 @@
             this.Title_Password.TabIndex = 5;
             this.Title_Password.Text = "Token";
             // 
-            // darkLabel1
+            // _labelSpacer
             // 
-            this.darkLabel1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.darkLabel1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
-            this.darkLabel1.Location = new System.Drawing.Point(10, 48);
-            this.darkLabel1.Name = "darkLabel1";
-            this.darkLabel1.Size = new System.Drawing.Size(158, 10);
-            this.darkLabel1.TabIndex = 4;
+            this._labelSpacer.Dock = System.Windows.Forms.DockStyle.Top;
+            this._labelSpacer.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            this._labelSpacer.Location = new System.Drawing.Point(10, 48);
+            this._labelSpacer.Name = "_labelSpacer";
+            this._labelSpacer.Size = new System.Drawing.Size(158, 10);
+            this._labelSpacer.TabIndex = 4;
             // 
             // TxtBx_UserName
             // 
@@ -170,95 +175,135 @@
             this.Title_UserName.Name = "Title_UserName";
             this.Title_UserName.Size = new System.Drawing.Size(158, 18);
             this.Title_UserName.TabIndex = 0;
-            this.Title_UserName.Text = "Label";
+            this.Title_UserName.Text = "Account Name";
+            this.Tip_Token.SetToolTip(this.Title_UserName, "Name of the LogRhythm account \r\nassociated with this API Token.");
             // 
             // SectionPanel_Preferences
             // 
-            this.SectionPanel_Preferences.Controls.Add(this.Panel_Preferences_Left);
+            this.SectionPanel_Preferences.Controls.Add(this.SectionPanel_ModuleStatus);
+            this.SectionPanel_Preferences.Controls.Add(this.Panel_PlatformMgr);
             this.SectionPanel_Preferences.Dock = System.Windows.Forms.DockStyle.Left;
             this.SectionPanel_Preferences.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SectionPanel_Preferences.Location = new System.Drawing.Point(180, 0);
             this.SectionPanel_Preferences.Name = "SectionPanel_Preferences";
-            this.SectionPanel_Preferences.SectionHeader = "Preferences";
-            this.SectionPanel_Preferences.Size = new System.Drawing.Size(269, 370);
+            this.SectionPanel_Preferences.SectionHeader = "LogRhythm Deployment";
+            this.SectionPanel_Preferences.Size = new System.Drawing.Size(200, 370);
             this.SectionPanel_Preferences.TabIndex = 3;
             // 
-            // Panel_Preferences_Left
+            // SectionPanel_ModuleStatus
             // 
-            this.Panel_Preferences_Left.Controls.Add(this.Panel_Buffer);
-            this.Panel_Preferences_Left.Controls.Add(this.Panel_SysMonConfigDir);
-            this.Panel_Preferences_Left.Controls.Add(this.Check_SysMonHost);
-            this.Panel_Preferences_Left.Dock = System.Windows.Forms.DockStyle.Left;
-            this.Panel_Preferences_Left.Location = new System.Drawing.Point(1, 25);
-            this.Panel_Preferences_Left.Name = "Panel_Preferences_Left";
-            this.Panel_Preferences_Left.Padding = new System.Windows.Forms.Padding(10);
-            this.Panel_Preferences_Left.Size = new System.Drawing.Size(267, 344);
-            this.Panel_Preferences_Left.TabIndex = 0;
+            this.SectionPanel_ModuleStatus.Controls.Add(this.Table_ModuleStatus);
+            this.SectionPanel_ModuleStatus.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.SectionPanel_ModuleStatus.Location = new System.Drawing.Point(1, 111);
+            this.SectionPanel_ModuleStatus.Name = "SectionPanel_ModuleStatus";
+            this.SectionPanel_ModuleStatus.SectionHeader = "Module Status";
+            this.SectionPanel_ModuleStatus.Size = new System.Drawing.Size(198, 258);
+            this.SectionPanel_ModuleStatus.TabIndex = 5;
             // 
-            // Panel_Buffer
+            // Table_ModuleStatus
             // 
-            this.Panel_Buffer.Dock = System.Windows.Forms.DockStyle.Top;
-            this.Panel_Buffer.Location = new System.Drawing.Point(10, 76);
-            this.Panel_Buffer.Name = "Panel_Buffer";
-            this.Panel_Buffer.Size = new System.Drawing.Size(247, 27);
-            this.Panel_Buffer.TabIndex = 2;
+            this.Table_ModuleStatus.ColumnCount = 2;
+            this.Table_ModuleStatus.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 46.93877F));
+            this.Table_ModuleStatus.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 53.06123F));
+            this.Table_ModuleStatus.Controls.Add(this.darkLabel2, 1, 1);
+            this.Table_ModuleStatus.Controls.Add(this.Label_Installed, 1, 0);
+            this.Table_ModuleStatus.Controls.Add(this._label_Installed, 0, 0);
+            this.Table_ModuleStatus.Controls.Add(this.darkLabel1, 0, 1);
+            this.Table_ModuleStatus.Dock = System.Windows.Forms.DockStyle.Top;
+            this.Table_ModuleStatus.Location = new System.Drawing.Point(1, 25);
+            this.Table_ModuleStatus.Name = "Table_ModuleStatus";
+            this.Table_ModuleStatus.RowCount = 3;
+            this.Table_ModuleStatus.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 22F));
+            this.Table_ModuleStatus.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 22F));
+            this.Table_ModuleStatus.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 67F));
+            this.Table_ModuleStatus.Size = new System.Drawing.Size(196, 101);
+            this.Table_ModuleStatus.TabIndex = 0;
+            this.Table_ModuleStatus.Paint += new System.Windows.Forms.PaintEventHandler(this.Table_ModuleStatus_Paint);
             // 
-            // Panel_SysMonConfigDir
+            // Label_Installed
             // 
-            this.Panel_SysMonConfigDir.Controls.Add(this.TxtBx_SysMonConfigDir);
-            this.Panel_SysMonConfigDir.Controls.Add(this.Btn_PopFolderBrowser);
-            this.Panel_SysMonConfigDir.Controls.Add(this.darkTitle1);
-            this.Panel_SysMonConfigDir.Dock = System.Windows.Forms.DockStyle.Top;
-            this.Panel_SysMonConfigDir.Location = new System.Drawing.Point(10, 27);
-            this.Panel_SysMonConfigDir.Name = "Panel_SysMonConfigDir";
-            this.Panel_SysMonConfigDir.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
-            this.Panel_SysMonConfigDir.Size = new System.Drawing.Size(247, 49);
-            this.Panel_SysMonConfigDir.TabIndex = 1;
+            this.Label_Installed.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.Label_Installed.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            this.Label_Installed.Location = new System.Drawing.Point(94, 6);
+            this.Label_Installed.Name = "Label_Installed";
+            this.Label_Installed.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.Label_Installed.Size = new System.Drawing.Size(99, 16);
+            this.Label_Installed.TabIndex = 1;
+            this.Label_Installed.Text = "No";
             // 
-            // TxtBx_SysMonConfigDir
+            // _label_Installed
             // 
-            this.TxtBx_SysMonConfigDir.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(69)))), ((int)(((byte)(73)))), ((int)(((byte)(74)))));
-            this.TxtBx_SysMonConfigDir.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.TxtBx_SysMonConfigDir.Dock = System.Windows.Forms.DockStyle.Left;
-            this.TxtBx_SysMonConfigDir.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
-            this.TxtBx_SysMonConfigDir.Location = new System.Drawing.Point(0, 23);
-            this.TxtBx_SysMonConfigDir.Name = "TxtBx_SysMonConfigDir";
-            this.TxtBx_SysMonConfigDir.Size = new System.Drawing.Size(211, 22);
-            this.TxtBx_SysMonConfigDir.TabIndex = 3;
-            this.TxtBx_SysMonConfigDir.Validating += new System.ComponentModel.CancelEventHandler(this.SysMonConfigDir_Validate);
+            this._label_Installed.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this._label_Installed.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            this._label_Installed.Location = new System.Drawing.Point(3, 6);
+            this._label_Installed.Name = "_label_Installed";
+            this._label_Installed.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this._label_Installed.Size = new System.Drawing.Size(85, 16);
+            this._label_Installed.TabIndex = 0;
+            this._label_Installed.Text = "Installed";
             // 
-            // Btn_PopFolderBrowser
+            // Panel_PlatformMgr
             // 
-            this.Btn_PopFolderBrowser.Dock = System.Windows.Forms.DockStyle.Right;
-            this.Btn_PopFolderBrowser.FlatAppearance.BorderSize = 0;
-            this.Btn_PopFolderBrowser.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.Btn_PopFolderBrowser.Image = global::SrfSetup.SrfResources.folder_outline_small;
-            this.Btn_PopFolderBrowser.Location = new System.Drawing.Point(217, 23);
-            this.Btn_PopFolderBrowser.Name = "Btn_PopFolderBrowser";
-            this.Btn_PopFolderBrowser.Size = new System.Drawing.Size(30, 26);
-            this.Btn_PopFolderBrowser.TabIndex = 2;
-            this.Btn_PopFolderBrowser.UseVisualStyleBackColor = true;
-            this.Btn_PopFolderBrowser.Click += new System.EventHandler(this.Btn_PopFolderBrowser_Click);
+            this.Panel_PlatformMgr.Controls.Add(this.TxtBx_PM);
+            this.Panel_PlatformMgr.Controls.Add(this.Label_PM);
+            this.Panel_PlatformMgr.Dock = System.Windows.Forms.DockStyle.Top;
+            this.Panel_PlatformMgr.Location = new System.Drawing.Point(1, 25);
+            this.Panel_PlatformMgr.Name = "Panel_PlatformMgr";
+            this.Panel_PlatformMgr.Padding = new System.Windows.Forms.Padding(10);
+            this.Panel_PlatformMgr.Size = new System.Drawing.Size(198, 86);
+            this.Panel_PlatformMgr.TabIndex = 4;
             // 
-            // darkTitle1
+            // TxtBx_PM
             // 
-            this.darkTitle1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.darkTitle1.Location = new System.Drawing.Point(0, 5);
-            this.darkTitle1.Name = "darkTitle1";
-            this.darkTitle1.Size = new System.Drawing.Size(247, 18);
-            this.darkTitle1.TabIndex = 0;
-            this.darkTitle1.Text = "SysMon Config Dir";
+            this.TxtBx_PM.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(69)))), ((int)(((byte)(73)))), ((int)(((byte)(74)))));
+            this.TxtBx_PM.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TxtBx_PM.Dock = System.Windows.Forms.DockStyle.Top;
+            this.TxtBx_PM.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TxtBx_PM.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            this.TxtBx_PM.Location = new System.Drawing.Point(10, 28);
+            this.TxtBx_PM.Name = "TxtBx_PM";
+            this.TxtBx_PM.Size = new System.Drawing.Size(178, 20);
+            this.TxtBx_PM.TabIndex = 4;
             // 
-            // Check_SysMonHost
+            // Label_PM
             // 
-            this.Check_SysMonHost.Dock = System.Windows.Forms.DockStyle.Top;
-            this.Check_SysMonHost.Location = new System.Drawing.Point(10, 10);
-            this.Check_SysMonHost.Name = "Check_SysMonHost";
-            this.Check_SysMonHost.Size = new System.Drawing.Size(247, 17);
-            this.Check_SysMonHost.TabIndex = 0;
-            this.Check_SysMonHost.Text = "Configure as SysMon Host";
-            this.Check_SysMonHost.CheckedChanged += new System.EventHandler(this.Check_SysMonHost_CheckedChanged);
-            this.Check_SysMonHost.Leave += new System.EventHandler(this.Check_SysMonHost_Leave);
+            this.Label_PM.Dock = System.Windows.Forms.DockStyle.Top;
+            this.Label_PM.Location = new System.Drawing.Point(10, 10);
+            this.Label_PM.Margin = new System.Windows.Forms.Padding(3, 0, 3, 12);
+            this.Label_PM.Name = "Label_PM";
+            this.Label_PM.Size = new System.Drawing.Size(178, 18);
+            this.Label_PM.TabIndex = 1;
+            this.Label_PM.Text = "Platform Manager Host";
+            this.Tip_Token.SetToolTip(this.Label_PM, "Name of the LogRhythm account \r\nassociated with this API Token.");
+            // 
+            // Tip_Token
+            // 
+            this.Tip_Token.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
+            this.Tip_Token.ToolTipTitle = "Info";
+            // 
+            // darkLabel1
+            // 
+            this.darkLabel1.AutoSize = true;
+            this.darkLabel1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.darkLabel1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            this.darkLabel1.Location = new System.Drawing.Point(3, 31);
+            this.darkLabel1.Name = "darkLabel1";
+            this.darkLabel1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.darkLabel1.Size = new System.Drawing.Size(85, 13);
+            this.darkLabel1.TabIndex = 2;
+            this.darkLabel1.Text = "Version";
+            // 
+            // darkLabel2
+            // 
+            this.darkLabel2.AutoSize = true;
+            this.darkLabel2.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.darkLabel2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(220)))), ((int)(((byte)(220)))));
+            this.darkLabel2.Location = new System.Drawing.Point(94, 31);
+            this.darkLabel2.Name = "darkLabel2";
+            this.darkLabel2.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
+            this.darkLabel2.Size = new System.Drawing.Size(99, 13);
+            this.darkLabel2.TabIndex = 3;
+            this.darkLabel2.Text = "1.2.1";
             // 
             // MainForm
             // 
@@ -278,9 +323,11 @@
             this.Panel_ApiToken.ResumeLayout(false);
             this.Panel_ApiToken.PerformLayout();
             this.SectionPanel_Preferences.ResumeLayout(false);
-            this.Panel_Preferences_Left.ResumeLayout(false);
-            this.Panel_SysMonConfigDir.ResumeLayout(false);
-            this.Panel_SysMonConfigDir.PerformLayout();
+            this.SectionPanel_ModuleStatus.ResumeLayout(false);
+            this.Table_ModuleStatus.ResumeLayout(false);
+            this.Table_ModuleStatus.PerformLayout();
+            this.Panel_PlatformMgr.ResumeLayout(false);
+            this.Panel_PlatformMgr.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -296,17 +343,20 @@
         private DarkUI.Controls.DarkTextBox TxtBx_UserName;
         private DarkUI.Controls.DarkTextBox TxtBx_Password;
         private DarkUI.Controls.DarkTitle Title_Password;
-        private DarkUI.Controls.DarkLabel darkLabel1;
+        private DarkUI.Controls.DarkLabel _labelSpacer;
         private DarkUI.Controls.DarkSectionPanel SectionPanel_Preferences;
-        private System.Windows.Forms.Panel Panel_Preferences_Left;
-        private DarkUI.Controls.DarkCheckBox Check_SysMonHost;
         private System.Windows.Forms.FolderBrowserDialog FolderBrowser_SysMonConfigDir;
-        private System.Windows.Forms.Button Btn_PopFolderBrowser;
-        private DarkUI.Controls.DarkTextBox TxtBx_SysMonConfigDir;
-        private System.Windows.Forms.Panel Panel_SysMonConfigDir;
-        private DarkUI.Controls.DarkTitle darkTitle1;
-        private System.Windows.Forms.Panel Panel_Buffer;
         private System.Windows.Forms.SaveFileDialog Save_TokenDialog;
+        private System.Windows.Forms.ToolTip Tip_Token;
+        private System.Windows.Forms.Panel Panel_PlatformMgr;
+        private DarkUI.Controls.DarkTitle Label_PM;
+        private DarkUI.Controls.DarkTextBox TxtBx_PM;
+        private DarkUI.Controls.DarkSectionPanel SectionPanel_ModuleStatus;
+        private System.Windows.Forms.TableLayoutPanel Table_ModuleStatus;
+        private DarkUI.Controls.DarkLabel Label_Installed;
+        private DarkUI.Controls.DarkLabel _label_Installed;
+        private DarkUI.Controls.DarkLabel darkLabel1;
+        private DarkUI.Controls.DarkLabel darkLabel2;
     }
 }
 

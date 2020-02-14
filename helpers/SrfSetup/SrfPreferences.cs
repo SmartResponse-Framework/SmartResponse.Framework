@@ -16,47 +16,6 @@ namespace SrfSetup
         #endregion
 
 
-
-        private bool _isSysMonAgent;
-        public bool IsSysMonAgent
-        {
-            get { return _isSysMonAgent; }
-            set
-            {
-                if (Equals(value, _isSysMonAgent)) return;
-                _isSysMonAgent = value;
-                OnPropertyChanged();
-            }
-        }
-
-
-        private string _sysMonConfigDir;
-        public string SysMonConfigDir
-        {
-            get { return _sysMonConfigDir; }
-            set
-            {
-                if (Equals(value, _sysMonConfigDir)) return;
-                _sysMonConfigDir = value;
-                OnPropertyChanged();
-            }
-        }
-
-
-        private string _srfLogsDir;
-        public string SrfLogsDir
-        {
-            get { return _srfLogsDir; }
-            set
-            {
-                if (Equals(value, _srfLogsDir)) return;
-                _srfLogsDir = value;
-                OnPropertyChanged();
-
-            }
-        }
-
-
         private LrDeployment _lrDeployment;
         public LrDeployment LrDeployment
         {

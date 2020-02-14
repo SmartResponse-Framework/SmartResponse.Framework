@@ -71,6 +71,9 @@ namespace SrfSetup
         }
 
 
+        // Note: Property not used in the context of this
+        // application.  This should always be blank until
+        // the PS module has loaded.
         private string _lrApiCredential;
         public string LrApiCredential
         {

@@ -105,5 +105,8 @@
   <ItemGroup>
     <None Include="Content\folder-outline-small.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="_archive.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

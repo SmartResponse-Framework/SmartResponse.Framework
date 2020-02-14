@@ -73,14 +73,6 @@ namespace SrfSetup
             bool _isValid = true;
 
             //TODO: This is a placeholder - need more elegant solution.
-            if (! Directory.Exists(Preferences.SysMonConfigDir))
-            {
-                _isValid = false;
-            }
-            if (!Directory.Exists(Preferences.SrfLogsDir))
-            {
-                _isValid = false;
-            }
             if (! ValidUrl(Preferences.LrDeployment.AdminApiBaseUrl.ToString()))
             {
                 _isValid = false;

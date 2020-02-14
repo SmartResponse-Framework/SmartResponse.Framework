@@ -1,8 +1,4 @@
 {
-    "IsSysMonAgent": true,
-    "SysMonConfigDir": "C:\\Program Files\\LogRhythm\\LogRhythm System Monitor\\config\\LogRhythm.Automation",
-    "SrfLogsDir": "C:\\tmp\\srf\\",
-
     "LrDeployment": {
         "AdminApiBaseUrl": "https://SERVER:8501/lr-admin-api",
         "CaseApiBaseUrl": "https://SERVER:8501/lr-case-api",
