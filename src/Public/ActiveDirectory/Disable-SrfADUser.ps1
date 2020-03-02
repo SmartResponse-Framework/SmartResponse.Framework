@@ -1,5 +1,8 @@
 using namespace System
 
+Get-Module ActiveDirectory | Remove-Module
+#Requires -Modules ActiveDirectory
+
 Function Disable-SrfADUser {
     <#
     .SYNOPSIS
@@ -21,10 +24,6 @@ Function Disable-SrfADUser {
         [pscredential] $Credential
     )
     $ThisFunction = $MyInvocation.MyCommand
-    $Verbose = $false
-    if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-        $Verbose = $true
-    }
 
     # Get Domain
     $Domain = Get-ADDomain

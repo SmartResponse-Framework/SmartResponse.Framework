@@ -78,40 +78,6 @@ $AuthContext_Schema = [PSCustomObject]@{
 #endregion
 
 
-
-#region: Load AD Module
-if (-not (Get-Module ActiveDirectory)) {
-    # Module Not Loaded
-    if (-not (Get-Module -Name ActiveDirectory -ListAvailable)) {
-        Write-Host "Could not locate ActiveDirectory module, attempting to install." -ForegroundColor Yellow
-        
-        # I've tried a couple variations, but perhaps this shouldn't be done here.
-        # Simply fail if no ActiveDirectory module is found to import??
-
-        # Install - Servers
-        if (Get-Command Install-WindowsFeature -ErrorAction SilentlyContinue) {
-            Install-WindowsFeature -Name "RSAT-AD-PowerShell"
-        # Install - Workstations
-        } elseif (Get-Command Add-WindowsCapability -ErrorAction SilentlyContinue) {
-            Add-WindowsCapability -Online -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0
-        } else {
-            Write-Host "Unable to enable RSAT tools. Please install / enable and then re-import this module." -ForegroundColor Yellow
-        }
-    } else {
-        try {
-            # ActiveDirectory module found - attempt to import
-            Import-Module ActiveDirectory -Force -WarningAction SilentlyContinue | Out-Null
-        }
-        catch {
-            Write-Host "Unable to import ActiveDirectory module." -ForegroundColor Yellow
-            throw $_
-        }
-    }
-}
-#endregion
-
-
-
 #region: Import Functions
 # Build Import Hash Table
 $Includes = @{}
