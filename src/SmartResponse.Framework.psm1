@@ -1,4 +1,4 @@
-#region: Module Data
+#region: Module Data                                                                     
 # [Namespaces]: Directories to include in this module
 $Namespaces = @(
     "Public",
@@ -13,17 +13,12 @@ $AssemblyList = [PSCustomObject]@{
 
 
 # Load Module Preferences
-$SrfIncludes = [System.IO.DirectoryInfo]::new((Join-Path $PSScriptRoot "Include"))
-$SrfPreferences = Get-Content -Path (Join-Path $SrfIncludes.FullName "SrfPreferences.json") -Raw | ConvertFrom-Json
-$SecretList = $SrfPreferences.Vault.SecretList
+$SrfIncludes = [System.IO.DirectoryInfo]::new((Join-Path -Path $PSScriptRoot -ChildPath "Include"))
+$SrfPreferences = Get-Content -Path `
+    (Join-Path -Path $SrfIncludes.FullName -ChildPath "SrfPreferences.json") -Raw | ConvertFrom-Json
 
 
 # LogRhythm Case Vars
-# 1 - [Case]      Created
-# 2 - [Case]      Completed
-# 3 - [Incident]  Open
-# 4 - [Incident]  Mitigated
-# 5 - [Incident]  Resolved
 $LrCaseStatus = [PSCustomObject]@{
     Created     = 1
     Completed   = 2
@@ -56,29 +51,11 @@ $HttpContentType = [PSCustomObject]@{
     FormUrl     = "application/x-www-form-urlencoded"
     FormData    = "multipart/form-data"
 }
-
-
-# Azure Vars
-$RegexLibrary = [PSCustomObject]@{
-    URI      = [regex]::new("(https:\/\/)?([\w\-])+\.{1}([a-zA-Z]{2,63})([\/\w-]*)*\/?\??([^#\n\r]*)?#?([^\n\r]*)")
-    GUID     = [regex]::new("^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$")
-    SECRETID = [regex]::new("^\d{3,6}$")
-    NAME     = [regex]::new("^.*?$")
-}
-
-
-# Azure AuthContext
-$AuthContext_Schema = [PSCustomObject]@{
-    Name        = $RegexLibrary.NAME
-    TenantId    = $RegexLibrary.GUID
-    SecretId    = $RegexLibrary.SECRETID
-    OAuth2Uri   = $RegexLibrary.URI
-    ResourceUri = $RegexLibrary.URI
-}
 #endregion
 
 
-#region: Import Functions
+
+#region: Import Functions                                                                
 # Build Import Hash Table
 $Includes = @{}
 foreach ($namespace in $Namespaces) {
@@ -98,9 +75,36 @@ foreach ($include in $Includes.GetEnumerator()) {
 #endregion
 
 
+
+#region: Import API Keys                                                                 
+# LogRhythm API Key
+
+$KeyPath = $SrfPreferences.LrDeployment.LrApiCredentialPath
+
+try {
+    $SrfPreferences.LrDeployment.LrApiCredential = Import-Clixml -Path $KeyPath
+}
+catch [System.IO.FileNotFoundException] {
+    Write-Host "Warning: LogRhythm API Credential not found." -ForegroundColor Yellow
+    Write-Host "LogRhythm cmdlets will need to specify the '-Credential' option in order to function." `
+    -ForegroundColor Yellow
+}
+catch [System.Security.Cryptography.CryptographicException] {
+    Write-Host "Unable to load key, insufficient permissions.  Did you run setup.ps1 as this user?" `
+    -ForegroundColor Yellow
+}
+catch [Exception] {
+    Write-Host "Unexpected error while attempting to load LogRhythm API Credential."
+    Write-Host "LogRhythm cmdlets will need to specify the '-Credential' option in order to function." `
+    -ForegroundColor Yellow
+}
+Write-Verbose "[ LogRhythm API Key Set ]"
+#endregion
+
+
+
 # Export Module Members
 Export-ModuleMember -Variable SrfPreferences
-Export-ModuleMember -Variable SecretList
 Export-ModuleMember -Variable LrCaseStatus
 Export-ModuleMember -Variable AssemblyList
 Export-ModuleMember -Variable HttpMethod
