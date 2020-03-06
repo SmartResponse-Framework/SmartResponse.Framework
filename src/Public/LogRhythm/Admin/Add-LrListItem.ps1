@@ -175,6 +175,10 @@ Function Add-LrListItem {
                 $ListItemDataType = "String"
                 $ListItemType = "StringValue"
             }
+            Identity {
+                $ListItemDataType = "Int32"
+                $ListItemType = "Identity"
+            }
             Host {
                 # If ItemType is not defined, attempt to determine the item type.
                 if (!$ItemType) {
