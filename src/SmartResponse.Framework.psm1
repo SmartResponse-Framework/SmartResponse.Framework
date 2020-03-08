@@ -7,10 +7,11 @@ $Namespaces = @(
 
 
 # List of Packages (.dll files) used by module.
+<#
 $AssemblyList = [PSCustomObject]@{
     ApiHelper = $(Join-Path $PSScriptRoot "ApiHelper.dll")
 }
-
+#>
 
 # Load Module Preferences
 $SrfIncludes = [System.IO.DirectoryInfo]::new((Join-Path $PSScriptRoot "Include"))
@@ -136,7 +137,7 @@ foreach ($include in $Includes.GetEnumerator()) {
 Export-ModuleMember -Variable SrfPreferences
 Export-ModuleMember -Variable SecretList
 Export-ModuleMember -Variable LrCaseStatus
-Export-ModuleMember -Variable AssemblyList
+#Export-ModuleMember -Variable AssemblyList
 Export-ModuleMember -Variable HttpMethod
 Export-ModuleMember -Variable HttpContentType
 Export-ModuleMember -Function $Includes["Public"].BaseName

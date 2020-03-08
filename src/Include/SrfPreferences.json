@@ -1,5 +1,6 @@
 {
     "CertPolicyEnabled": false,
+    "CertPolicyRequired": true,
     "Vault": {
         "ServerApiUri": "",
         "SecretList": { }
