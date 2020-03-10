@@ -46,77 +46,78 @@ Function Get-LrIdentities {
         [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int]$PageCount,
+        [int]$PageValuesCount = 1000,
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [string]$Name,
+        [int]$PageCount = 1,
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [string]$DisplayIdentifier,
+        [string]$Name,
 
         [Parameter(Mandatory = $false, Position = 4)]
-        [string]$Entity,
+        [string]$DisplayIdentifier,
 
         [Parameter(Mandatory = $false, Position = 5)]
-        [string]$Identifier,
+        [string]$EntityId,
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [string]$RecordStatus,
+        [string]$Identifier,
 
         [Parameter(Mandatory = $false, Position = 7)]
-        [datetime]$UpdatedBefore,
+        [string]$RecordStatus,
 
         [Parameter(Mandatory = $false, Position = 8)]
-        [datetime]$UpdatedAfter,
+        [datetime]$UpdatedBefore,
 
         [Parameter(Mandatory = $false, Position = 9)]
-        [switch]$ShowRetired = $false,
+        [datetime]$UpdatedAfter,
 
         [Parameter(Mandatory = $false, Position = 10)]
+        [switch]$ShowRetired = $false,
+
+        [Parameter(Mandatory = $false, Position = 11)]
         [switch]$Exact = $false
 
     )
 
     Begin {
+        # Request Setup
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Method = $HttpMethod.Get
     }
 
     Process {
         #region: Process Query Parameters____________________________________________________
         $QueryParams = [Dictionary[string,string]]::new()
 
-        # PageCount
-        if ($PageCount) {
-            $_pageCount = $PageCount
-        } else {
-            $_pageCount = 1000
-        }
-        $QueryParams.Add("count", $_pageCount)
+        # PageValuesCount - Amount of Values per Page
+        $QueryParams.Add("count", $PageValuesCount)
 
+        # Query Offset - PageCount
+        $Offset = ($PageCount -1) * $PageValuesCount
+        $QueryParams.Add("offset", $Offset)
 
         # Filter by Object Name
         if ($Name) {
-            $_name = $Name
-            $QueryParams.Add("name", $_name)
+            $QueryParams.Add("name", $Name)
         }
 
         # Filter by Object Display Identifier
         if ($DisplayIdentifier) {
-            $_displayIdentifier = $DisplayIdentifier
-            $QueryParams.Add("displayIdentifier", $_displayIdentifier)
+            $QueryParams.Add("displayIdentifier", $DisplayIdentifier)
         }
 
-        # Filter by Object Entity Name
-        if ($Entity) {
-            $_entityName = $Entity
-            $QueryParams.Add("entity", $_entityName)
+        # Filter by Object Entity Id
+        if ($EntityId) {
+            $QueryParams.Add("entity", $EntityId)
         }
 
         # Filter by Object Identifier
         if ($Identifier) {
-            $_identifier = $identifier
-            $QueryParams.Add("identifier", $_identifier)
+            $QueryParams.Add("identifier", $Identifier)
         }
 
 
@@ -132,8 +133,7 @@ Function Get-LrIdentities {
         }
 
         if ($ShowRetired) {
-            $_showRetired = $ShowRetired
-            $QueryParams.Add("showRetired", $_showRetired)
+            $QueryParams.Add("showRetired", $ShowRetired)
         }
 
 
@@ -146,11 +146,7 @@ Function Get-LrIdentities {
 
 
 
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-
-        # Request Setup
-        $Method = $HttpMethod.Get
+        # Define Search URL
         $RequestUrl = $BaseUrl + "/identities/" + $QueryString
 
         # Send Request
@@ -161,6 +157,7 @@ Function Get-LrIdentities {
             $Err = Get-RestErrorMessage $_
             Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
             $PSCmdlet.ThrowTerminatingError($PSItem)
+            return $false
         }
 
         # [Exact] Parameter

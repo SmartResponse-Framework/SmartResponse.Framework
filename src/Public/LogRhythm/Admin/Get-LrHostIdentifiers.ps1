@@ -45,10 +45,7 @@ Function Get-LrHostIdentifiers {
         [object] $Id
     )
 
-    Begin {
-        $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
-        $Token = $Credential.GetNetworkCredential().Password
-    }
+    Begin { }
 
     Process {
         # Establish General Error object Output
