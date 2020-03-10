@@ -117,7 +117,8 @@ Function Add-LrIdentity {
         $Token = $Credential.GetNetworkCredential().Password
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        $Method = $HttpMethod.Put
+        $Headers.Add("Content-Type","application/json")
+        $Method = $HttpMethod.Post
 
         # Create vendorUniqueKey based on SyncName
         $StringBuilder = New-Object System.Text.StringBuilder
@@ -169,13 +170,13 @@ Function Add-LrIdentity {
         $Identifiers = @()
         if ($Identifier1Value) {
             if ($Identifier1Type -ne "Email") {
-                $Identifiers += [PSCustomObject]@{
+                $Identifiers += @{
                     identifierType = "Login"
                     value = $Identifier1Value
                 } 
             }
             if ($Identifier1Type -ne "Login") {
-                $Identifiers += [PSCustomObject]@{
+                $Identifiers += @{
                     identifierType = "Email"
                     value = $Identifier1Value
                 } 
@@ -183,13 +184,13 @@ Function Add-LrIdentity {
         }
         if ($Identifier2Value) {
             if ($Identifier2Type -ne "Email") {
-                $Identifiers += [PSCustomObject]@{
+                $Identifiers += @{
                     identifierType = "Login"
                     value = $Identifier2Value
                 } 
             }
             if ($Identifier2Type -ne "Login") {
-                $Identifiers += [PSCustomObject]@{
+                $Identifiers += @{
                     identifierType = "Email"
                     value = $Identifier2Value
                 } 
@@ -197,13 +198,13 @@ Function Add-LrIdentity {
         }
         if ($Identifier3Value) {
             if ($Identifier3Type -ne "Email") {
-                $Identifiers += [PSCustomObject]@{
+                $Identifiers += @{
                     identifierType = "Login"
                     value = $Identifier3Value
                 } 
             }
             if ($Identifier3Type -ne "Login") {
-                $Identifiers += [PSCustomObject]@{
+                $Identifiers += @{
                     identifierType = "Email"
                     value = $Identifier3Value
                 } 
@@ -211,13 +212,13 @@ Function Add-LrIdentity {
         }
         if ($Identifier4Value) {
             if ($Identifier4Type -ne "Email") {
-                $Identifiers += [PSCustomObject]@{
+                $Identifiers += @{
                     identifierType = "Login"
                     value = $Identifier4Value
                 } 
             }
             if ($Identifier4Type -ne "Login") {
-                $Identifiers += [PSCustomObject]@{
+                $Identifiers += @{
                     identifierType = "Email"
                     value = $Identifier4Value
                 } 
@@ -225,13 +226,13 @@ Function Add-LrIdentity {
         }
         if ($Identifier5Value) {
             if ($Identifier5Type -ne "Email") {
-                $Identifiers += [PSCustomObject]@{
+                $Identifiers += @{
                     identifierType = "Login"
                     value = $Identifier2Value
                 } 
             }
             if ($Identifier5Type -ne "Login") {
-                $Identifiers += [PSCustomObject]@{
+                $Identifiers += @{
                     identifierType = "Email"
                     value = $Identifier5Value
                 } 
@@ -251,7 +252,7 @@ Function Add-LrIdentity {
             accounts = @(
                 $Accounts
             )
-        }
+        } | ConvertTo-Json -Depth 5
         
         # Define Query URL
         $RequestUrl = $BaseUrl + "/identities/bulk?entityID=" + $EntityId
