@@ -118,119 +118,140 @@ Function Add-LrIdentity {
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
         $Method = $HttpMethod.Put
+
+        # Create vendorUniqueKey based on SyncName
+        $StringBuilder = New-Object System.Text.StringBuilder
+        [System.Security.Cryptography.HashAlgorithm]::Create("SHA1").ComputeHash([System.Text.Encoding]::UTF8.GetBytes($SyncName)) | ForEach-Object {
+            [Void]$StringBuilder.Append($_.ToString("x2"))
+        }
+        $VendorUniqueKey = $StringBuilder.ToString()
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Error                 =   $false
-            Value                 =   $Value
-            Reason                =   $null
-            TypeMismatch          =   $false
-            Entity                =   $EntityId
-            FirstName             =   $NameFirst
-            LastName              =   $NameLast
-            SyncName              =   $SyncName
-        }
+         # Section - Build JSON Body - Begin
+        $Accounts = [PSCustomObject]@{}
+        # Photo Thumbnail - Optional - Add in ContentType validation
+        if ($PhotoThumbnail) {$Accounts | Add-Member -NotePropertyName thumbnailPhoto -NotePropertyValue $PhotoThumbnail}
+        # VendorUniqueKey - Required
+        $Accounts | Add-Member -NotePropertyName vendorUniqueKey -NotePropertyValue $VendorUniqueKey
 
-        # Build Identity Content
-        $Accounts = [PSObject]@{}
-        if ($PhotoThumbnail) {
-            $Accounts | Add-Member -NotePropertyName thumbnailPhoto -NotePropertyValue $PhotoThumbnail
-        }
-        # Add friendlyNameKey
-        $Accounts | Add-Member -NotePropertyName vendorUniqueKey -NotePropertyValue $friendlyNameKey
+        <#  This section requires some testingto identify value/impact
         $Accounts | Add-Member -NotePropertyName hasOwnerIdentity -NotePropertyValue $true
         $Accounts | Add-Member -NotePropertyName hasSameRootEntityAsTarget -NotePropertyValue $true
         $Accounts | Add-Member -NotePropertyName isPrimary -NotePropertyValue $true
+        
         if ($AccountType) {
             $Accounts | Add-Member -NotePropertyName accountType -NotePropertyValue "Custom"
         } else {
             $Accounts | Add-Member -NotePropertyName accountType -NotePropertyValue "AD"
         }
-        
-        $Accounts | Add-Member -NotePropertyName login -NotePropertyValue $Identifier1Value
+        #>
+
+        # NameFirst - Required
         $Accounts | Add-Member -NotePropertyName nameFirst -NotePropertyValue $NameFirst
-        if ($NameMiddle) { 
-            $Accounts | Add-Member -NotePropertyName nameMiddle -NotePropertyValue $NameMiddle
-        }
+        # NameMiddle - Optional
+        if ($NameMiddle) {$Accounts | Add-Member -NotePropertyName nameMiddle -NotePropertyValue $NameMiddle}
+        # NameLast - Required
         $Accounts | Add-Member -NotePropertyName nameLast -NotePropertyValue $NameLast
+        # DisplayIdentifier - Required
         $Accounts | Add-Member -NotePropertyName displayIdentifier -NotePropertyValue $DisplayIdentifier
-        if ($Company) {
-            $Accounts | Add-Member -NotePropertyName company -NotePropertyValue $Company
-        }
-        if ($Department) {
-            $Accounts | Add-Member -NotePropertyName department -NotePropertyValue $Department
-        }
-        if ($Title) {
-            $Accounts | Add-Member -NotePropertyName title -NotePropertyValue $Title
-        }
-        if ($Manager) {
-            $Accounts | Add-Member -NotePropertyName manager -NotePropertyValue $Manager
-        }
-        if ($AddressCity) {
-            $Accounts | Add-Member -NotePropertyName addressCity -NotePropertyValue $AddressCity
-        }
-        if ($domainName) {
-            $Accounts | Add-Member -NotePropertyName domainName -NotePropertyValue $DomainName
-        }
+        # Company, Department, Title, Manager, AddressCity, DomainNAme - Optional
+        if ($Company) {$Accounts | Add-Member -NotePropertyName company -NotePropertyValue $Company}
+        if ($Department) {$Accounts | Add-Member -NotePropertyName department -NotePropertyValue $Department}
+        if ($Title) {$Accounts | Add-Member -NotePropertyName title -NotePropertyValue $Title}
+        if ($Manager) {$Accounts | Add-Member -NotePropertyName manager -NotePropertyValue $Manager}
+        if ($AddressCity) {$Accounts | Add-Member -NotePropertyName addressCity -NotePropertyValue $AddressCity}
+        if ($DomainName) {$Accounts | Add-Member -NotePropertyName domainName -NotePropertyValue $DomainName}
 
-
-
-        #Establish Identities
-        #$Identifier2Type
-        #$Identifier2Value
-        $Identifiers = [PSObject]@{}
-            if($Identifier2Value) {
-                $ID1 = [PSCustomObject]{
-                    identifierID = 0
-                    identifierType = "AD"
-                    value = "MyLogin"
-                    recordStatus = "New"
-                    source = @{}
-                    } | ConvertTo-Json
-                $Identfiers | Add-Member -InputObject $ID1
+        # Build out Identifiers
+        # Logic - If not Email set to Login.  If not Login set to Email.  Any entry, including Both, sets both identifiers. 
+        # Add validation for Login/Email/Both input and accept case insensitive.
+        $Identifiers = @()
+        if ($Identifier1Value) {
+            if ($Identifier1Type -ne "Email") {
+                $Identifiers += [PSCustomObject]@{
+                    identifierType = "Login"
+                    value = $Identifier1Value
+                } 
             }
-            identifiers = @(
-                [PSCustomObject]@{
-                    identifier = 1
-                    type = "email"
-                    source = @()
-                }
-                [PSCustomObject]@{
-                    identifier = 2
-                    type = "ad"
-                    source = @()
-                }
-            )
+            if ($Identifier1Type -ne "Login") {
+                $Identifiers += [PSCustomObject]@{
+                    identifierType = "Email"
+                    value = $Identifier1Value
+                } 
+            }
+        }
+        if ($Identifier2Value) {
+            if ($Identifier2Type -ne "Email") {
+                $Identifiers += [PSCustomObject]@{
+                    identifierType = "Login"
+                    value = $Identifier2Value
+                } 
+            }
+            if ($Identifier2Type -ne "Login") {
+                $Identifiers += [PSCustomObject]@{
+                    identifierType = "Email"
+                    value = $Identifier2Value
+                } 
+            }
+        }
+        if ($Identifier3Value) {
+            if ($Identifier3Type -ne "Email") {
+                $Identifiers += [PSCustomObject]@{
+                    identifierType = "Login"
+                    value = $Identifier3Value
+                } 
+            }
+            if ($Identifier3Type -ne "Login") {
+                $Identifiers += [PSCustomObject]@{
+                    identifierType = "Email"
+                    value = $Identifier3Value
+                } 
+            }
+        }
+        if ($Identifier4Value) {
+            if ($Identifier4Type -ne "Email") {
+                $Identifiers += [PSCustomObject]@{
+                    identifierType = "Login"
+                    value = $Identifier4Value
+                } 
+            }
+            if ($Identifier4Type -ne "Login") {
+                $Identifiers += [PSCustomObject]@{
+                    identifierType = "Email"
+                    value = $Identifier4Value
+                } 
+            }
+        }
+        if ($Identifier5Value) {
+            if ($Identifier5Type -ne "Email") {
+                $Identifiers += [PSCustomObject]@{
+                    identifierType = "Login"
+                    value = $Identifier2Value
+                } 
+            }
+            if ($Identifier5Type -ne "Login") {
+                $Identifiers += [PSCustomObject]@{
+                    identifierType = "Email"
+                    value = $Identifier5Value
+                } 
+            }
         }
 
-        $Accounts = $Accounts | ConvertTo-Json
-
-
-        # Request Body
-        $BodyContents = [PSCustomObject]@{
-            friendlyName = $SyncName
-            Accounts = @(
-                [PSCustomObject]@{
-                    thumbnailPhoto = $PhotoThumbnail
-                    expirationDate = $ExpDate
-                    isExpired =  $false
-                    isListItem = $false
-                    isPattern = $false
-                    listItemDataType = $ListItemDataType
-                    listItemType = $ListItemType
-                    value = $Value
-                    valueAsListReference = [PSCustomObject]@{
-                    }
-                }
-            )
+        # Add identifiers to PSCustom Object
+        if ($Identifiers) {
+            $Accounts | Add-Member -NotePropertyName identifiers -NotePropertyValue $Identifiers
         }
+        # Section - Build JSON Body - End
+
 
         # Establish Body Contents
         $BodyContents = [PSCustomObject]@{
-            recordStatus = "Retired"
-        } | ConvertTo-Json
+            friendlyName = $SyncName
+            accounts = @(
+                $Accounts
+            )
+        }
         
         # Define Query URL
         $RequestUrl = $BaseUrl + "/identities/bulk?entityID=" + $EntityId
