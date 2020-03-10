@@ -33,7 +33,7 @@ Function Set-SrfADUserRandomPassword {
 
     # Check User Account
     if (!(Test-SrfADUserExists $Identity)) {
-        Write-IfVerbose "[$ThisFunction]: Could not find user [$Identity]" $Verbose -ForegroundColor Yellow
+        Write-Verbose "[$ThisFunction]: Could not find user [$Identity]"
         return $false
     }
 
@@ -55,7 +55,7 @@ Function Set-SrfADUserRandomPassword {
         Set-ADAccountPassword -Identity $Identity -NewPassword $SecurePass -Reset -PassThru -Credential $Credential | Set-ADuser -ChangePasswordAtLogon $true
     }
     catch {
-        Write-IfVerbose "[$ThisFunction]: Error encoutered while changing password for [$Identity]" $Verbose -ForegroundColor Yellow
+        Write-Verbose "[$ThisFunction]: Error encoutered while changing password for [$Identity]"
         return $False
     }
 

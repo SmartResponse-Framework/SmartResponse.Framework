@@ -1,5 +1,6 @@
 {
     "CertPolicyEnabled": false,
+    "CertPolicyRequired": true,
     "Vault": {
         "ServerApiUri": "",
         "SecretList": { }
@@ -11,19 +12,6 @@
         "AieApiUrl": "https://server.domain.com:8501/lr-drilldown-cache-api",
         "LrApiToken": "",
         "DefaultLrUserId": 52
-    },
-
-    "VirusTotal": {
-        "VtApiUri": "http://www.virustotal.com/vtapi/v2",
-        "VtApiToken": "",
-        "PublicApi": "True"
-    },
-
-    "UrlScan": {
-        "UsApiUri": "https://urlscan.io/api/v1",
-        "UsScreenshotUri": "https://urlscan.io/screenshots/",
-        "UsApiToken": "",
-        "PublicScans": "On"
     },
 
     "Resources": {

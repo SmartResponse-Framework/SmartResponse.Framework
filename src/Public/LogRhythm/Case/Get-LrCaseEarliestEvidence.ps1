@@ -39,7 +39,11 @@ function Get-LrCaseEarliestEvidence
         [ValidateNotNull()]
         [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
 
-		[string] [Parameter(Mandatory=$true, Position = 1)] $Id
+		[Parameter(
+            Mandatory=$true, 
+            Position = 1
+        )] 
+        [object] $Id
 	)
     
     Begin {
@@ -78,25 +82,26 @@ function Get-LrCaseEarliestEvidence
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
         }
         $ProcessedCount++
 
         
-        if ($Response -and $Response.earliestEvidence) {
-            if ($Response.earliestEvidence.customDate -ne $null) 
+        if ($Response -and $Response.earliestEvidence) { 
+            if ($null -ne $Response.earliestEvidence.customDate) 
             {
                 # Custom Date is defined
-                return $Response.earliestEvidence.customDate
-            } elseif ($Response.earliestEvidence.date -ne $null) 
+                [datetime] $EarliestDate = $Response.earliestEvidence.customDate
+            } elseif ($null -ne $Response.earliestEvidence.date) 
             {
                 # Normal evidence date (if it hasn't been over-written)
-                return $Response.earliestEvidence.date
-            } elseif ($Response.earliestEvidence.originalDate -ne $null)
+                [datetime] $EarliestDate = $Response.earliestEvidence.date
+            } elseif ($null -ne $Response.earliestEvidence.originalDate)
             {
                 # Neither Custom or Normal Evidence date defined; use original
-                return $Response.earliestEvidence.originalDate
+                [datetime] $EarliestDate = $Response.earliestEvidence.originalDate
             }
+            return $EarliestDate
         } 
 
 

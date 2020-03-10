@@ -102,7 +102,7 @@ Function Get-LrCaseById {
             switch ($Err.statusCode) {
                 "404" { 
                     throw [KeyNotFoundException] `
-                        "[404]: Playbook ID $Id not found, or you do not have permission to view it."
+                        "[404]: Case ID $Id not found, or you do not have permission to view it."
                  }
                  "401" {
                      throw [UnauthorizedAccessException] `
