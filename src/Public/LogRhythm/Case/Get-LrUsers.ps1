@@ -37,7 +37,7 @@ Function Get-LrUsers {
         ---------------------------------------------------
         FieldName       Type                Description
         ---------------------------------------------------
-        number          [System.Int32]    User ID
+        number          [System.Int32]      User ID
         name            [System.String]     User Full Name
         disabled        [System.Boolean]    True if user is disabled
     .EXAMPLE

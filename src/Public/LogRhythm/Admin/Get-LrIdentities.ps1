@@ -90,7 +90,7 @@ Function Get-LrIdentities {
     }
 
     Process {
-        #region: Process Query Parameters____________________________________________________
+        #region: Process Query Parameters
         $QueryParams = [Dictionary[string,string]]::new()
 
         # PageValuesCount - Amount of Values per Page
