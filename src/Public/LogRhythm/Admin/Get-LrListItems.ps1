@@ -82,9 +82,10 @@ Function Get-LrListItems {
 
         # Process Results
         $ReturnList = $Response.items
-        return $ReturnList
     }
 
-    End { }
+    End {
+        return $ReturnList
+     }
 
 }

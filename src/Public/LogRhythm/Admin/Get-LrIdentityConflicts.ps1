@@ -120,7 +120,7 @@ Function Get-LrIdentityConflicts {
                     $IdentifierMetadata = @{ "IdentityId" = $Identity.identityId; "IdentifierId" = $Identifier.identifierID; "Source" = $Identifier.source.IAMName }
                                         
                     # See if the Identifier record exists
-                    if ($Identifiers[$IdentifierKey] -eq $null) {
+                    if ($null -eq $Identifiers[$IdentifierKey]) {
                         # If not, create it
                         $Identifiers[$IdentifierKey] = @()
 

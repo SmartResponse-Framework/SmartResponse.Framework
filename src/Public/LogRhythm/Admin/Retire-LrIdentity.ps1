@@ -65,9 +65,9 @@ Function Retire-LrIdentity {
             $PSCmdlet.ThrowTerminatingError($PSItem)
             return $false
         }
-
-        return $Response
     }
 
-    End { }
+    End { 
+        return $Response
+    }
 }

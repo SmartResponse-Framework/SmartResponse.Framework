@@ -117,7 +117,9 @@ Function Get-LrLists {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
         }
+    }
 
+    End { 
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -134,6 +136,4 @@ Function Get-LrLists {
             return $Response
         }
     }
-
-    End { }
 }
