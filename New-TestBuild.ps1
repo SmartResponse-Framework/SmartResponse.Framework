@@ -61,7 +61,6 @@ $StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 Get-Module SmartResponse.Framework | Remove-Module -Force
 
 
-
 #region: Remove Old Builds                                                               
 if ($RemoveOld) {
     $Removed = 0
@@ -124,7 +123,7 @@ Write-Host "[Success]" -ForegroundColor Green
 Write-Host "Import LrApi Token: " -NoNewline
 try { 
     $Token = Import-Clixml -Path $ApiTokenPath
-    $SrfPreferences.LrDeployment.LrApiToken = $Token
+    $SrfPreferences.LrDeployment.LrApiCredential = $Token
     Write-Host "[Success]" -ForegroundColor Green
 }
 catch [CryptographicException] { 
