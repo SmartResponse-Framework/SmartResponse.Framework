@@ -71,7 +71,7 @@ Function Get-LrHosts {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
         [Parameter(Mandatory = $false, Position = 1)]
         [int]$PageCount,
@@ -157,7 +157,9 @@ Function Get-LrHosts {
             $Err = Get-RestErrorMessage $_
             Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
         }
+    }
 
+    End { 
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -174,6 +176,4 @@ Function Get-LrHosts {
             return $Response
         }
     }
-
-    End { }
 }

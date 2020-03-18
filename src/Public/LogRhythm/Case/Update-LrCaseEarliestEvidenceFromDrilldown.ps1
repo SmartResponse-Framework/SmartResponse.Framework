@@ -42,7 +42,7 @@ Function Update-LrCaseEarliestEvidenceFromDrilldown {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
 
         [Parameter(

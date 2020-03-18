@@ -43,7 +43,7 @@ Function Get-LrIdentities {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
         [Parameter(Mandatory = $false, Position = 1)]
         [int]$PageValuesCount = 1000,
@@ -159,7 +159,9 @@ Function Get-LrIdentities {
             $PSCmdlet.ThrowTerminatingError($PSItem)
             return $false
         }
+    }
 
+    End {
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -175,7 +177,5 @@ Function Get-LrIdentities {
         } else {
             return $Response
         }
-    }
-
-    End { }
+     }
 }
