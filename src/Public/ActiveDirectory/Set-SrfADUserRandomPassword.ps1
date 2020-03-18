@@ -1,5 +1,8 @@
 using namespace System
 
+Get-Module ActiveDirectory | Remove-Module
+#Requires -Modules ActiveDirectory
+
 Function Set-SrfADUserRandomPassword {
     <#
     .SYNOPSIS
@@ -26,10 +29,6 @@ Function Set-SrfADUserRandomPassword {
     )
 
     $ThisFunction = $MyInvocation.MyCommand
-    $Verbose = $false
-    if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-        $Verbose = $true
-    }
 
     # Check User Account
     if (!(Test-SrfADUserExists $Identity)) {
