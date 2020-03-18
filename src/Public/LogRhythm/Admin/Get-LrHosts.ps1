@@ -71,7 +71,7 @@ Function Get-LrHosts {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
         [Parameter(Mandatory = $false, Position = 1)]
         [int]$PageCount,

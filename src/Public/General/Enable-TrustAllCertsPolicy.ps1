@@ -11,8 +11,7 @@ Function Enable-TrustAllCertsPolicy {
     #>
     [CmdletBinding()]
     Param()
-
-
+    # Establish Certification Policy Exception
 add-type @"
     using System.Net;
     using System.Security.Cryptography.X509Certificates;
@@ -24,24 +23,6 @@ add-type @"
     }
 }
 "@
-<#
-    if (! $SrfPreferences.CertPolicyEnabled) {
-        Write-Verbose "[Enable-TrustAllCertsPolicy]: DLL - Cert Policy is not enabled. Enabling."
-        try {
-            [Assembly]::LoadFile($AssemblyList.ApiHelper) >$null 2>&1
-        }
-        catch {
-            throw [Exception] `
-                "[Enable-TrustAllCertsPolicy]: DLL - Failed to import required library: $($AssemblyList.ApiHelper)"
-        }
-        [ServicePointManager]::CertificatePolicy = [ApiHelper.TrustAllCertsPolicy]::new()
-        [ServicePointManager]::SecurityProtocol = [SecurityProtocolType]::Tls12
-        $SrfPreferences.CertPolicyEnabled = $true
-        Write-Verbose "[Enable-TrustAllCertsPolicy]: DLL - Cert Policy Enabled."
-    } else {
-        Write-Verbose "[Enable-TrustAllCertsPolicy]: DLL - Cert Policy already enabled."
-    }
-#>
     if ($SrfPreferences.CertPolicyRequired) {
         Write-Verbose "[Enable-TrustAllCertsPolicy]: Cert Policy is not enabled. Enabling."
         try {
@@ -51,9 +32,10 @@ add-type @"
             throw [Exception] `
                 "[Enable-TrustAllCertsPolicy]: Failed to update System.Net.ServicePointManager::CertificatePolicy to new TrustAllCertsPolicy"
         }
-        [ServicePointManager]::SecurityProtocol = [SecurityProtocolType]::Tls12
     } else {
         Write-Verbose "[Enable-TrustAllCertsPolicy]: Cert Policy set as Not Required."
     }
 
+    # Set PowerShell to TLS1.2
+    [ServicePointManager]::SecurityProtocol = [SecurityProtocolType]::Tls12
 }

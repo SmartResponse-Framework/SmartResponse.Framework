@@ -23,7 +23,7 @@ Function Find-LrIdentity {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 1)]
         [string]$Name,

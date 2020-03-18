@@ -1,35 +1,10 @@
 {
-    "CertPolicyEnabled": false,
     "CertPolicyRequired": true,
-    "Vault": {
-        "ServerApiUri": "",
-        "SecretList": { }
-    },
-
     "LrDeployment": {
-        "AdminApiBaseUrl": "https://server.domain.com:8501/lr-admin-api",
-        "CaseApiBaseUrl": "https://server.domain.com:8501/lr-case-api",
-        "AieApiUrl": "https://server.domain.com:8501/lr-drilldown-cache-api",
-        "LrApiToken": "",
-        "DefaultLrUserId": 52
-    },
-
-    "Resources": {
-        "Settings": {
-            "Top": 500
-        },
-        
-        "Graph": {
-            "Resource": "https://graph.microsoft.com",
-            "OAuth2Url": "https://login.microsoftonline.com/TENANTID/oauth2/token",
-            "SecretId": "",
-            "Token": ""
-        },
-        "ATP": {
-            "Resource": "https://graph.windows.net",
-            "OAuth2Url": "https://login.microsoftonline.com/TENANTID/oauth2/token",
-            "SecretId": "",
-            "Token": ""
-        }
+        "AdminApiBaseUrl": "https://localhost:8501/lr-admin-api",
+        "CaseApiBaseUrl": "https://localhost:8501/lr-case-api",
+        "AieApiUrl": "https://localhost:8501/lr-drilldown-cache-api",
+        "LrApiCredentialPath": "C:\\repos\\SmartResponse.Framework\\tests\\cred_LrApiToken.xml",
+        "LrApiCredential": ""
     }
 }

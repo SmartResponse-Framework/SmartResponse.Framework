@@ -35,7 +35,7 @@ Function Add-LrFileToCase {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
 
         [Parameter(Mandatory = $true, Position = 1)]
@@ -66,7 +66,8 @@ Function Add-LrFileToCase {
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         }
 
-        $FileName = Split-Path -Path $File -Leaf
+        # Previously Used
+        #$FileName = Split-Path -Path $File -Leaf
 
         
         #$Headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
@@ -75,7 +76,6 @@ Function Add-LrFileToCase {
         $Headers.Add("Authorization", "Bearer $Token")
 
         # Request URI   
-        $Method = $HttpMethod.Post
         $RequestUri = $BaseUrl + "/cases/$Id/evidence/file/"
 
         if (-not (Test-Path $File))

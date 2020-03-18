@@ -38,7 +38,7 @@ Function Get-LrIdentityConflicts {
     param( 
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 1)]
         [long]$EntityId,
