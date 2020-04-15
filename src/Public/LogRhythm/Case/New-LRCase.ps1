@@ -88,17 +88,18 @@ Function New-LrCase {
         
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
-    }
 
-    Process {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
         $Headers.Add("Content-Type","application/json")
         $RequestUrl = $BaseUrl + "/cases/"
 
+        # Request Method
         $Method = $HttpMethod.Post
+    }
 
+    Process {
         # Request Body
         $Body = [PSCustomObject]@{
             name = $Name

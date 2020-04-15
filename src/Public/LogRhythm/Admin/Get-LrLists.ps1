@@ -67,12 +67,6 @@ Function Get-LrLists {
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
-        # Enable self-signed certificates and Tls1.2
-        Enable-TrustAllCertsPolicy
-    }
-    #endregion
-
-    Process {      
         # Validate ListType
         if ($ListType) {
             $ListTypeInfo = Test-LrListType -Id $ListType
@@ -109,6 +103,13 @@ Function Get-LrLists {
         $RequestUrl = $BaseUrl + "/lists/"
         Write-Verbose "[$Me]: Request Header: `n$($Headers.name)"
 
+
+        # Enable self-signed certificates and Tls1.2
+        Enable-TrustAllCertsPolicy
+    }
+    #endregion
+
+    Process {      
         # Send Request
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method

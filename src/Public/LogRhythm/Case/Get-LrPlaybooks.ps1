@@ -114,11 +114,8 @@ Function Get-LrPlaybooks {
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
-        Enable-TrustAllCertsPolicy        
-    }
-
-
-    Process {
+        Enable-TrustAllCertsPolicy
+        
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
@@ -127,8 +124,13 @@ Function Get-LrPlaybooks {
         $Headers.Add("direction", $Sort)
         
 
-        # Request URIs
+        # Request Method
         $Method = $HttpMethod.Get
+    }
+
+
+    Process {
+        # Request URI
         $RequestUri = $BaseUrl + "/playbooks/?playbook=$Name"
 
 

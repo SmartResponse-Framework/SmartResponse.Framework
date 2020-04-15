@@ -32,11 +32,12 @@ Function Get-LrUserNumber {
         [string] $User
     )
 
-    Begin { }
+    Begin {
+        $_int = $null
+    }
 
     Process {
         # Validate User
-        $_int = $null
         if (! ([int]::TryParse($User, [ref]$_int))) {
             # User: name
             Write-Verbose "[$Me]: Verify user name $User"

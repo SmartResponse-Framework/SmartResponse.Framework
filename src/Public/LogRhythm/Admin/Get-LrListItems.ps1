@@ -67,19 +67,17 @@ Function Get-LrListItems {
                 throw [Exception] "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)"
             }
         }
-    }
 
-    Process {
         # Update Default maxItemsThreshold
         if (!$MaxItemsThreshold) {
             $MaxItemsThreshold = 1000
         }
+    }
 
-
+    Process {
         # Send Request
         $Response = Get-LrList -Name $Guid | Select-Object items
         
-
         # Process Results
         $ReturnList = $Response.items
     }

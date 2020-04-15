@@ -71,6 +71,13 @@ Function Get-LrCaseById {
 
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
+
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+
+        # Request URI
+        $Method = $HttpMethod.Get
     }
 
 
@@ -81,12 +88,6 @@ Function Get-LrCaseById {
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         }
         
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-
-        # Request URI
-        $Method = $HttpMethod.Get
         $RequestUri = $BaseUrl + "/cases/$Id/"
 
         # Send Request

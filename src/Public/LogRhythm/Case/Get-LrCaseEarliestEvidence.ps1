@@ -53,6 +53,14 @@ function Get-LrCaseEarliestEvidence
         $Token = $Credential.GetNetworkCredential().Password
 
         $ProcessedCount = 0
+
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+        
+        # Request Method
+        $Method = $HttpMethod.Get
     }
     
     Process {
@@ -62,13 +70,6 @@ function Get-LrCaseEarliestEvidence
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         }
 
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-        
-        # Request URI
-        $Method = $HttpMethod.Get
         $RequestUri = $BaseUrl + "/cases/$Id/metrics/"
             
         $Response = $null

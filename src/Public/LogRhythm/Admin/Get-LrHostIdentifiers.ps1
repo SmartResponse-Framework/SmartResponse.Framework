@@ -68,7 +68,9 @@ Function Get-LrHostIdentifiers {
                 $ErrorObject.Note = "Id String [$Id] not found in LrHosts List."
             }
         }
+    }
 
+    End { 
         if ($ErrorObject.Error -eq $false) {
             $Results = Get-LrHostDetails -Id $Id | Select-Object -ExpandProperty hostIdentifiers
             return $Results
@@ -76,6 +78,4 @@ Function Get-LrHostIdentifiers {
             return $ErrorObject
         }
     }
-
-    End { }
 }
