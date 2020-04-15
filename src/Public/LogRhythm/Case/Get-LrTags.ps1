@@ -97,10 +97,7 @@ Function Get-LrTags {
 
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
-    }
 
-
-    Process {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
@@ -108,10 +105,14 @@ Function Get-LrTags {
         $Headers.Add("direction", $Sort)
         
 
-        # Request URI
+        # Request Method
         $Method = $HttpMethod.Get
-        $RequestUri = $BaseUrl + "/tags/?tag=$Name"
+    }
 
+
+    Process {
+        # Request URI
+        $RequestUri = $BaseUrl + "/tags/?tag=$Name"
 
         # REQUEST
         try {
@@ -138,11 +139,11 @@ Function Get-LrTags {
             # No exact matches found
             return $null
         }
-
-        # Return all responses.
-        return $Response
     }
 
 
-    End { }
+    End {
+        # Return all responses.
+        return $Response
+    }
 }

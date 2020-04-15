@@ -93,6 +93,17 @@ Function Update-LrCaseStatus {
         $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
+        # Enable self-signed certificates and Tls1.2
+        Enable-TrustAllCertsPolicy
+
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+
+        # Request Method
+        $Method = $HttpMethod.Put
+
         $ProcessedCount = 0
     }
 
@@ -111,15 +122,7 @@ Function Update-LrCaseStatus {
             throw [ArgumentException] "Invalid case status: $Status"
         }
 
-
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-
-
         # Request URI
-        $Method = $HttpMethod.Put
         $RequestUri = $BaseUrl + "/cases/$Id/actions/changeStatus/"
 
 
@@ -143,15 +146,14 @@ Function Update-LrCaseStatus {
             throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
         $ProcessedCount++
-
-        # Return
-        if ($PassThru) {
-            return $Response    
-        }
     }
 
     
     End {
+        # Return
+        if ($PassThru) {
+            return $Response    
+        }
         if ($Summary) {
             Write-Host "Updated $ProcessedCount cases to status $Status"
         }

@@ -57,59 +57,64 @@ Function Get-LrList {
         [switch] $Exact
     )
 
-    # Process Name Object
-    if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
-        $Guid = $Name.ToString()
-    } else {
-        try {
-            if ($Exact) {
-                $Guid = Get-LRListGuidByName -Name $Name.ToString() -Exact
-            } else {
-                $Guid = Get-LRListGuidByName -Name $Name.ToString()
+    Begin {
+        # General Setup  
+        $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
+        $Token = $Credential.GetNetworkCredential().Password
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+
+
+        # Request Setup
+        $Method = $HttpMethod.Get
+        $Headers.Add("maxItemsThreshold", $MaxItemsThreshold)
+        $RequestUrl = $BaseUrl + "/lists/$Guid/"
+
+
+        # Process Name Object
+        if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
+            $Guid = $Name.ToString()
+        } else {
+            try {
+                if ($Exact) {
+                    $Guid = Get-LRListGuidByName -Name $Name.ToString() -Exact
+                } else {
+                    $Guid = Get-LRListGuidByName -Name $Name.ToString()
+                }
+            }
+            catch {
+                $Err = Get-RestErrorMessage $_
+                throw [Exception] "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)"
             }
         }
-        catch {
+
+        # Update Default maxItemsThreshold
+        if (!$MaxItemsThreshold) {
+            $MaxItemsThreshold = 1000
+        }
+    }
+
+    Process {
+        # Send Request
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        }
+        catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)"
+            Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
+            $PSCmdlet.ThrowTerminatingError($PSItem)
         }
     }
 
-    # Update Default maxItemsThreshold
-    if (!$MaxItemsThreshold) {
-        $MaxItemsThreshold = 1000
-    }
-
-
-    # General Setup  
-    $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
-    $Token = $Credential.GetNetworkCredential().Password
-    $Headers = [Dictionary[string,string]]::new()
-    $Headers.Add("Authorization", "Bearer $Token")
-
-
-    # Request Setup
-    $Method = $HttpMethod.Get
-    $Headers.Add("maxItemsThreshold", $MaxItemsThreshold)
-    $RequestUrl = $BaseUrl + "/lists/$Guid/"
-
-
-    # Send Request
-    try {
-        $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-    }
-    catch [System.Net.WebException] {
-        $Err = Get-RestErrorMessage $_
-        Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-        $PSCmdlet.ThrowTerminatingError($PSItem)
-    }
-
-    # Process Results
-    if ($ValuesOnly) {
-        $ReturnList = [List[string]]::new()
-        $Response.items | ForEach-Object {
-            $ReturnList.Add($_.value)
+    End {
+        # Process Results
+        if ($ValuesOnly) {
+            $ReturnList = [List[string]]::new()
+            $Response.items | ForEach-Object {
+                $ReturnList.Add($_.value)
+            }
+            return ,$ReturnList
         }
-        return ,$ReturnList
+        return $Response
     }
-    return $Response
 }

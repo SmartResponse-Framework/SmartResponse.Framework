@@ -115,7 +115,14 @@ Function Update-LrCasePlaybookProcedure {
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
-        Enable-TrustAllCertsPolicy        
+        Enable-TrustAllCertsPolicy
+
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+    
+        # Request Method
+        $Method = $HttpMethod.Put
     }
 
 
@@ -211,12 +218,7 @@ Function Update-LrCasePlaybookProcedure {
             throw [ArgumentException] "Parameter [Id] must be provided for applicable Procedure ID."
         }
         
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-    
         # Request URI
-        $Method = $HttpMethod.Put
         $RequestUri = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookGuid/procedures/$ProcedureGuid/"
         Write-Verbose "[$Me]: RequestUri: $RequestUri"
 
@@ -334,11 +336,10 @@ Function Update-LrCasePlaybookProcedure {
                 }
             }
         }
+    }
 
+    End {
         # Return all responses.
         return $Response
     }
-
-
-    End { }
 }

@@ -57,6 +57,14 @@ Function Add-LrNoteToCase {
 
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
+
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+
+        # Request URI   
+        $Method = $HttpMethod.Post
     }
 
 
@@ -67,14 +75,6 @@ Function Add-LrNoteToCase {
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         }
 
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-
-
-        # Request URI   
-        $Method = $HttpMethod.Post
         $RequestUri = $BaseUrl + "/cases/$Id/evidence/note/"
 
 

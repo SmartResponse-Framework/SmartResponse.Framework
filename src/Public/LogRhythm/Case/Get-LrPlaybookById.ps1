@@ -67,7 +67,14 @@ Function Get-LrPlaybookById {
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
-        Enable-TrustAllCertsPolicy        
+        Enable-TrustAllCertsPolicy
+        
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+
+        # Request Method
+        $Method = $HttpMethod.Get
     }
 
 
@@ -78,13 +85,6 @@ Function Get-LrPlaybookById {
         }
 
         
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        
-
-        # Request URI
-        $Method = $HttpMethod.Get
         $RequestUri = $BaseUrl + "/playbooks/$Id/"
         Write-Verbose "[$Me]: RequestUri: $RequestUri"
 

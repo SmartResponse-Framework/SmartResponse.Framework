@@ -43,20 +43,26 @@ Function Test-LrUserIdFormat {
         Value       =   $Id
     }
 
-    # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
-    $_int = 0
-
-    # Check if ID value is an integer
-    if ([int]::TryParse($Id, [ref]$_int)) {
-        Write-Verbose "[$Me]: Id parses as integer."
-        $OutObject.Value = $Id.ToString()
-        $OutObject.IsValid = $true
-        $OutObject.IsInt = $true
-    # Check if ID value is a String
-    } elseif (($Id -Is [String])) {
-        $OutObject.Value = $Id.ToString()
-        $OutObject.IsValid = $true
+    Begin {
+        # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
+        $_int = 0
     }
 
-    return $OutObject
+    Process {
+        # Check if ID value is an integer
+        if ([int]::TryParse($Id, [ref]$_int)) {
+            Write-Verbose "[$Me]: Id parses as integer."
+            $OutObject.Value = $Id.ToString()
+            $OutObject.IsValid = $true
+            $OutObject.IsInt = $true
+        # Check if ID value is a String
+        } elseif (($Id -Is [String])) {
+            $OutObject.Value = $Id.ToString()
+            $OutObject.IsValid = $true
+        }
+    }
+
+    End {
+        return $OutObject
+    }
 }

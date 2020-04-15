@@ -101,6 +101,20 @@ Function Remove-LrListItem {
         $Token = $Credential.GetNetworkCredential().Password
 
         Enable-TrustAllCertsPolicy
+
+        
+        # Request Headers 
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+        if ($LoadListItems) {
+            $Headers.Add("loadListItems",$LoadListItems)
+        }
+
+        #$ExpDate = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
+
+        # Request Method
+        $Method = $HttpMethod.Delete
     }
 
     Process {
@@ -292,19 +306,7 @@ Function Remove-LrListItem {
             Default {}
         }
 
-
-        # General Setup  
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-        if ($LoadListItems) {
-            $Headers.Add("loadListItems",$LoadListItems)
-        }
-
-        #$ExpDate = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
-
-        # Request Setup
-        $Method = $HttpMethod.Delete
+        # Request URI
         $RequestUrl = $BaseUrl + "/lists/$Guid/items/"
 
         # Request Body

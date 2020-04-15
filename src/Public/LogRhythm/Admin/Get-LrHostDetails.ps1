@@ -90,7 +90,6 @@ Function Get-LrHostDetails {
         # Request Setup
         $Method = $HttpMethod.Get
         $RequestUri = $BaseUrl + "/hosts/" + $Guid + "/"
-
         # Error Output - Used to support Pipeline Paramater ID
         Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
         if ($ErrorObject.Error -eq $false) {
@@ -108,5 +107,7 @@ Function Get-LrHostDetails {
         }
     }
 
-    End { }
+    End {
+        # Move response to End
+    }
 }

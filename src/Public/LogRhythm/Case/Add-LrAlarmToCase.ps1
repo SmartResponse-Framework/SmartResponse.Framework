@@ -57,6 +57,14 @@ Function Add-LrAlarmToCase {
 
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
+                                                      
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+
+        # Request URI
+        $Method = $HttpMethod.Post
     }
     #endregion
 
@@ -69,19 +77,8 @@ Function Add-LrAlarmToCase {
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         }
 
-        #region: Request Headers                                                         
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-
-
-        # Request URI
-        $Method = $HttpMethod.Post
         $RequestUri = $BaseUrl + "/cases/$Id/evidence/alarms/"
         #endregion
-
-
 
         #region: Request Body                                                            
         # Request Body - ensure we always pass an array per API spec

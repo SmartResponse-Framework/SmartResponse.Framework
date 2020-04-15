@@ -44,24 +44,30 @@ Function Test-LrProcedureIdFormat {
         Value       =   $Id
     }
 
-    # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
-    $_int = 1
-
-    # Check if ID value is an integer
-    if ([int]::TryParse($Id, [ref]$_int)) {
-        Write-Verbose "[$Me]: Id parses as integer."
-        $OutObject.Value = $Id.ToString()
-        $OutObject.IsInt = $true
-        $OutObject.IsValid = $true
-    # Check if ID value is a Guid
-    } elseif (($Id -Is [System.Guid]) -Or (Test-Guid $Id)) {
-        $OutObject.Value = $Id.ToString()
-        $OutObject.IsValid = $true
-        $OutObject.IsGuid = $true
-    } elseif (($Id -Is [String])) {
-        $OutObject.Value = $Id.ToString()
-        $OutObject.IsValid = $true
+    Begin {
+        # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
+        $_int = 1
     }
 
-    return $OutObject
+    Process {
+        # Check if ID value is an integer
+        if ([int]::TryParse($Id, [ref]$_int)) {
+            Write-Verbose "[$Me]: Id parses as integer."
+            $OutObject.Value = $Id.ToString()
+            $OutObject.IsInt = $true
+            $OutObject.IsValid = $true
+        # Check if ID value is a Guid
+        } elseif (($Id -Is [System.Guid]) -Or (Test-Guid $Id)) {
+            $OutObject.Value = $Id.ToString()
+            $OutObject.IsValid = $true
+            $OutObject.IsGuid = $true
+        } elseif (($Id -Is [String])) {
+            $OutObject.Value = $Id.ToString()
+            $OutObject.IsValid = $true
+        }
+    }
+
+    End {
+        return $OutObject
+    }
 }

@@ -92,6 +92,11 @@ Function Get-LrHosts {
     Begin {
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+
+        # Request Setup
+        $Method = $HttpMethod.Get
     }
 
     Process {
@@ -141,12 +146,6 @@ Function Get-LrHosts {
         }
         #endregion
 
-
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-
-        # Request Setup
-        $Method = $HttpMethod.Get
         $RequestUri = $BaseUrl + "/hosts/" + $QueryString
 
         # Send Request
