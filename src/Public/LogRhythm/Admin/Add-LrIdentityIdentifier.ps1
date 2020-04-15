@@ -33,7 +33,7 @@ Function Add-LrIdentityIdentifier {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
+        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
         [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 1)]
         [int]$IdentityId,
@@ -61,21 +61,17 @@ Function Add-LrIdentityIdentifier {
         # Build out Identifiers
         # Logic - If not Email set to Login.  If not Login set to Email.  Any entry, including Both, sets both identifiers. 
         # Add validation for Login/Email/Both input and accept case insensitive.
-        $Identifiers = @()
+
+        $BodyContents = @{
+            value = $IdentifierValue
+            identifierType = $IdentifierType
+         } | ConvertTo-Json
         
         # Section - Build JSON Body - End
 
-
-        # Establish Body Contents
-        $BodyContents = [PSCustomObject]@{
-            friendlyName = $SyncName
-            accounts = @(
-                $Accounts
-            )
-        } | ConvertTo-Json -Depth 5
         
         # Define Endpoint URL
-        $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "identifiers"
+        $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/identifiers"
 
 
 
@@ -89,9 +85,9 @@ Function Add-LrIdentityIdentifier {
             $PSCmdlet.ThrowTerminatingError($PSItem)
             return $false
         }
-
-        return $Response
     }
 
-    End { }
+    End {
+        return $Response
+    }
 }

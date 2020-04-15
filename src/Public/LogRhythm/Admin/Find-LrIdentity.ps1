@@ -33,7 +33,6 @@ Function Find-LrIdentity {
 
         [Parameter(Mandatory = $false, Position = 3)]
         [switch]$Exact = $false
-
     )
 
     Begin {
