@@ -82,8 +82,7 @@ Function Merge-LrIdentities {
         }
         # Check record status
         $Primary = Get-LrIdentityById  -IdentityId $PrimaryIdentityId
-        if (-not $Primary -or $Primary.recordStatus -eq "Retired")
-        {
+        if (-not $Primary -or $Primary.recordStatus -eq "Retired") {
             write-host ($LeadingWhitespaceString + "The Primary Identity (ID '$PrimaryIdentityId') was not found or the record status was Retired")
             Exit 1
         } else {
@@ -91,8 +90,7 @@ Function Merge-LrIdentities {
         }
     
         $Secondary = Get-LrIdentityById -IdentityId $SecondaryIdentityId
-        if (-not $Secondary)
-        {
+        if (-not $Secondary) {
             write-host ($LeadingWhitespaceString + "The Secondary Identity (ID '$SecondaryIdentityId') was not found")
             Exit 1
         } else {
@@ -106,29 +104,25 @@ Function Merge-LrIdentities {
         $Identifiers = $Secondary.identifiers 
         foreach ($Identifier in $Identifiers)
         {
-            if ($Identifier.recordStatus -eq "Retired")
-            {
+            if ($Identifier.recordStatus -eq "Retired") {
                 write-host ($LeadingWhitespaceString + "`tIdentifier '$($Identifier.value)' type '$($Identifier.identifierType)' is disabled and will not be moved")
                 continue
             }
             
             # Check to see if this Identifier already exists in the Primary Identity
             $PrimaryHasIdentifier = (@($Primary.identifiers | Where-Object { $_.value -eq $Identifier.value -and $_.identifierType -eq $Identifier.identifierType }).Count -gt 0)
-            if ($PrimaryHasIdentifier)
-            {
+            if ($PrimaryHasIdentifier) {
                 write-host ($LeadingWhitespaceString + "`tIdentifier '$($Identifier.value)' type '$($Identifier.identifierType)' already exists in the Primary Identity")
                 continue
             }
             
-            if ($TestMode) 
-            {
+            if ($TestMode) {
                 $MoveStatus = $True
             } else {
                 $MoveStatus = Add-LrIdentityIdentifier  -IdentityId $PrimaryIdentityId -IdentifierType $Identifier.identifierType -IdentifierValue $Identifier.value
             }
             
-            if ($MoveStatus -eq $True)
-            {
+            if ($MoveStatus -eq $True -or $MoveStatus) {
                 write-host ($LeadingWhitespaceString + "`tSuccessfully moved Identifier '$($Identifier.value)' type '$($Identifier.identifierType)'")
             } else {
                 write-host ($LeadingWhitespaceString + "`tFailed to move Identifier '$($Identifier.value)' type '$($Identifier.identifierType)'")
