@@ -117,14 +117,16 @@ Function Get-LrIdentityById {
                 return $false
             }
         }
-    }
 
-    End {
         # Return Identity Object or array of Identifiers
         if ($IdentifiersOnly) {
             return $Response.identifiers
         } else {
             return $Response
         }
+    }
+
+    End {
+
     }
 }
