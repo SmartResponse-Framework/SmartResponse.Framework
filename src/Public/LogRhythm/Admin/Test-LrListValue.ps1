@@ -94,9 +94,9 @@ Function Test-LrListValue {
                 $OutObject.ValueType = $Item.listItemType
             }
         }
-
-        Return $OutObject
     }
 
-    End { }
+    End {
+        Return $OutObject
+    }
 }

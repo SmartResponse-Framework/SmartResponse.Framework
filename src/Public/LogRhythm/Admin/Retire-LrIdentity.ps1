@@ -56,15 +56,21 @@ Function Retire-LrIdentity {
         # Request Setup
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
 
+        # Define HTTP Method
         $Method = $HttpMethod.Put
 
-        # Establish Body Contents
+        # Define Body Contents
         $BodyContents = [PSCustomObject]@{
             recordStatus = "Retired"
         } | ConvertTo-Json
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
     }
 
     Process {        
