@@ -17,14 +17,55 @@ Function Enable-LrIdentityIdentifier {
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
-        PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 40
-        ----
-        identifierID   : 40
-        identifierType : Login
-        value          : marcus.burnett
-        recordStatus   : Retired
-        source         : @{AccountName=Source 11; IAMName=Cont0so}
+        Identity exists and Identitystatus Retired prior to cmdlet execution:
 
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 50
+        ----
+        identifierID identifierType value                      recordStatus
+        ------------ -------------- -----                      ------------
+        50           Email          marcus.burnett@contaso.com Active
+
+    .EXAMPLE
+        Identity exists and IdentityStatus Active prior to cmdlet execution:
+
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 50
+
+        IsPresent           : True
+        IdentifierId        : 50
+        Value               : marcus.burnett@contaso.com
+        IdentifierType      : Email
+        RecordStatus        : Active
+        IdentityId          : 1
+        IdentityValid       : True
+        IdentityStatus      : Active
+        IdentityDisplayName : marcus.burnett@fabrikam.com
+    .EXAMPLE
+        Identity does not exist:
+
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 77 -IdentifierId 50
+        IsPresent           : False
+        IdentifierId        : 50
+        Value               :
+        IdentifierType      :
+        RecordStatus        :
+        IdentityId          : 77
+        IdentityValid       : False
+        IdentityStatus      :
+        IdentityDisplayName :
+
+    .EXAMPLE
+        IdentifierId does not exist:
+
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 1 -IdentifierId 55
+        IsPresent           : False
+        IdentifierId        : 55
+        Value               :
+        IdentifierType      :
+        RecordStatus        :
+        IdentityId          : 1
+        IdentityValid       : True
+        IdentityStatus      : Active
+        IdentityDisplayName : marcus.burnett@fabrikam.com
     .NOTES
         LogRhythm-API        
     .LINK
@@ -69,15 +110,23 @@ Function Enable-LrIdentityIdentifier {
         # Define Query URL
         $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/identifiers/" + $IdentifierId + "/status/"
 
-        # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-            $PSCmdlet.ThrowTerminatingError($PSItem)
-            return $false
+        # Test if Identifier exists
+        $IdentifierStatus = Test-LrIdentityIdentifierId -IdentityId $IdentityId -Id $IdentifierId
+
+        # Send Request and proceed if Identifier is Present
+        if ($IdentifierStatus.IsPresent -eq $True -and $IdentifierStatus.RecordStatus -eq "Retired") {
+            # Send Request
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+                return $false
+            }
+        } else {
+            return $IdentifierStatus
         }
     }
 
