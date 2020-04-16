@@ -115,9 +115,13 @@ Function Add-LrIdentity {
         # Request Setup
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
         $Headers.Add("Content-Type","application/json")
+
+        # Define HTTP Method
         $Method = $HttpMethod.Post
 
         # Create vendorUniqueKey based on SyncName
@@ -126,6 +130,9 @@ Function Add-LrIdentity {
             [Void]$StringBuilder.Append($_.ToString("x2"))
         }
         $VendorUniqueKey = $StringBuilder.ToString()
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
     }
 
     Process {

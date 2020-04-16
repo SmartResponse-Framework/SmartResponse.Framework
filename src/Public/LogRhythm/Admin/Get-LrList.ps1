@@ -48,7 +48,7 @@ Function Get-LrList {
 
         [Parameter(Mandatory=$false, Position=2)]
         [ValidateRange(1,100000)]
-        [int] $MaxItemsThreshold,
+        [int] $MaxItemsThreshold = 10000,
 
         [Parameter(Mandatory=$false, Position=3)]
         [switch] $ValuesOnly,
@@ -58,19 +58,20 @@ Function Get-LrList {
     )
 
     Begin {
-        # General Setup  
+        # Request Setup 
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-
-
-        # Request Setup
-        $Method = $HttpMethod.Get
         $Headers.Add("maxItemsThreshold", $MaxItemsThreshold)
-        $RequestUrl = $BaseUrl + "/lists/$Guid/"
 
+        # Define HTTP Method
+        $Method = $HttpMethod.Get
+    }
 
+    Process {
         # Process Name Object
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
             $Guid = $Name.ToString()
@@ -88,13 +89,9 @@ Function Get-LrList {
             }
         }
 
-        # Update Default maxItemsThreshold
-        if (!$MaxItemsThreshold) {
-            $MaxItemsThreshold = 1000
-        }
-    }
+        # Define HTTP URI
+        $RequestUrl = $BaseUrl + "/lists/$Guid/"
 
-    Process {
         # Send Request
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
@@ -113,7 +110,7 @@ Function Get-LrList {
             $Response.items | ForEach-Object {
                 $ReturnList.Add($_.value)
             }
-            return ,$ReturnList
+            return $ReturnList
         }
         return $Response
     }

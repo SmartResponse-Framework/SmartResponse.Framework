@@ -45,7 +45,9 @@ Function Get-LrHostIdentifiers {
         [object] $Id
     )
 
-    Begin { }
+    Begin {
+        $_int = 0
+    }
 
     Process {
         # Establish General Error object Output
@@ -54,7 +56,7 @@ Function Get-LrHostIdentifiers {
             Value                 =   $Id
             Note                  =   $null
         }
-        $_int = 0
+        
 
         # Check if ID value is an integer
         if ([int]::TryParse($Id, [ref]$_int)) {
@@ -68,14 +70,15 @@ Function Get-LrHostIdentifiers {
                 $ErrorObject.Note = "Id String [$Id] not found in LrHosts List."
             }
         }
-    }
 
-    End { 
         if ($ErrorObject.Error -eq $false) {
             $Results = Get-LrHostDetails -Id $Id | Select-Object -ExpandProperty hostIdentifiers
-            return $Results
         } else {
             return $ErrorObject
         }
+    }
+
+    End { 
+        return $Results
     }
 }

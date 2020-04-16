@@ -2,12 +2,12 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Enable-LrIdentifier {
+Function Enable-LrIdentityIdentifier {
     <#
     .SYNOPSIS
         Enable an Identifier from an existing TrueIdentity based on TrueID # and Identifier #.
     .DESCRIPTION
-        Enable-LrIdentifier returns an object containing the detailed results of the enabled Identifier.
+        Enable-LrIdentityIdentifier returns an object containing the detailed results of the enabled Identifier.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .PARAMETER IdentityId
@@ -17,7 +17,7 @@ Function Enable-LrIdentifier {
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
-        PS C:\> Enable-LrIdentifier -IdentityId 11 -IdentifierId 40
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 40
         ----
         identifierID   : 40
         identifierType : Login
@@ -37,10 +37,10 @@ Function Enable-LrIdentifier {
         [ValidateNotNull()]
         [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$true, Position = 1)]
+        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 1)]
         [long]$IdentityId,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$true, Position = 2)]
+        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 2)]
         [long]$IdentifierId
     )
 
@@ -48,9 +48,16 @@ Function Enable-LrIdentifier {
         # Request Setup
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+        
+        # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        
+        # Define HTTP Method
         $Method = $HttpMethod.Put
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
     }
 
     Process {
@@ -61,8 +68,6 @@ Function Enable-LrIdentifier {
         
         # Define Query URL
         $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/identifiers/" + $IdentifierId + "/status/"
-
-
 
         # Send Request
         try {

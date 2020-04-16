@@ -49,42 +49,47 @@ Function Add-LrIdentityIdentifier {
         # Request Setup
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
         $Headers.Add("Content-Type","application/json")
+
+        # Define HTTP Method
         $Method = $HttpMethod.Post
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
     }
 
     Process {
-         # Section - Build JSON Body - Begin
- 
-        # Build out Identifiers
-        # Logic - If not Email set to Login.  If not Login set to Email.  Any entry, including Both, sets both identifiers. 
-        # Add validation for Login/Email/Both input and accept case insensitive.
-
+        # Define HTTP Body
         $BodyContents = @{
             value = $IdentifierValue
             identifierType = $IdentifierType
          } | ConvertTo-Json
         
-        # Section - Build JSON Body - End
-
-        
         # Define Endpoint URL
         $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/identifiers"
 
+        # Test if Identifier exists
+        $IdentifierStatus = Test-LrIdentityIdentifier -IdentityId $IdentityId -IdentifierType $IdentifierType -Value $IdentifierValue
 
+        # Send Request if Identifier is Not Present
+        if ($IdentifierStatus.IsPresent -eq $False) {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+                return $false
+            }
+        } else {
+            $Response = $IdentifierStatus
+        }
 
-        # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-            $PSCmdlet.ThrowTerminatingError($PSItem)
-            return $false
-        }
     }
 
     End {
