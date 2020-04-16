@@ -17,14 +17,56 @@ Function Retire-LrIdentityIdentifier {
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its retirement status.
     .EXAMPLE
-        PS C:\> Retire-LrIdentityIdentifier -IdentityId 11 -IdentifierId 40
-        ----
-        identifierID   : 40
-        identifierType : Login
-        value          : marcus.burnett
-        recordStatus   : Retired
-        source         : @{AccountName=Source 11; IAMName=Cont0so}
+        Identity and Identifier exists and IdentifierStatus Active prior to cmdlet execution:
+        PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50
 
+        identifierID identifierType value                      recordStatus
+        ------------ -------------- -----                      ------------
+        50           Email          marcus.burnett@contaso.com Retired
+    .EXAMPLE
+        Identity and Identifier exists and IdentityStatus Retired prior to cmdlet execution:
+
+        PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50
+
+        IsPresent           : True
+        IdentifierId        : 50
+        Value               : marcus.burnett@contaso.com
+        IdentifierType      : Email
+        RecordStatus        : Retired
+        IdentityId          : 1
+        IdentityValid       : True
+        IdentityStatus      : Active
+        IdentityDisplayName : marcus.burnett@fabrikam.com
+
+    .EXAMPLE
+        Identity does not exist:
+        
+        PS C:\> Retire-LrIdentityIdentifier -IdentityId 77 -IdentifierId 50
+
+        IsPresent           : False
+        IdentifierId        : 50
+        Value               :
+        IdentifierType      :
+        RecordStatus        :
+        IdentityId          : 77
+        IdentityValid       : False
+        IdentityStatus      :
+        IdentityDisplayName :
+
+    .EXAMPLE
+        Identifier does not exist:
+
+        Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 77
+
+        IsPresent           : False
+        IdentifierId        : 77
+        Value               :
+        IdentifierType      :
+        RecordStatus        :
+        IdentityId          : 1
+        IdentityValid       : True
+        IdentityStatus      : Active
+        IdentityDisplayName : marcus.burnett@fabrikam.com
     .NOTES
         LogRhythm-API        
     .LINK
