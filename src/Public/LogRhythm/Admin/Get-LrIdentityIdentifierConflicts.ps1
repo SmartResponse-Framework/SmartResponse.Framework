@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Get-LrIdentityConflicts {
+Function Get-LrIdentityIdentifierConflicts {
     <#
     .SYNOPSIS
         Get a list of Identifier Conflicts for LogRhythm 7.4
@@ -188,4 +188,3 @@ Function Get-LrIdentityConflicts {
     }
 
 }
-	
