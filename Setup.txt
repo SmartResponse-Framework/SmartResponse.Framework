@@ -15,7 +15,7 @@ Prompt: Platform Manager DNS
 >   { Note: This token will only be accessible by the current user ($AccountName). To setup a token for a different user, do one of the following:
 
 > 1. Run setup.ps1 again as that user, or
-> 2. Create a new [pscredential] object, save it with Export-CliXml, and update the LrApiCredentialPath property in  .\src\includes\SrfPreferences.json. }
+> 2. Create a new [pscredential] object, save it with Export-CliXml, and update the LrApiCredentialPath property in  .\src\includes\SrfPreferences.json.
 
 > Copy your LogRhythm API Token to the clipboard, then press [Enter].
 # get clipboard / set-clipboard / create pscredential
@@ -25,3 +25,13 @@ Prompt: Chose a [directory] to save token to.  Default: $PSScriptRoot\src\includ
 > To update your LogRhythm token, run setup.ps1 again.
 
 
+
+
+* API Key
+* Platform Manager Hostname / IP
+* 
+
+Tasks:
+* Create local app data folder %appdata%\$ModuleName\ if it doesn't exist
+* Copy / Create preferences file to appdata with the provided values
+* Save API Key to appdata

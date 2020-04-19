@@ -1,23 +1,47 @@
-#region: Module Data                                                                     
+
+#region: Module Info                                                                     
+# Module Name: To make it easier to change the name of the module.
+$ModuleName = "LRMod"
+$PreferencesFileName = $ModuleName + ".preferences.json"
+
+
 # [Namespaces]: Directories to include in this module
 $Namespaces = @(
     "Public",
     "Private"
 )
 
-
 # List of Packages (.dll files) used by module.
 $AssemblyList = [PSCustomObject]@{
     ApiHelper = $(Join-Path $PSScriptRoot "ApiHelper.dll")
 }
 
-
-# Load Module Preferences
+# Includes Dir
 $SrfIncludes = [System.IO.DirectoryInfo]::new((Join-Path -Path $PSScriptRoot -ChildPath "Include"))
-$SrfPreferences = Get-Content -Path `
-    (Join-Path -Path $SrfIncludes.FullName -ChildPath "SrfPreferences.json") -Raw | ConvertFrom-Json
+#endregion
 
 
+
+#region: Load Preferences                                                                
+# Load Preferences:  Custom / Default
+$PrefPath = Join-Path `
+    -Path [System.Environment]::GetFolderPath("LocalApplicationData") `
+    -ChildPath $ModuleName | Join-Path -ChildPath $PreferencesFileName
+
+$PrefInfo = [System.IO.FileInfo]::new($PrefPath)
+
+if ($PrefInfo.Exists) {
+    $SrfPreferences = Get-Content -Path $PrefInfo.FullName -Raw | ConvertFrom-Json
+} else {
+    Write-Host "Warning: Unable to locate preferences directory - module will load copy from installation/include directory."
+    $SrfPreferences = Get-Content -Path `
+        (Join-Path -Path $SrfIncludes.FullName -ChildPath "SrfPreferences.json") -Raw | ConvertFrom-Json
+}
+#endregion
+
+
+
+#region: Module Reference Object Variables                                               
 # LogRhythm Case Vars
 $LrCaseStatus = [PSCustomObject]@{
     Created     = 1
@@ -83,6 +107,7 @@ $KeyPath = $SrfPreferences.LrDeployment.LrApiCredentialPath
 
 try {
     $SrfPreferences.LrDeployment.LrApiCredential = Import-Clixml -Path $KeyPath
+    Write-Host "  > LogRhythm API Key Loaded." -ForegroundColor Green
 }
 catch [System.IO.FileNotFoundException] {
     Write-Host "Warning: LogRhythm API Credential not found." -ForegroundColor Yellow
@@ -90,23 +115,24 @@ catch [System.IO.FileNotFoundException] {
     -ForegroundColor Yellow
 }
 catch [System.Security.Cryptography.CryptographicException] {
-    Write-Host "Unable to load key, insufficient permissions.  Did you run setup.ps1 as this user?" `
+    Write-Host "Unable to load key, insufficient permissions. Run Setup script." `
     -ForegroundColor Yellow
 }
-catch [Exception] {
+catch [System.Exception] {
     Write-Host "Unexpected error while attempting to load LogRhythm API Credential."
     Write-Host "LogRhythm cmdlets will need to specify the '-Credential' option in order to function." `
     -ForegroundColor Yellow
 }
-Write-Verbose "[ LogRhythm API Key Set ]"
 #endregion
 
 
 
-# Export Module Members
+#region: Export Module Members                                                           
+Export-ModuleMember -Variable ModuleName
 Export-ModuleMember -Variable SrfPreferences
 Export-ModuleMember -Variable LrCaseStatus
 Export-ModuleMember -Variable AssemblyList
 Export-ModuleMember -Variable HttpMethod
 Export-ModuleMember -Variable HttpContentType
 Export-ModuleMember -Function $Includes["Public"].BaseName
+#endregion
