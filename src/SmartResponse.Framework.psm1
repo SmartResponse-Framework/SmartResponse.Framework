@@ -1,6 +1,8 @@
 
 #region: Module Info                                                                     
 # Module Name: To make it easier to change the name of the module.
+# NOTE: There is a corresponding set of variables in the build module's psm1.  If these
+#       are changed, then the variables there should be updated to the same.
 $ModuleName = "LRMod"
 $PreferencesFileName = $ModuleName + ".preferences.json"
 
@@ -23,11 +25,9 @@ $SrfIncludes = [System.IO.DirectoryInfo]::new((Join-Path -Path $PSScriptRoot -Ch
 
 
 #region: Load Preferences                                                                
-# Load Preferences:  Custom / Default
 $PrefPath = Join-Path `
-    -Path [System.Environment]::GetFolderPath("LocalApplicationData") `
+    -Path ([Environment]::GetFolderPath("LocalApplicationData"))`
     -ChildPath $ModuleName | Join-Path -ChildPath $PreferencesFileName
-
 $PrefInfo = [System.IO.FileInfo]::new($PrefPath)
 
 if ($PrefInfo.Exists) {
