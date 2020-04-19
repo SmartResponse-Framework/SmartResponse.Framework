@@ -22,7 +22,7 @@ namespace SetupGui
     {
         public MainWindow()
         {
-            InitializeComponent();
+//            InitializeComponent();
         }
     }
 }

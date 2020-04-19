@@ -40,23 +40,24 @@ Function Install-LrMod {
         -Path ([Environment]::GetFolderPath("LocalApplicationData"))`
         -ChildPath $ModuleName
 
+    $ConfigFile = Join-Path -Path $ConfigDir -ChildPath $PreferencesFileName
 
     # Import the build module
     Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "build" | Join-Path -ChildPath "SrfBuilder.psm1")
 
     # Create Directory if it doesn't exist
-    if (-not (Test-ConfigExists)) {
-        New-Item -Path ([Environment]::GetFolderPath("LocalApplicationData")) -Name $ModuleName -ItemType Directory
+    if (-not (Test-Path -Path $ConfigDir)) {
+        New-Item -Path ([Environment]::GetFolderPath("LocalApplicationData")) -Name $ModuleName -ItemType Directory | Out-Null
     }
 
-    if (-not (Test-Path -Path (Join-Path -Path $ConfigDir -ChildPath $PreferencesFileName))) {
+    if (-not (Test-Path -Path $ConfigFile)) {
         Copy-Item -Path "$PSScriptRoot\src\Include\$PreferencesFileName" -Destination $ConfigDir
     }
 
 
     #region: Create Preferences File                                                     
     # Update Preferences
-    $Prefs = Get-Content -Path (Join-Path -Path $ConfigDir -ChildPath $PreferencesFileName) -Raw | ConvertFrom-Json
+    $Prefs = Get-Content -Path $ConfigFile -Raw | ConvertFrom-Json
 
     # Determine API URIs
     $AdminApiBaseUrl = "https://" + $PlatformManager +  ":8501/lr-admin-api"
@@ -70,13 +71,19 @@ Function Install-LrMod {
 
 
     # Write Preferences back to disk
-    $Prefs | ConvertTo-Json | Out-File $ConfigDir    
+    $Prefs | ConvertTo-Json | Set-Content -Path $ConfigFile
     #endregion
 
 
 
     #region: Create LrApiToken                                                           
     [pscredential]::new("LrApiToken", $LrApiKey) | Export-Clixml -Path (Join-Path -Path $ConfigDir -ChildPath "LrApiToken.xml")
+    #endregion
+
+
+
+    #region: Install Module
+    # Check if module already installed.  If it is, check versions.  If existing is older, remove old and install new.
     #endregion
 
 }

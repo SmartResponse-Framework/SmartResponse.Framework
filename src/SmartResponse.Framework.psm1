@@ -35,7 +35,7 @@ if ($PrefInfo.Exists) {
 } else {
     Write-Host "Warning: Unable to locate preferences directory - module will load copy from installation/include directory."
     $SrfPreferences = Get-Content -Path `
-        (Join-Path -Path $SrfIncludes.FullName -ChildPath "SrfPreferences.json") -Raw | ConvertFrom-Json
+        (Join-Path -Path $SrfIncludes.FullName -ChildPath $PreferencesFileName) -Raw | ConvertFrom-Json
 }
 #endregion
 

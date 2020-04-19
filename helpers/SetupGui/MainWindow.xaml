@@ -1,12 +1,23 @@
-﻿<Window x:Class="SetupGui.MainWindow"
+﻿<Window x:Class="MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SetupGui"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="LRMod Setup" Height="209" Width="600">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.3*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
+        <StackPanel Margin="4">
+            <TextBlock FontSize="10">Platform Manager</TextBlock>
+            <TextBox Name="MyTextBox" />
+            <TextBlock FontSize="10">LogRhythm API Key</TextBlock>
+            <PasswordBox Height="60" Margin="0px 0px 0px 10px" />
+            <Button Width="100" HorizontalAlignment="Center">Install</Button>
+        </StackPanel>
     </Grid>
+
 </Window>
