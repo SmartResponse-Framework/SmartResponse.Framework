@@ -155,6 +155,7 @@ Function Get-LrIdentities {
         # Define Search URL
         $RequestUrl = $BaseUrl + "/identities/" + $QueryString
 
+
         # Send Request
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
@@ -164,6 +165,14 @@ Function Get-LrIdentities {
             Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
             $PSCmdlet.ThrowTerminatingError($PSItem)
             return $false
+        }
+
+        if ($Response.Count -eq $PageValuesCount)
+        {
+            # Need to get next page results
+            $CurrentPage = $PageCount + 1
+            $QueryString = $QueryParams | ConvertTo-QueryString
+            return $Response + (Get-LrIdentities -PageCount $CurrentPage) 
         }
     }
 
