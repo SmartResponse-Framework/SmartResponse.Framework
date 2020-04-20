@@ -67,15 +67,18 @@ Function Get-LrIdentities {
         [string]$RecordStatus,
 
         [Parameter(Mandatory = $false, Position = 8)]
-        [datetime]$UpdatedBefore,
+        [string]$OrderBy = "Displayidentifier",
 
         [Parameter(Mandatory = $false, Position = 9)]
-        [datetime]$UpdatedAfter,
+        [datetime]$UpdatedBefore,
 
         [Parameter(Mandatory = $false, Position = 10)]
-        [switch]$ShowRetired = $false,
+        [datetime]$UpdatedAfter,
 
         [Parameter(Mandatory = $false, Position = 11)]
+        [switch]$ShowRetired = $false,
+
+        [Parameter(Mandatory = $false, Position = 12)]
         [switch]$Exact
     )
 
@@ -109,6 +112,11 @@ Function Get-LrIdentities {
         # Filter by Object Name
         if ($Name) {
             $QueryParams.Add("name", $Name)
+        }
+
+        # Filter Order of returned Object
+        if ($OrderBy) {
+            $QueryParams.Add("orderBy", $OrderBy)
         }
 
         # Filter by Object Display Identifier
@@ -166,17 +174,15 @@ Function Get-LrIdentities {
             $PSCmdlet.ThrowTerminatingError($PSItem)
             return $false
         }
-
-        if ($Response.Count -eq $PageValuesCount)
-        {
-            # Need to get next page results
-            $CurrentPage = $PageCount + 1
-            $QueryString = $QueryParams | ConvertTo-QueryString
-            return $Response + (Get-LrIdentities -PageCount $CurrentPage) 
-        }
     }
 
     End {
+        if ($Response.Count -eq $PageValuesCount) {
+            # Need to get next page results
+            $CurrentPage = $PageCount + 1
+            #return 
+            Return $Response + (Get-LrIdentities -PageCount $CurrentPage) 
+        }
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
