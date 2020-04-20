@@ -60,6 +60,15 @@ Function Add-LrTagsToCase {
 
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
+
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+
+
+        # Request URI
+        $Method = $HttpMethod.Put
     }
 
 
@@ -70,18 +79,8 @@ Function Add-LrTagsToCase {
         $IdInfo = Test-LrCaseIdFormat $Id
         if (! $IdInfo.IsValid) {
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
-        }
+        }                                                        
 
-        
-        #region: Headers and Uri                                                         
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-
-
-        # Request URI
-        $Method = $HttpMethod.Put
         $RequestUri = $BaseUrl + "/cases/$Id/actions/addTags/"
         Write-Verbose "[$Me]: RequestUri: $RequestUri"
         #endregion

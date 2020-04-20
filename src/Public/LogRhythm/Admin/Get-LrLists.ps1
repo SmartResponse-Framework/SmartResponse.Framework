@@ -54,25 +54,19 @@ Function Get-LrLists {
 
         [Parameter(Mandatory=$false, Position=3)]
         [ValidateRange(1,1000)]
-        [int] $PageSize,
+        [int] $PageSize = 1000,
 
         [Parameter(Mandatory = $false, Position=4)]
         [switch] $Exact
     )
-
-    #region: BEGIN                                                                       
+                                                                    
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
+        # Request Setup 
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
-        # Enable self-signed certificates and Tls1.2
-        Enable-TrustAllCertsPolicy
-    }
-    #endregion
-
-    Process {      
         # Validate ListType
         if ($ListType) {
             $ListTypeInfo = Test-LrListType -Id $ListType
@@ -83,31 +77,31 @@ Function Get-LrLists {
             }
         }
 
-        # Update default PageSize if not defined
-        if (!$PageSize) {
-            $PageSize = 1000
-        }
-
-
-        # General Setup
+        # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-
-
-        # Request Setup
-        $Method = $HttpMethod.Get
         if ($pageSize) {
             $Headers.Add("pageSize", $PageSize)
         }
         if ($ListTypeValid) { 
             $Headers.Add("listType", $ListTypeValid)
         }
+
+
+        # Define HTTP Method
+        $Method = $HttpMethod.Get
+        
+        # Define HTTP URI
+        $RequestUrl = $BaseUrl + "/lists/"
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
+    }
+
+    Process {      
         if ($Name) {
             $Headers.Add("name", $Name)
         }
-        $Headers.Add("maxItemsThreshold", $MaxItemsThreshold)
-        $RequestUrl = $BaseUrl + "/lists/"
-        Write-Verbose "[$Me]: Request Header: `n$($Headers.name)"
 
         # Send Request
         try {

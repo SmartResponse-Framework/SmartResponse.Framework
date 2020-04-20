@@ -57,13 +57,13 @@ Function Get-LrListGuidByName {
         catch [System.Net.WebException] {
             $PSCmdlet.ThrowTerminatingError($PSItem)
         }
-    
+    }
+
+
+    End {
         if ($Response) {
             return $Response.Guid
         }
         return $null
     }
-
-
-    End { }
 }

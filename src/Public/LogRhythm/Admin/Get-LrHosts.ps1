@@ -90,8 +90,19 @@ Function Get-LrHosts {
     )
 
     Begin {
+        # Request Setup
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+        
+        # Define HTTP Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+
+        # Define HTTP Method
+        $Method = $HttpMethod.Get
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy        
     }
 
     Process {
@@ -141,12 +152,6 @@ Function Get-LrHosts {
         }
         #endregion
 
-
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-
-        # Request Setup
-        $Method = $HttpMethod.Get
         $RequestUri = $BaseUrl + "/hosts/" + $QueryString
 
         # Send Request

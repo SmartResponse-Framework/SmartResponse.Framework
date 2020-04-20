@@ -76,17 +76,23 @@ Function Get-LrIdentities {
         [switch]$ShowRetired = $false,
 
         [Parameter(Mandatory = $false, Position = 11)]
-        [switch]$Exact = $false
-
+        [switch]$Exact
     )
 
     Begin {
         # Request Setup
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Define HTTP Header
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+
+        # Define HTTP Method
         $Method = $HttpMethod.Get
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
     }
 
     Process {

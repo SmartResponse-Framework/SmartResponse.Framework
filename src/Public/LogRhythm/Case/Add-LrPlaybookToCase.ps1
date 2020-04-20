@@ -59,6 +59,14 @@ Function Add-LrPlaybookToCase {
         $Me = $MyInvocation.MyCommand.Name
         $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+
+        # Request URI
+        $Method = $HttpMethod.Post
     }
 
 
@@ -93,15 +101,6 @@ Function Add-LrPlaybookToCase {
             }
         }
 
-
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-
-
-        # Request URI
-        $Method = $HttpMethod.Post
         $RequestUri = $BaseUrl + "/cases/$Id/playbooks/"
         Write-Verbose "[$Me]: RequestUri: $RequestUri"
 

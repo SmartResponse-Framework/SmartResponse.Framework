@@ -68,7 +68,8 @@ Function Test-LrListType {
                 $OutObject.Value = "MsgSource" 
             }
             msgsourcetype { 
-                $Value = "MsgSourceType" 
+                $OutObject.IsValid = $true
+                $OutObject.Value = "MsgSourceType" 
             }
             mperule { 
                 $OutObject.IsValid = $true

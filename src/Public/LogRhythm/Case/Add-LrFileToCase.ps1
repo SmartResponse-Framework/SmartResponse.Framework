@@ -56,6 +56,11 @@ Function Add-LrFileToCase {
 
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
+
+        #$Headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+        $Headers = [Dictionary[string,string]]::new()
+        #$Headers.Add("Content-Type", "multipart/form-data")
+        $Headers.Add("Authorization", "Bearer $Token")
     }
 
 
@@ -68,12 +73,6 @@ Function Add-LrFileToCase {
 
         # Previously Used
         #$FileName = Split-Path -Path $File -Leaf
-
-        
-        #$Headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-        $Headers = [Dictionary[string,string]]::new()
-        #$Headers.Add("Content-Type", "multipart/form-data")
-        $Headers.Add("Authorization", "Bearer $Token")
 
         # Request URI   
         $RequestUri = $BaseUrl + "/cases/$Id/evidence/file/"

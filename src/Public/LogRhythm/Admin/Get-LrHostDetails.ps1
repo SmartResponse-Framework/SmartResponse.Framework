@@ -56,8 +56,22 @@ Function Get-LrHostDetails {
     )
 
     Begin {
+        # Request Setup
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Define HTTP Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+
+        # Define HTTP Method
+        $Method = $HttpMethod.Get
+
+        # Value Testing Paramater
+        $_int = 0
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
     }
 
     Process {
@@ -67,7 +81,7 @@ Function Get-LrHostDetails {
             Value                 =   $Id
             Note                  =   $null
         }
-        $_int = 0
+        
 
         # Check if ID value is an integer
         if ([int]::TryParse($Id, [ref]$_int)) {
@@ -83,14 +97,7 @@ Function Get-LrHostDetails {
         }
 
         
-
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-
-        # Request Setup
-        $Method = $HttpMethod.Get
         $RequestUri = $BaseUrl + "/hosts/" + $Guid + "/"
-
         # Error Output - Used to support Pipeline Paramater ID
         Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
         if ($ErrorObject.Error -eq $false) {
@@ -102,11 +109,12 @@ Function Get-LrHostDetails {
                 $Err = Get-RestErrorMessage $_
                 Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
             }
-            return $Response
         } else {
             return $ErrorObject
         }
     }
 
-    End { }
+    End {
+        return $Response
+    }
 }

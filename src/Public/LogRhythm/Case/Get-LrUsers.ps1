@@ -94,17 +94,19 @@ Function Get-LrUsers {
 
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
-    }
 
-
-    Process {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
         $Headers.Add("count", 5000)
         $Headers.Add("direction", $Sort)
 
+        # Request Method
+        $Method = $HttpMethod.Get
+    }
 
+
+    Process {
         # Transform OnlyUsers switch into a boolean
         # Note: Omitting OnlyUsers is the same as setting OnlyUsers to "false" as 
         # far as the LogRhythm API handles it.
@@ -122,7 +124,6 @@ Function Get-LrUsers {
 
 
         # Request URI
-        $Method = $HttpMethod.Get
         $RequestUri = $BaseUrl + "/persons/" + $Params
 
         # REQUEST

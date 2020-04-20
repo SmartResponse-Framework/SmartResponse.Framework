@@ -33,23 +33,30 @@ Function Find-LrIdentity {
 
         [Parameter(Mandatory = $false, Position = 3)]
         [switch]$Exact = $false
-
     )
 
     Begin {
+        # Request Setup
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
-    }
 
-    Process {
+        # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
         $Headers.Add("Content-Type","application/json")
 
-        # Request Setup
+        # Define HTTP Method
         $Method = $HttpMethod.Post
+
+        # Define HTTP Destination URI
         $RequestUrl = $BaseUrl + "/identities/summaries/query/"
 
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
+    }
+
+    Process {
+        # Define HTTP Body
         $BodyContents = [PSCustomObject]@{
             logins = @($Name)
         }
@@ -66,7 +73,9 @@ Function Find-LrIdentity {
             Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
             $PSCmdlet.ThrowTerminatingError($PSItem)
         }
+    }
 
+    End {
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -83,6 +92,4 @@ Function Find-LrIdentity {
             return $Response
         }
     }
-
-    End { }
 }

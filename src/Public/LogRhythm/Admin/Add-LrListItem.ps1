@@ -93,13 +93,27 @@ Function Add-LrListItem {
         [Parameter(Mandatory=$false, Position=4)]
         [switch] $LoadListItems
     )
-
-    #region: BEGIN                                                                       
+                                                                      
     Begin {
+        # Request Setup
         $Me = $MyInvocation.MyCommand.Name
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
+        # Define HTTP Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+        if ($LoadListItems) {
+            $Headers.Add("loadListItems",$LoadListItems)
+        }
+
+        #$ExpDate = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
+
+        # Define HTTP Method
+        $Method = $HttpMethod.Post
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
     }
 
@@ -293,21 +307,10 @@ Function Add-LrListItem {
         }
 
 
-        # General Setup  
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-        if ($LoadListItems) {
-            $Headers.Add("loadListItems",$LoadListItems)
-        }
-
-        #$ExpDate = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
-
-        # Request Setup
-        $Method = $HttpMethod.Post
+        # Destination URL
         $RequestUrl = $BaseUrl + "/lists/$Guid/items/"
 
-        # Request Body
+        # Define HTTP Body
         $BodyContents = [PSCustomObject]@{
             items = @(
                 [PSCustomObject]@{

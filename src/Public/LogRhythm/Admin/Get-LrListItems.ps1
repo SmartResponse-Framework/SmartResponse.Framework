@@ -43,14 +43,16 @@ Function Get-LrListItems {
         [object] $Name,
 
         [Parameter(Mandatory=$false, Position=2)]
-        [ValidateRange(1,1000)]
-        [int] $MaxItemsThreshold,
+        [ValidateRange(1,100000)]
+        [int] $MaxItemsThreshold = 10000,
 
         [Parameter(Mandatory=$false, Position=3)]
-        [switch] $Exact = $true
+        [switch] $Exact
     )
 
-    Begin {
+    Begin { }
+
+    Process {
         # Process Identity Object
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
             $Guid = $Name.ToString()
@@ -67,19 +69,10 @@ Function Get-LrListItems {
                 throw [Exception] "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)"
             }
         }
-    }
-
-    Process {
-        # Update Default maxItemsThreshold
-        if (!$MaxItemsThreshold) {
-            $MaxItemsThreshold = 1000
-        }
-
 
         # Send Request
         $Response = Get-LrList -Name $Guid | Select-Object items
         
-
         # Process Results
         $ReturnList = $Response.items
     }
@@ -87,5 +80,4 @@ Function Get-LrListItems {
     End {
         return $ReturnList
      }
-
 }

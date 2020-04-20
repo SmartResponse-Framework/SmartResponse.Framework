@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Get-LrIdentityConflicts {
+Function Get-LrIdentityIdentifierConflicts {
     <#
     .SYNOPSIS
         Get a list of Identifier Conflicts for LogRhythm 7.4
@@ -54,9 +54,16 @@ Function Get-LrIdentityConflicts {
         # Request Setup
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Define HTTP Header
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+
+        # Define HTTP Method
         $Method = $HttpMethod.Get
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
 
         # Establish Arrays
         $Identifiers = @{}
@@ -181,4 +188,3 @@ Function Get-LrIdentityConflicts {
     }
 
 }
-	
