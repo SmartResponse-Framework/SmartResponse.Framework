@@ -61,9 +61,9 @@ Function Test-LrIdentifierType {
                 $OutObject.IsValid = $false
             }
         } 
-    }
-    
-    End {
+
         return $OutObject
     }
+    
+    End { }
 }

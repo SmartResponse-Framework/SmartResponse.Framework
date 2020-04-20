@@ -112,9 +112,9 @@ Function Get-LrHostDetails {
         } else {
             return $ErrorObject
         }
-    }
 
-    End {
         return $Response
     }
+
+    End { }
 }

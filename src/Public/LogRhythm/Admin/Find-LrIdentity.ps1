@@ -62,7 +62,7 @@ Function Find-LrIdentity {
         }
 
         $Body = $BodyContents | ConvertTo-Json
-        Write-Host "[$Me] Request Body:`n$Body"
+        Write-Verbose "[$Me] Request Body:`n$Body"
 
         # Send Request
         try {
@@ -73,9 +73,7 @@ Function Find-LrIdentity {
             Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
             $PSCmdlet.ThrowTerminatingError($PSItem)
         }
-    }
 
-    End {
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -92,4 +90,6 @@ Function Find-LrIdentity {
             return $Response
         }
     }
+
+    End { }
 }

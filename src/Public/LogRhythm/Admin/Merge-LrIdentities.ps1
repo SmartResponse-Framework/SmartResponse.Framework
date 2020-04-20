@@ -139,8 +139,6 @@ Function Merge-LrIdentities {
         Write-Host $RetireResults
     }
 
-    End {
-
-    }
+    End { }
 
 }

@@ -130,9 +130,9 @@ Function Retire-LrIdentityIdentifier {
         } else {
             $Response = $IdentifierStatus
         }
-    }
 
-    End { 
         return $Response
     }
+
+    End { }
 }

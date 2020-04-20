@@ -355,9 +355,8 @@ Function Remove-LrListItem {
             }
         }
 
-    }
-    
-    End {
         return $Response
     }
+    
+    End { }
 }

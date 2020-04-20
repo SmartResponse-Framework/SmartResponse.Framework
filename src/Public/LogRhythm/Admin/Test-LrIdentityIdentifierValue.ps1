@@ -100,9 +100,9 @@ Function Test-LrIdentityIdentifierValue {
                 }
             }
         }
-    }
 
-    End {
         Return $OutObject
     }
+
+    End { }
 }

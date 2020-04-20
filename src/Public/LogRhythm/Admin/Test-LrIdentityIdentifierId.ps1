@@ -78,9 +78,9 @@ Function Test-LrIdentityIdentifierId {
                 }
             }
         }
-    }
 
-    End {
         Return $OutObject
     }
+
+    End { }
 }

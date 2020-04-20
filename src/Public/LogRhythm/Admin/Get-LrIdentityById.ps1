@@ -126,7 +126,5 @@ Function Get-LrIdentityById {
         }
     }
 
-    End {
-
-    }
+    End { }
 }

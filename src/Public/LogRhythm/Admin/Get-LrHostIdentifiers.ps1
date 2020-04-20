@@ -76,9 +76,9 @@ Function Get-LrHostIdentifiers {
         } else {
             return $ErrorObject
         }
-    }
 
-    End { 
         return $Results
     }
+
+    End { }
 }

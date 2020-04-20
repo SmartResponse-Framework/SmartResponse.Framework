@@ -75,9 +75,9 @@ Function Get-LrListItems {
         
         # Process Results
         $ReturnList = $Response.items
+
+        return $ReturnList
     }
 
-    End {
-        return $ReturnList
-     }
+    End { }
 }

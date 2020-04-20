@@ -101,9 +101,7 @@ Function Get-LrList {
             Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
             $PSCmdlet.ThrowTerminatingError($PSItem)
         }
-    }
 
-    End {
         # Process Results
         if ($ValuesOnly) {
             $ReturnList = [List[string]]::new()
@@ -114,4 +112,6 @@ Function Get-LrList {
         }
         return $Response
     }
+
+    End { }
 }

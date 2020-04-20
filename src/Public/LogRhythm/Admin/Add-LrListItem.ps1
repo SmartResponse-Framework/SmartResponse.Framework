@@ -356,9 +356,8 @@ Function Add-LrListItem {
             }
         }
 
-    }
-    
-    End {
         return $Response
     }
+    
+    End { }
 }

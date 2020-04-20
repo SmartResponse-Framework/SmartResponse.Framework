@@ -128,9 +128,9 @@ Function Enable-LrIdentityIdentifier {
         } else {
             return $IdentifierStatus
         }
-    }
 
-    End { 
         return $Response
     }
+
+    End { }
 }

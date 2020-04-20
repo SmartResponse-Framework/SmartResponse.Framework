@@ -162,9 +162,7 @@ Function Get-LrHosts {
             $Err = Get-RestErrorMessage $_
             Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
         }
-    }
 
-    End { 
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -181,4 +179,6 @@ Function Get-LrHosts {
             return $Response
         }
     }
+
+    End { }
 }
