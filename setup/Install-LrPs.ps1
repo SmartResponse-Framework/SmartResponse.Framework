@@ -9,7 +9,7 @@ Function Install-LrPs {
     .SYNOPSIS
         Performs the initial setup and installs this module to c:\Program Files\WindowsPowerShell\Modules
     .PARAMETER PlatformManager
-        The fully qualified hostname or IP Address for the LogRhythm Platform Manager.        
+        The fully qualified hostname or IP Address for the LogRhythm Platform Manager.
     .PARAMETER LrApiKey
         The API Key used to connect to the LogRhythm API.
     .INPUTS
@@ -17,9 +17,9 @@ Function Install-LrPs {
     .OUTPUTS
         None
     .EXAMPLE
-        PS C:\> Install-LrModule -LrPlatformManagerHost "platform-mgr.mydomain.com" -LrApiKey "abcd1234"
+        PS C:\> Install-LrPs -LrPlatformManagerHost "platform-mgr.mydomain.com" -LrApiKey "abcd1234"
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework
     #>
 
     [CmdletBinding()]

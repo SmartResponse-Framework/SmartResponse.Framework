@@ -9,7 +9,7 @@ using namespace Windows.Markup
 Add-Type -AssemblyName PresentationFramework
 
 
-. (Join-Path -Path $PSScriptRoot -ChildPath "Install-LrMod.ps1")
+. (Join-Path -Path $PSScriptRoot -ChildPath "Install-LrPs.ps1")
 
 #create window
 $InputXaml = Get-Content (Join-Path -Path $PSScriptRoot -ChildPath "MainWindow.xaml") -Raw
@@ -46,7 +46,7 @@ $form_Btn_Install.Add_Click({
     # LOGIC
 })
  
- $var_txtComputer.Text = $env:COMPUTERNAME
+# $var_txtComputer.Text = $env:COMPUTERNAME
 #endregion
 
 
