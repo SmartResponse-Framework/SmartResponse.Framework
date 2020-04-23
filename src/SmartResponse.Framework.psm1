@@ -3,7 +3,7 @@
 # Module Name: To make it easier to change the name of the module.
 # NOTE: There is a corresponding set of variables in the build module's psm1.  If these
 #       are changed, then the variables there should be updated to the same.
-$ModuleName = "LRMod"
+$ModuleName = "LrPs"
 $PreferencesFileName = $ModuleName + ".preferences.json"
 
 

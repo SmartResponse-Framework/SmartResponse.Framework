@@ -2,8 +2,9 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
+Add-Type -AssemblyName PresentationFramework
 
-Function Install-LrMod {
+Function Install-LrPs {
     <#
     .SYNOPSIS
         Performs the initial setup and installs this module to c:\Program Files\WindowsPowerShell\Modules
@@ -14,7 +15,7 @@ Function Install-LrMod {
     .INPUTS
         None
     .OUTPUTS
-        ????????????????????????
+        None
     .EXAMPLE
         PS C:\> Install-LrModule -LrPlatformManagerHost "platform-mgr.mydomain.com" -LrApiKey "abcd1234"
     .LINK
@@ -28,14 +29,19 @@ Function Install-LrMod {
         [string] $PlatformManager,
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [securestring] $LrApiKey
+        [securestring] $LrApiKey,
+
+        #TODO: Implement Install Scope
+        [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateSet("")]
+        [string] $Scope
     )
 
 
-    # General Information Variables
-    $SrcRoot = ([System.IO.DirectoryInfo]::new($PSScriptRoot)).Parent
-    $SrcRootPath = $SrcRoot.FullName
     $MyName = $MyInvocation.MyCommand.Name
+    $InstallDir = ""
+
+
     $ConfigDir = Join-Path `
         -Path ([Environment]::GetFolderPath("LocalApplicationData"))`
         -ChildPath $ModuleName
@@ -77,13 +83,19 @@ Function Install-LrMod {
 
 
     #region: Create LrApiToken                                                           
-    [pscredential]::new("LrApiToken", $LrApiKey) | Export-Clixml -Path (Join-Path -Path $ConfigDir -ChildPath "LrApiToken.xml")
+    if ($LrApiKey) {
+        [pscredential]::new("LrApiToken", $LrApiKey) | Export-Clixml -Path (Join-Path -Path $ConfigDir -ChildPath "LrApiToken.xml")    
+    }
+    
     #endregion
 
 
 
-    #region: Install Module
-    # Check if module already installed.  If it is, check versions.  If existing is older, remove old and install new.
+    #region: Install Module                                                              
+    # It's safe to just call uninstall, it won't do anything if the module isn't currently installed.
+    Uninstall-SrfBuild
+    
+    Install-SrfBuild -Force
     #endregion
 
 }

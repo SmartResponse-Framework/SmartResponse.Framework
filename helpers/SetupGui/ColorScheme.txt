@@ -6,3 +6,8 @@ Button Text:			c6c9ca
 
 TextBox Text:			b4b4b4
 TextBox Background:		1f2121
+
+
+
+43a5dc
+2b7dc3
