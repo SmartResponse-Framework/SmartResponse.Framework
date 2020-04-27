@@ -61,9 +61,8 @@ Function Get-LrLists {
     )
                                                                     
     Begin {
+        # Request Setup
         $Me = $MyInvocation.MyCommand.Name
-        
-        # Request Setup 
         $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
@@ -86,7 +85,6 @@ Function Get-LrLists {
         if ($ListTypeValid) { 
             $Headers.Add("listType", $ListTypeValid)
         }
-
 
         # Define HTTP Method
         $Method = $HttpMethod.Get

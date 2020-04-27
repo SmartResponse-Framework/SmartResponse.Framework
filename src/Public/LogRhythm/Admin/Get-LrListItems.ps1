@@ -47,7 +47,13 @@ Function Get-LrListItems {
         [int] $MaxItemsThreshold = 10000,
 
         [Parameter(Mandatory=$false, Position=3)]
-        [switch] $Exact
+        [switch] $Exact,
+
+        [Parameter(Mandatory=$false, Position=4)]
+        [switch] $OutputArray,
+
+        [Parameter(Mandatory=$false, Position=5)]
+        [switch] $ValuesOnly
     )
 
     Begin { }
@@ -74,9 +80,19 @@ Function Get-LrListItems {
         $Response = Get-LrList -Name $Guid | Select-Object items
         
         # Process Results
-        $ReturnList = $Response.items
+        if ($ValuesOnly) {
+            $ReturnList = $($Response.items | Select-Object -ExpandProperty "value")
+        } else {
+            $ReturnList = $Response.items
+        }
+        
 
-        return $ReturnList
+        if ($OutputArray) {
+            return ,$ReturnList
+        } else {
+            return $ReturnList
+        }
+        
     }
 
     End { }
