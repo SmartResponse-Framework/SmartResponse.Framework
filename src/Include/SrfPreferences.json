@@ -6,5 +6,16 @@
         "AieApiUrl": "https://localhost:8501/lr-drilldown-cache-api",
         "LrApiCredentialPath": "C:\\repos\\SmartResponse.Framework\\tests\\cred_LrApiToken.xml",
         "LrApiCredential": ""
+    },
+
+    "LrEcho": {
+        "EchoApiBaseUrl": "https://localhost:33333/api"
+    },
+
+    "OSINT": {
+        "RecordedFuture": {
+            "BaseUrl": "https://api.recordedfuture.com/v2/",
+            "APIKey": ""
+        }
     }
 }
