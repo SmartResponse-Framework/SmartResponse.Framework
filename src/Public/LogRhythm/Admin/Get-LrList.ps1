@@ -48,7 +48,7 @@ Function Get-LrList {
 
         [Parameter(Mandatory=$false, Position=2)]
         [ValidateRange(1,100000)]
-        [int] $MaxItemsThreshold = 10000,
+        [int] $MaxItemsThreshold = 100000,
 
         [Parameter(Mandatory=$false, Position=3)]
         [switch] $ValuesOnly,
