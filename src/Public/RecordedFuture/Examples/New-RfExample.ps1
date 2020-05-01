@@ -2,9 +2,9 @@ Function New-RfExample {
     # Script example to support retrieval of Recorded Future Threat Lists to LogRhythm List for Threat Analysis and initial correlation 
 
     # Create RF API token for Framework
-    #
-    # Create-SRFCredXml 
-    #
+    # ./New-TestBuild
+    # Create-SRFCredXml -Username "rf" -Password "token" -FileName cred_RFApiToken.xml
+    # ./New-TestBuild
 
     # Test if LogRhythm List exists.  If it does not exist, create it.
     $ListStatus = Get-LrList -Name "RF: Suspicious Phishing IP Address"
