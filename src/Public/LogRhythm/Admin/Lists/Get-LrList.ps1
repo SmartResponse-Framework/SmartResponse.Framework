@@ -76,16 +76,13 @@ Function Get-LrList {
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
             $Guid = $Name.ToString()
         } else {
-            try {
-                if ($Exact) {
-                    $Guid = Get-LRListGuidByName -Name $Name.ToString() -Exact
-                } else {
-                    $Guid = Get-LRListGuidByName -Name $Name.ToString()
-                }
+            if ($Exact) {
+                $Guid = Get-LRListGuidByName -Name $Name.ToString() -Exact
+            } else {
+                $Guid = Get-LRListGuidByName -Name $Name.ToString()
             }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)"
+            if ($null -eq $Guid) {
+                Return $null
             }
         }
 

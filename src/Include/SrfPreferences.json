@@ -4,7 +4,7 @@
         "AdminApiBaseUrl": "https://localhost:8501/lr-admin-api",
         "CaseApiBaseUrl": "https://localhost:8501/lr-case-api",
         "AieApiUrl": "https://localhost:8501/lr-drilldown-cache-api",
-        "LrApiCredentialPath": "C:\\repos\\SmartResponse.Framework\\tests\\cred_LrApiToken.xml",
+        "LrApiCredentialPath": "C:\\Users\\Eric.Hart\\Documents\\GitHub\\SmartResponse.Framework\\tests\\cred_LrApiToken.xml",
         "LrApiCredential": ""
     },
 
@@ -12,10 +12,9 @@
         "EchoApiBaseUrl": "https://localhost:33333/api"
     },
 
-    "OSINT": {
-        "RecordedFuture": {
+    "RecordedFuture": {
             "BaseUrl": "https://api.recordedfuture.com/v2/",
+            "ApiCredentialPath": "C:\\Users\\Eric.Hart\\Documents\\GitHub\\SmartResponse.Framework\\tests\\cred_RFApiToken.xml",
             "APIKey": ""
-        }
     }
 }

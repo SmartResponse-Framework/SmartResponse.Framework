@@ -91,13 +91,13 @@ Function Get-RfHashRiskList {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [string] $Token = $SrfPreferences.OSINT.RecordedFuture.APIKey,
+        [pscredential] $Credential = $SrfPreferences.RecordedFuture.APIKey,
 
-        [string] $List = "large",
+        [string] $List = "Large",
         [string] $Format = "csv/splunk",
         [bool] $Compressed = $false,
-        [int] $MinimumRisk = 65,
-        [int] $MaximumRisk = 99,
+        [int] $MinimumRisk,
+        [int] $MaximumRisk,
         [switch] $ValuesOnly,
         [switch] $MD5,
         [switch] $SHA256,
@@ -105,20 +105,16 @@ Function Get-RfHashRiskList {
     )
 
     Begin {
-        $ResultsList = [list[psobject]]::new()
-        $Token = ""
-        $BaseUrl = $SrfPreferences.OSINT.RecordedFuture.BaseUrl
-        #$Token = $Credential.GetNetworkCredential().Password
+        $BaseUrl = $SrfPreferences.RecordedFuture.BaseUrl
+        $Token = $Credential.GetNetworkCredential().Password
 
+        # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("X-RFToken", $Token)
-
+        Write-Verbose "$($Headers | Out-String)"
+        
         # Request Setup
         $Method = $HttpMethod.Get
-
-        # Valid Entries - Future Use
-        $ValidFormats = @("csv/splunk", "xml/stix/1.1.1", "xml/stix/1.2")
-        $ValidLists = @("analystNote", "historicalThreatListMembership", "large", "linkedToCyberAttack", "linkedToMalware", "linkedToVector", "linkedToVuln", "malwareSsl", "observedMalwareTesting", "positiveMalwareVerdict", "recentActiveMalware", "rfTrending", "threatResearcher")
     }
 
     Process {
@@ -129,7 +125,7 @@ Function Get-RfHashRiskList {
         $QueryParams.Add("format", $Format)
 
         # Compression
-        $QueryParams.Add("gzip", $Gzip)
+        $QueryParams.Add("gzip", $Compressed)
 
         # List
         $QueryParams.Add("list", $List)
@@ -159,24 +155,27 @@ Function Get-RfHashRiskList {
             }
         }
 
+        # Set ResultsList - Parse CSV to Object Types
+        $ResultsList = $Results | Select-Object @{Name="Name";Expression={[string]$_.Name}},@{Name="Risk";Expression={[int32]$_.Risk}},@{Name="RiskString";Expression={[string]$_.RiskString}},@{Name="EvidenceDetails";Expression={[string]$_.EvidenceDetails}}
+
+
         # Filter retuned results based on Hash type
         if ($MD5) {
-            $ResultsList = $($Results | Where-Object -Property "Algorithm" -like "MD5")
+            $ResultsList = $ResultsList.Where({[string]$_.Algorithm -like "MD5"})
         } elseif ($SHA256) {
-            $ResultsList = $($Results | Where-Object -Property "Algorithm" -like "SHA-256")
+            $ResultsList = $ResultsList.Where({[string]$_.Algorithm -like "SHA-256"})
         } elseif ($SHA1) {
-            $ResultsList = $($Results | Where-Object -Property "Algorithm" -like "SHA-1")
-        } else {
-            $ResultsList = $Results
+            $ResultsList = $ResultsList.Where({[string]$_.Algorithm -like "SHA-1"})
         }
+
 
         # Filter returned results based on Risk score
         if ($MinimumRisk -and $MaximumRisk) {
-            $ResultsList = $($ResultsList | Where-Object -Property "Risk" -LE $MaximumRisk | Where-Object -Property "Risk" -GE $MinimmRisk)
+            $ResultsList = $ResultsList.Where({([int32]$_.Risk -ge $MinimumRisk) -and ([int32]$_.Risk -le $MaximumRisk)})
         } elseif ($MinimumRisk) {
-            $ResultsList = $($ResultsList | Where-Object -Property "Risk" -GE $MinimmRisk)
+            $ResultsList = $ResultsList.Where({[int32]$_.Risk -ge $MinimumRisk})
         } elseif ($MaximumRisk) {
-            $ResultsList = $($ResultsList | Where-Object -Property "Risk" -LE $MaximumRisk)
+            $ResultsList = $ResultsList.Where({[int32]$_.Risk -le $MaximumRisk})
         }
 
         # Return Values only as an array or all results as object
