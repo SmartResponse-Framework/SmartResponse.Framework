@@ -36,7 +36,11 @@ Function Add-LrNoteToCase {
         [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
 
-        [Parameter(Mandatory = $true, Position = 1)]
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
+            Position = 1
+        )]
         [ValidateNotNull()]
         [object] $Id,
 
