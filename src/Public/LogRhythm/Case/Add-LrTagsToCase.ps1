@@ -48,7 +48,11 @@ Function Add-LrTagsToCase {
         
         [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNull()]
-        [string[]] $Tags
+        [string[]] $Tags,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $PassThru
     )
 
 
@@ -66,7 +70,7 @@ Function Add-LrTagsToCase {
     Process {
         Write-Verbose "[$Me]: Case Id: $Id"
 
-        # Get Case Id
+        # Validate Case ID (Guid || Int)
         $IdInfo = Test-LrCaseIdFormat $Id
         if (! $IdInfo.IsValid) {
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
@@ -126,7 +130,10 @@ Function Add-LrTagsToCase {
             throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
         
-        return $Response
+        # Only return the case if PassThru was requested.
+        if ($PassThru) {
+            return $Response    
+        }
         #endregion
     }
 
