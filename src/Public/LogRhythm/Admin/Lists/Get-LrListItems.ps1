@@ -49,9 +49,6 @@ Function Get-LrListItems {
         [Parameter(Mandatory=$false, Position=3)]
         [switch] $Exact,
 
-        [Parameter(Mandatory=$false, Position=4)]
-        [switch] $OutputArray,
-
         [Parameter(Mandatory=$false, Position=5)]
         [switch] $ValuesOnly
     )
@@ -87,7 +84,7 @@ Function Get-LrListItems {
         }
         
 
-        if ($OutputArray) {
+        if ($ValuesOnly) {
             return ,$ReturnList
         } else {
             return $ReturnList

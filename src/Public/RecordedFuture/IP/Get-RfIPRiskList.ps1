@@ -37,15 +37,7 @@ Function Get-RfIPRiskList {
     .PARAMETER IPv6
         Sets the return object to return only Hash values that are of the IPv6 type.
     .INPUTS
-        String -> Token
-        String -> List
-        String -> Format
-        Bool   -> Compressed
-        Int    -> MinimumRisk
-        Int    -> MaximumRisk
-        Switch -> ValuesOnly
-        Switch -> IPv4
-        Switch -> IPv6
+
     .EXAMPLE
 
     .NOTES
@@ -58,24 +50,24 @@ Function Get-RfIPRiskList {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [string] $Token = $SrfPreferences.OSINT.RecordedFuture.APIKey,
+        [pscredential] $Credential = $SrfPreferences.RecordedFuture.APIKey,
 
         [string] $List,
-        [string] $Format,
+        [string] $Format = "csv/splunk",
         [bool] $Compressed = $false,
-        [int] $MinimumRisk = 65,
-        [int] $MaximumRisk = 99,
+        [int] $MinimumRisk,
+        [int] $MaximumRisk,
         [switch] $ValuesOnly,
         [switch] $IPv4,
         [switch] $IPv6
     )
 
     Begin {
-        $ResultsList = [list[psobject]]::new()
-        $Token = ""
-        $BaseUrl = $SrfPreferences.OSINT.RecordedFuture.BaseUrl
-        #$Token = $Credential.GetNetworkCredential().Password
+        $ResultsList = $null
+        $BaseUrl = $SrfPreferences.RecordedFuture.BaseUrl
+        $Token = $Credential.GetNetworkCredential().Password
 
+        # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("X-RFToken", $Token)
 
@@ -94,7 +86,7 @@ Function Get-RfIPRiskList {
         $QueryParams.Add("format", $Format)
 
         # Compression
-        $QueryParams.Add("gzip", $Gzip)
+        $QueryParams.Add("gzip", $Compressed)
 
         # List
         $QueryParams.Add("list", $List)
@@ -126,23 +118,22 @@ Function Get-RfIPRiskList {
             }
         }
 
+        $ResultsList = $Results | Select-Object @{Name="Name";Expression={[string]$_.Name}},@{Name="Risk";Expression={[int32]$_.Risk}},@{Name="RiskString";Expression={[string]$_.RiskString}},@{Name="EvidenceDetails";Expression={[string]$_.EvidenceDetails}}
         # Filter retuned results based on IP Address type
         if ($IPv4) {
-            $ResultsList = $($Results | Where-Object -Property "name" -Match "^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$")
+            $ResultsList = $ResultsList.Where({[string]$_.name -match "^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"})
         }
         elseif ($IPv6) {
-            $ResultsList = $($Results | Where-Object -Property "name" -Match "^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$")
-        } else {
-            $ResultsList = $Results
+            $ResultsList = $ResultsList.Where({[string]$_.name -match "^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$"})
         }
 
         # Filter returned results based on Risk score
         if ($MinimumRisk -and $MaximumRisk) {
-            $ResultsList = $($ResultsList | Where-Object -Property "Risk" -LE $MaximumRisk | Where-Object -Property "Risk" -GE $MinimmRisk)
+            $ResultsList = $ResultsList.Where({([int32]$_.Risk -ge $MinimumRisk) -and ([int32]$_.Risk -le $MaximumRisk)})
         } elseif ($MinimumRisk) {
-            $ResultsList = $($ResultsList | Where-Object -Property "Risk" -GE $MinimmRisk)
+            $ResultsList = $ResultsList.Where({[int32]$_.Risk -ge $MinimumRisk})
         } elseif ($MaximumRisk) {
-            $ResultsList = $($ResultsList | Where-Object -Property "Risk" -LE $MaximumRisk)
+            $ResultsList = $ResultsList.Where({[int32]$_.Risk -le $MaximumRisk})
         }
 
         # Return Values only as an array or all results as object

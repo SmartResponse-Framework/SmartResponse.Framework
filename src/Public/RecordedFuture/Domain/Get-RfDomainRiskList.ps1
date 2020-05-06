@@ -33,13 +33,6 @@ Function Get-RfDomainRiskList {
 
         This object is returned as an array to support passing arrays via pipeline as a parameter.
     .INPUTS
-        String -> Token
-        String -> List
-        String -> Format
-        Bool   -> Compressed
-        Int    -> MinimumRisk
-        Int    -> MaximumRisk
-        Switch -> ValuesOnly
     .NOTES
         RecordedFuture-API
     .LINK
@@ -50,22 +43,21 @@ Function Get-RfDomainRiskList {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [string] $Token = $SrfPreferences.OSINT.RecordedFuture.APIKey,
+        [pscredential] $Credential = $SrfPreferences.RecordedFuture.APIKey,
 
         [string] $List,
-        [string] $Format,
+        [string] $Format = "csv/splunk",
         [bool] $Compressed = $false,
-        [int] $MinimumRisk = 65,
-        [int] $MaximumRisk = 99,
+        [int] $MinimumRisk,
+        [int] $MaximumRisk,
         [switch] $ValuesOnly
     )
 
     Begin {
-        $ResultsList = [list[psobject]]::new()
-        $Token = ""
-        $BaseUrl = $SrfPreferences.OSINT.RecordedFuture.BaseUrl
-        #$Token = $Credential.GetNetworkCredential().Password
+        $BaseUrl = $SrfPreferences.RecordedFuture.BaseUrl
+        $Token = $Credential.GetNetworkCredential().Password
 
+        # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("X-RFToken", $Token)
 
@@ -73,10 +65,6 @@ Function Get-RfDomainRiskList {
 
         # Request Setup
         $Method = $HttpMethod.Get
-
-        # Valid Entries
-        $ValidFormats = @("csv/splunk", "xml/stix/1.1.1", "xml/stix/1.2")
-        $ValidLists = @("analystNote", "cncNameserver", "cncSite", "cncUrl", "compromisedUrl", "ddns", "defanged", "dhsAis", "historicalThreatListMembership", "large", "linkedToCyberAttack", "malwareAnalysis", "multiBlacklist", "phishingUrl", "predictionModelVerdict", "punycode", "ransomwareDistribution", "ransomwarePayment", "recentAnalystNote", "recentCovidLure", "recentCovidSpam", "recentDefanged", "recentDhsAis", "recentLinkedToCyberAttack", "recentMalwareAnalysis", "recentPhishingLureMalicious", "recentPunycode", "recentRelatedNote", "recentThreatResearcher", "recentWeaponizedDomain", "recentlyDefaced", "relatedNote", "resolvedMaliciousIp", "resolvedSuspiciousIp", "resolvedUnusualIp", "resolvedVeryMaliciousIp", "rfTrending", "threatResearcher", "weaponizedDomain")
     }
 
     Process {
@@ -87,7 +75,7 @@ Function Get-RfDomainRiskList {
         $QueryParams.Add("format", $Format)
 
         # Compression
-        $QueryParams.Add("gzip", $Gzip)
+        $QueryParams.Add("gzip", $Compressed)
 
         # List
         $QueryParams.Add("list", $List)
@@ -119,16 +107,16 @@ Function Get-RfDomainRiskList {
             }
         }
 
-        # Set ResultsList
-        $ResultsList = $Results
+        # Set ResultsList - Parse CSV to Object Types
+        $ResultsList = $Results | Select-Object @{Name="Name";Expression={[string]$_.Name}},@{Name="Risk";Expression={[int32]$_.Risk}},@{Name="RiskString";Expression={[string]$_.RiskString}},@{Name="EvidenceDetails";Expression={[string]$_.EvidenceDetails}}
 
         # Filter returned results based on Risk score
         if ($MinimumRisk -and $MaximumRisk) {
-            $ResultsList = $($ResultsList | Where-Object -Property "Risk" -LE $MaximumRisk | Where-Object -Property "Risk" -GE $MinimmRisk)
+            $ResultsList = $ResultsList.Where({([int32]$_.Risk -ge $MinimumRisk) -and ([int32]$_.Risk -le $MaximumRisk)})
         } elseif ($MinimumRisk) {
-            $ResultsList = $($ResultsList | Where-Object -Property "Risk" -GE $MinimmRisk)
+            $ResultsList = $ResultsList.Where({[int32]$_.Risk -ge $MinimumRisk})
         } elseif ($MaximumRisk) {
-            $ResultsList = $($ResultsList | Where-Object -Property "Risk" -LE $MaximumRisk)
+            $ResultsList = $ResultsList.Where({[int32]$_.Risk -le $MaximumRisk})
         }
 
         # Return Values only as an array or all results as object

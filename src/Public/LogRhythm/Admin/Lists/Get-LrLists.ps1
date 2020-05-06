@@ -106,8 +106,9 @@ Function Get-LrLists {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
         }
         catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
+            $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+            Write-Verbose "Exception Message: $ExceptionMessage"
+            return $ExceptionMessage
         }
 
         # [Exact] Parameter
