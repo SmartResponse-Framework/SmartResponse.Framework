@@ -66,6 +66,8 @@ PS C:\> Install-SrfBuild "13f3854b-9efc-44b8-8b08-d3962190604c" # install a spec
 PS C:\> New-SrfBuild | Install-SrfBuild  # create a new build and install it
 ```
 
+SRF installs should be completed using the account that will be leveraged to use the SmartResponse.Framework.  The XML Credentials file is bound to a single user.
+
 ## `Uninstall-SrfBuild`
 
 The `UnInstall-SrfBuild` cmdlet removes the SmartResponse.Framework module from `C:\Program Files\WindowsPowerShell\Modules`, and takes no parameters.

@@ -1,34 +1,20 @@
 {
-    "CertPolicyEnabled": false,
-    "Vault": {
-        "ServerApiUri": "",
-        "SecretList": { }
-    },
-
+    "CertPolicyRequired": true,
     "LrDeployment": {
-        "AdminApiBaseUrl": "https://server.domain.com:8501/lr-admin-api",
-        "CaseApiBaseUrl": "https://server.domain.com:8501/lr-case-api",
-        "AieApiUrl": "https://server.domain.com:8501/lr-drilldown-cache-api",
-        "LrApiToken": "",
-        "DefaultLrUserId": 52
+        "AdminApiBaseUrl": "https://localhost:8501/lr-admin-api",
+        "CaseApiBaseUrl": "https://localhost:8501/lr-case-api",
+        "AieApiUrl": "https://localhost:8501/lr-drilldown-cache-api",
+        "LrApiCredentialPath": "C:\\Users\\Eric.Hart\\Documents\\GitHub\\SmartResponse.Framework\\tests\\cred_LrApiToken.xml",
+        "LrApiCredential": ""
     },
 
-    "Resources": {
-        "Settings": {
-            "Top": 500
-        },
-        
-        "Graph": {
-            "Resource": "https://graph.microsoft.com",
-            "OAuth2Url": "https://login.microsoftonline.com/TENANTID/oauth2/token",
-            "SecretId": "",
-            "Token": ""
-        },
-        "ATP": {
-            "Resource": "https://graph.windows.net",
-            "OAuth2Url": "https://login.microsoftonline.com/TENANTID/oauth2/token",
-            "SecretId": "",
-            "Token": ""
-        }
+    "LrEcho": {
+        "EchoApiBaseUrl": "https://localhost:33333/api"
+    },
+
+    "RecordedFuture": {
+            "BaseUrl": "https://api.recordedfuture.com/v2/",
+            "ApiCredentialPath": "C:\\Users\\Eric.Hart\\Documents\\GitHub\\SmartResponse.Framework\\tests\\cred_RFApiToken.xml",
+            "APIKey": ""
     }
 }
