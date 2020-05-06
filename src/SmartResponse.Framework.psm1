@@ -89,7 +89,33 @@ catch [Exception] {
     -ForegroundColor Yellow
 }
 Write-Verbose "[ LogRhythm API Key Set ]"
+
+# RecordedFuture API Key
+$KeyPath = $SrfPreferences.RecordedFuture.ApiCredentialPath
+try {
+    $SrfPreferences.RecordedFuture.APIKey = Import-Clixml -Path $KeyPath
+}
+catch [System.IO.FileNotFoundException] {
+    Write-Host "Warning: Recorded Future API Credential not found." -ForegroundColor Yellow
+    Write-Host "Recorded Future cmdlets will need to specify the '-Credential' option in order to function." `
+    -ForegroundColor Yellow
+}
+catch [System.Security.Cryptography.CryptographicException] {
+    Write-Host "Unable to load key, insufficient permissions.  Did you run setup.ps1 as this user?" `
+    -ForegroundColor Yellow
+}
+catch [Exception] {
+    Write-Host "Unexpected error while attempting to load Recorded Future API Credential."
+    Write-Host "Recorded Future cmdlets will need to specify the '-Credential' option in order to function." `
+    -ForegroundColor Yellow
+}
+Write-Verbose "[ Recorded Future API Key Set ]"
+
+
+
+
 #endregion
+
 
 
 # Export Module Members
