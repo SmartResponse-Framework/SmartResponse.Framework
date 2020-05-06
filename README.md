@@ -7,7 +7,14 @@ This is an open source, community-driven project. Pull requests, are welcome and
 
 :fire: **Everyone is encouraged to read and contribute to [open design issues](https://github.com/SmartResponse-Framework/SmartResponse.Framework/issues).**
 
-## News: December, 2019
+## News: February, 2020
+
+I am working on a new major release which will streamline storing your LogRhythm bearer token, and generally make setup much easier and user friendly.
+
+I am targeting this release for 3/15/2020!
+
+## December, 2020
+
 
 I've released the full set of LogRhythm Automation commands that I've created to date.  This gives you the building blocks to fully implement case creation automation, in addition to things like case metrics. Since results are returned as PowerShell objects, there are many ways you can use the data retrieved.
 
