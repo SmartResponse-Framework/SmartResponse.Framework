@@ -104,6 +104,7 @@ Function Update-LrCaseStatus {
         # Request Method
         $Method = $HttpMethod.Put
 
+        # Set initial ProcessedCount
         $ProcessedCount = 0
     }
 
@@ -146,14 +147,15 @@ Function Update-LrCaseStatus {
             throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
         $ProcessedCount++
-    }
 
-    
-    End {
         # Return
         if ($PassThru) {
             return $Response    
         }
+    }
+
+    
+    End { 
         if ($Summary) {
             Write-Host "Updated $ProcessedCount cases to status $Status"
         }

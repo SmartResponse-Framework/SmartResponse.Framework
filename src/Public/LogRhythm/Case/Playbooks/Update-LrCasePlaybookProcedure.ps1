@@ -336,10 +336,10 @@ Function Update-LrCasePlaybookProcedure {
                 }
             }
         }
-    }
 
-    End {
         # Return all responses.
         return $Response
     }
+
+    End { }
 }

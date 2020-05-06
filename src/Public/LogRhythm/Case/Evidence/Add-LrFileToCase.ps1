@@ -89,8 +89,10 @@ Function Add-LrFileToCase {
         {
             Add-Type -AssemblyName System.Web
 
+            # Identify Target file Mime type
             $mimeType = [System.Web.MimeMapping]::GetMimeMapping($File)
             
+            # If a Mime type has been identified, set to mime type.  Else set to octet stream.
             if ($mimeType)
             {
                 $ContentType = $mimeType
