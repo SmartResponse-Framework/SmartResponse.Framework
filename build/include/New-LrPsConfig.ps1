@@ -2,12 +2,12 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Add-Type -AssemblyName PresentationFramework
-
-Function Install-LrPs {
+Function New-LrPsConfig {
     <#
     .SYNOPSIS
         Performs the initial setup and installs this module to c:\Program Files\WindowsPowerShell\Modules
+    .DESCRIPTION
+
     .PARAMETER PlatformManager
         The fully qualified hostname or IP Address for the LogRhythm Platform Manager.
     .PARAMETER LrApiKey
@@ -29,41 +29,41 @@ Function Install-LrPs {
         [string] $PlatformManager,
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [securestring] $LrApiKey,
-
-        #TODO: Implement Install Scope
-        [Parameter(Mandatory = $false, Position = 2)]
-        [ValidateSet("")]
-        [string] $Scope
+        [securestring] $LrApiKey
     )
 
+    # NOTE: These two variables should be set exactly the same as they appear in module.psm1 !
+    #       The name of the file may be ModuleName.preferences.json, but the object is still called
+    #       [SrfPreferences] - too many things reference that now to be changed without extra testing.
+    $ModuleName = "LrPs"
+    $PreferencesFileName = $ModuleName + ".preferences.json"
 
-    $MyName = $MyInvocation.MyCommand.Name
-    $InstallDir = ""
 
-
-    $ConfigDir = Join-Path `
+    # Configuration directory: config.json & LrApiCredential will be stored in Local ApplicationDatas
+    $ConfigDirPath = Join-Path `
         -Path ([Environment]::GetFolderPath("LocalApplicationData"))`
         -ChildPath $ModuleName
 
-    $ConfigFile = Join-Path -Path $ConfigDir -ChildPath $PreferencesFileName
 
-    # Import the build module
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath "build" | Join-Path -ChildPath "SrfBuilder.psm1")
+    # (SrfPreferences source file)
+    $ConfigFilePath = Join-Path -Path $ConfigDirPath -ChildPath $PreferencesFileName
 
-    # Create Directory if it doesn't exist
-    if (-not (Test-Path -Path $ConfigDir)) {
-        New-Item -Path ([Environment]::GetFolderPath("LocalApplicationData")) -Name $ModuleName -ItemType Directory | Out-Null
+
+    # Create configuration directory if it doesn't exist
+    if (! (Test-Path -Path $ConfigDirPath)) {
+        New-Item -Path ([Environment]::GetFolderPath("LocalApplicationData")) `
+            -Name $ModuleName -ItemType Directory | Out-Null
     }
 
-    if (-not (Test-Path -Path $ConfigFile)) {
-        Copy-Item -Path "$PSScriptRoot\src\Include\$PreferencesFileName" -Destination $ConfigDir
+    # Copy a blank config to configuration directory if it does not exist
+    if (! (Test-Path -Path $ConfigFilePath)) {
+        Copy-Item -Path "$PSScriptRoot\$PreferencesFileName" -Destination $ConfigDirPath
     }
 
 
     #region: Create Preferences File                                                     
     # Update Preferences
-    $Prefs = Get-Content -Path $ConfigFile -Raw | ConvertFrom-Json
+    $Prefs = Get-Content -Path $ConfigFilePath -Raw | ConvertFrom-Json
 
     # Determine API URIs
     $AdminApiBaseUrl = "https://" + $PlatformManager +  ":8501/lr-admin-api"
@@ -77,25 +77,15 @@ Function Install-LrPs {
 
 
     # Write Preferences back to disk
-    $Prefs | ConvertTo-Json | Set-Content -Path $ConfigFile
+    $Prefs | ConvertTo-Json | Set-Content -Path $ConfigFilePath
     #endregion
 
 
 
     #region: Create LrApiToken                                                           
     if ($LrApiKey) {
-        [pscredential]::new("LrApiToken", $LrApiKey) | Export-Clixml -Path (Join-Path -Path $ConfigDir -ChildPath "LrApiToken.xml")    
-    }
-    
-    #endregion
-
-
-
-    #region: Install Module                                                              
-    # It's safe to just call uninstall, it won't do anything if the module isn't currently installed.
-    Uninstall-SrfBuild
-    
-    Install-SrfBuild -Force
+        [pscredential]::new("LrApiToken", $LrApiKey) | Export-Clixml -Path (Join-Path -Path $ConfigDirPath -ChildPath "LrApiToken.xml")    
+    }    
     #endregion
 
 }
