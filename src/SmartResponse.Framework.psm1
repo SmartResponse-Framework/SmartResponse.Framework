@@ -2,10 +2,10 @@
 #region: Module Info                                                                     
 # Module Name: To make it easier to change the name of the module.
 # NOTE: These two variables should be set exactly the same as they appear in setup\New-LrPsConfig!
-#       The name of the file may be ModuleName.preferences.json, but the object is still called
+#       The name of the file may be $ModuleName.config.json, but the object is still called
 #       [SrfPreferences] - too many things reference that now to be changed without extra testing.
 $ModuleName = "LrPs"
-$PreferencesFileName = $ModuleName + ".preferences.json"
+$PreferencesFileName = $ModuleName + ".config.json"
 
 
 # [Namespaces]: Directories to include in this module

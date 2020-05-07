@@ -1,6 +1,6 @@
 
 $ModuleName = "LRMod"
-$PreferencesFileName = $ModuleName + ".preferences.json"
+$PreferencesFileName = $ModuleName + ".config.json"
 
 
 $BuildFunctions = @(Get-ChildItem -Path $PSScriptRoot\include\*.ps1 -ErrorAction SilentlyContinue)
