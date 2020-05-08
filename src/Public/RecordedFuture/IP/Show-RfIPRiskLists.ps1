@@ -1,22 +1,24 @@
+using namespace System
+using namespace System.Collections.Generic
 
 Function Show-RfIPRiskLists {
     <#
     .SYNOPSIS
-        Shows RecordedFuture IP threat list.
+        Show the available RecordedFuture IP threat lists.
     .DESCRIPTION
-        Shows or returns a RecordedFuture IP threat list.  
+        
+    .PARAMETER Token
+        PSCredential containing an API Token in the Password field.
+
+    .PARAMETER NamesOnly
+        Returns only the Name value of the associated list.
+
+        This object is returned as an array to support passing arrays via pipeline as a parameter.
+    .PARAMETER DescriptionsOnly
+        Returns only the Description value of the associated list.
+
+        This object is returned as an array to support passing arrays via pipeline as a parameter.
     .INPUTS
-        Output -> String
-        Valid options: Object | Print
-
-        Object - Returns Powershell Object of List Results
-        Print  - Prints to screen List Results
-    .OUTPUTS
-        PSCustomObject representing the results or write-host printing the results.
-    .EXAMPLE
-        PS C:\> Show-RfIPRiskLists -Output print
-        ---
-
     .NOTES
         RecordedFuture-API
     .LINK
@@ -27,242 +29,67 @@ Function Show-RfIPRiskLists {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [string] $Output = "object"
+        [pscredential] $Credential = $SrfPreferences.RecordedFuture.APIKey,
+        [switch] $NamesOnly,
+        [switch] $DescriptionsOnly
     )
-    Begin {
 
-        $ValidLists = @{
-            0 = @{
-                Name = "Threat Actor Used Infrastructure"
-                Value = "actorInfrastructure"
-            }
-            1 = @{
-                Name = "Historically Reported by Insikt Group"
-                Value = "analystNote"
-            }
-            2 = @{
-                Name = "Inside Possible Bogus BGP Route"
-                Value = "bogusBgp"
-            }
-            3 = @{
-                Name = "Historical Botnet Traffic"
-                Value = "botnet"
-            }
-            4 = @{
-                Name = "Nameserver for C&C Server"
-                Value = "cncNameserver"
-            }
-            5 = @{
-                Name = "Historical C&C Server"
-                Value = "cncServer"
-            }
-            6 = @{
-                Name = "Cyber Exploit Signal: Critical"
-                Value = "cyberSignalCritical"
-            }
-            7 = @{
-                Name = "Cyber Exploit Signal: Important"
-                Value = "cyberSignalHigh"
-            }
-            8 = @{
-                Name = "Cyber Exploit Signal: Medium"
-                Value = "cyberSignalMedium"
-            }
-            9 = @{
-                Name = "Recent Host of Many DDNS Names"
-                Value = "ddnsHost"
-            }
-            10 = @{
-                Name = "Historically Reported as a Defanged IP"
-                Value = "defanged"
-            }
-            11 = @{
-                Name = "Historically Reported by DHS AIS"
-                Value = "dhsAis"
-            }
-            12 = @{
-                Name = "Resolution of Fast Flux DNS Name"
-                Value = "fastFluxResolution"
-            }
-            13 = @{
-                Name = "Historically Reported in Threat List"
-                Value = "historicalThreatListMembership"
-            }
-            14 = @{
-                Name = "Historical Honeypot Sighting"
-                Value = "honeypot"
-            }
-            15 = @{
-                Name = "Honeypot Host"
-                Value = "honeypotHost"
-            }
-            16 = @{
-                Name = "Recent Active C&C Server"
-                Value = "intermediateActiveCnc"
-            }
-            17 = @{
-                Name = "Recent C&C Server"
-                Value = "intermediateCncServer"
-            }
-            18 = @{
-                Name = "Large"
-                Value = "large"
-            }
-            19 = @{
-                Name = "Historically Linked to Intrusion Method"
-                Value = "linkedIntrusion"
-            }
-            20 = @{
-                Name = "Historically Linked to APT"
-                Value = "linkedToAPT"
-            }
-            21 = @{
-                Name = "Historically Linked to Cyber Attack"
-                Value = "linkedToCyberAttack"
-            }
-            22 = @{
-                Name = "Malicious Packet Source"
-                Value = "maliciousPacketSource"
-            }
-            23 = @{
-                Name = "Malware Delivery"
-                Value = "malwareDelivery"
-            }
-            24 = @{
-                Name = "Historical Multicategory Blacklist"
-                Value = "multiBlacklist"
-            }
-            25 = @{
-                Name = "Historical Open Proxies"
-                Value = "openProxies"
-            }
-            26 = @{
-                Name = "Phishing Host"
-                Value = "phishingHost"
-            }
-            27 = @{
-                Name = "Historical Positive Malware Verdict"
-                Value = "positiveMalwareVerdict"
-            }
-            28 = @{
-                Name = "Recorded Future Predictive Risk Model"
-                Value = "predictionModelVerdict"
-            }
-            29 = @{
-                Name = "Actively Communicating C&C Server"
-                Value = "recentActiveCnc"
-            }
-            30 = @{
-                Name = "Recently Reported by Insikt Group"
-                Value = "recentAnalystNote"
-            }
-            31 = @{
-                Name = "Recent Botnet Traffic"
-                Value = "recentBotnet"
-            }
-            32 = @{
-                Name = "Recent C&C Server"
-                Value = "recentCncServer"
-            }
-            33 = @{
-                Name = "Recently Reported as a Defanged IP"
-                Value = "recentDefanged"
-            }
-            34 = @{
-                Name = "Recently Reported by DHS AIS"
-                Value = "recentDhsAis"
-            }
-            35 = @{
-                Name = "Recent Honeypot Sighting"
-                Value = "recentHoneypot"
-            }
-            36 = @{
-                Name = "Recently Linked to instrusion Method"
-                Value = "recentLinkedIntrusion"
-            }
-            37 = @{
-                Name = "Recently Linked to APT"
-                Value = "recentLinkedToAPT"
-            }
-            38 = @{
-                Name = "Recently Linked to Cyber Attack"
-                Value = "recentLinkedToCyberAttack"
-            }
-            39 = @{
-                Name = "Recent Multicategory Blacklist"
-                Value = "recentMultiBlacklist"
-            }
-            40 = @{
-                Name = "Recent Positive Malware Verdict"
-                Value = "recentPositiveMalwareVerdict"
-            }
-            41 = @{
-                Name = "Recent Spam Source"
-                Value = "recentSpam"
-            }
-            42 = @{
-                Name = "Recent SSH/Dictionary Attacker"
-                Value = "recentSshDictAttacker"
-            }
-            43 = @{
-                Name = "Recent Bad SSL Association"
-                Value = "recentSsl"
-            }
-            44 = @{
-                Name = "Recent Threat Researcher"
-                Value = "recentThreatResearcher"
-            }
-            45 = @{
-                Name = "Recently Defaced Site"
-                Value = "recentlyDefaced"
-            }
-            46 = @{
-                Name = "Trending in Recorded Future Analyst Community"
-                Value = "rfTrending"
-            }
-            47 = @{
-                Name = "Historical Spam Source"
-                Value = "spam"
-            }
-            48 = @{
-                Name = "Historical SSH/Dictionary Attacker"
-                Value = "sshDictAttacker"
-            }
-            49 = @{
-                Name = "Historical Bad SSL Association"
-                Value = "ssl"
-            }
-            50 = @{
-                Name = "Historical Threat Researcher"
-                Value = "threatResearcher"
-            }
-            51 = @{
-                Name = "Tor Node"
-                Value = "tor"
-            }
-            52 = @{
-                Name = "Unusual IP"
-                Value = "unusualIP"
-            }
-            53 = @{
-                Name = "Vulnerable Host"
-                Value = "vulnerableHost"
-            }
-        }
+    Begin {
+        $BaseUrl = $SrfPreferences.RecordedFuture.BaseUrl
+        $Token = $Credential.GetNetworkCredential().Password
+
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("X-RFToken", $Token)
+
+        Write-Verbose "$($Headers | Out-String)"
+
+        # Request Setup
+        $Method = $HttpMethod.Get
     }
 
     Process {
-        if ($Output -like "print") {
-            for ($i = 0;$i -lt $ValidLists.Count;$i++){
-                Write-Host "Num: $i`tList: $($ValidLists[$i].Name)`tList Value: $($ValidLists[$i].Value)"
+        # Establish Query Parameters object
+        $QueryParams = [Dictionary[string,string]]::new()
+
+        if ($QueryParams.Count -gt 0) {
+            $QueryString = $QueryParams | ConvertTo-QueryString
+            Write-Verbose "[$Me]: QueryString is [$QueryString]"
+        }
+
+
+
+        # Define Search URL
+        $RequestUrl = $BaseUrl + "ip/riskrules"
+        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+
+        Try {
+            $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers
+        }
+        catch [System.Net.WebException] {
+            If ($_.Exception.Response.StatusCode.value__) {
+                $HTTPCode = ($_.Exception.Response.StatusCode.value__ ).ToString().Trim()
+                Write-Verbose "HTTP Code: $HTTPCode"
+            }
+            If  ($_.Exception.Message) {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
             }
         }
-        if ($Output -notlike "print") {
-            return $ValidLists
+
+        # Return Values only as an array or all results as object
+        if ($NamesOnly) {
+            Return ,$Results.data.results.name
+        } elseif ($DescriptionsOnly) {
+            Return ,$Results.data.results.description
+        } else {
+            Return $Results.data.results
         }
     }
+ 
 
-    End {
+    End { }
 
-    }
+
 }

@@ -1,10 +1,10 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Show-RfDomainRiskLists {
+Function Show-RfUrlRiskLists {
     <#
     .SYNOPSIS
-        Show the available RecordedFuture Domain threat lists.
+        Show the available RecordedFuture Url threat lists.
     .DESCRIPTION
         
     .PARAMETER Token
@@ -60,7 +60,7 @@ Function Show-RfDomainRiskLists {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "domain/riskrules"
+        $RequestUrl = $BaseUrl + "url/riskrules"
         Write-Verbose "[$Me]: RequestUri: $RequestUrl"
 
         Try {
