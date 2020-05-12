@@ -46,6 +46,9 @@ Function Show-RfIPRiskLists {
 
         # Request Setup
         $Method = $HttpMethod.Get
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
     }
 
     Process {

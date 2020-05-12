@@ -74,6 +74,8 @@ Function Get-RfUrlRiskList {
         # Request Setup
         $Method = $HttpMethod.Get
 
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
     }
 
     Process {
@@ -101,20 +103,42 @@ Function Get-RfUrlRiskList {
         $RequestUrl = $BaseUrl + "url/risklist" + $QueryString
         Write-Verbose "[$Me]: RequestUri: $RequestUrl"
 
-        Try {
-            $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers | ConvertFrom-Csv
-        }
-        catch [System.Net.WebException] {
-            If ($_.Exception.Response.StatusCode.value__) {
-                $HTTPCode = ($_.Exception.Response.StatusCode.value__ ).ToString().Trim()
-                Write-Verbose "HTTP Code: $HTTPCode"
+        if ($Compressed -eq $false) {
+            Try {
+                $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers | ConvertFrom-Csv
             }
-            If  ($_.Exception.Message) {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
+            catch [System.Net.WebException] {
+                If ($_.Exception.Response.StatusCode.value__) {
+                    $HTTPCode = ($_.Exception.Response.StatusCode.value__ ).ToString().Trim()
+                    Write-Verbose "HTTP Code: $HTTPCode"
+                }
+                If  ($_.Exception.Message) {
+                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                    Write-Verbose "Exception Message: $ExceptionMessage"
+                    return $ExceptionMessage
+                }
             }
+        } else {
+            Try {
+                $Results = Invoke-WebRequest $RequestUrl -Method $Method -Headers $Headers
+            }
+            catch [System.Net.WebException] {
+                If ($_.Exception.Response.StatusCode.value__) {
+                    $HTTPCode = ($_.Exception.Response.StatusCode.value__ ).ToString().Trim()
+                    Write-Verbose "HTTP Code: $HTTPCode"
+                }
+                If  ($_.Exception.Message) {
+                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                    Write-Verbose "Exception Message: $ExceptionMessage"
+                    return $ExceptionMessage
+                }
+            }
+            #$Output = $([Convert]::FromBase64String($Results.byte))
+            #$ResultBytes = Extract-GzipByteArray -byteArray $Results
+            #$Output = [System.Text.Encoding]::ASCII.GetString($ResultBytes) | ConvertFrom-Json | ConvertTo-Json -Depth 10
+            return $Results
         }
+
 
         # Set ResultsList - Parse CSV to Object Types
         $ResultsList = $Results | Select-Object @{Name="Name";Expression={[string]$_.Name}},@{Name="Risk";Expression={[int32]$_.Risk}},@{Name="RiskString";Expression={[string]$_.RiskString}},@{Name="EvidenceDetails";Expression={[string]$_.EvidenceDetails}}
