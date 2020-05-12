@@ -43,8 +43,8 @@ Function Get-LrListItems {
         [object] $Name,
 
         [Parameter(Mandatory=$false, Position=2)]
-        [ValidateRange(1,100000)]
-        [int] $MaxItemsThreshold = 10000,
+        [ValidateRange(1,10000000)]
+        [int] $MaxItemsThreshold = 10000000,
 
         [Parameter(Mandatory=$false, Position=3)]
         [switch] $Exact,
