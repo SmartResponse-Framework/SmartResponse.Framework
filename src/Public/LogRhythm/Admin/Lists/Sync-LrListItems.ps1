@@ -100,14 +100,14 @@ Function Sync-LrListItems {
             $CTime = Get-TimeStamp
             Write-Host "$CTime - Retrieving List Values for: $($ErrorObject.ListName))"
             $ListValues = Get-LrListItems -Name $ErrorObject.ListName -ValuesOnly
-            if ($ListValues.Count -gt 0) {
+            if ($Value.Count -gt 1) {
                 $CTime = Get-TimeStamp
-                Write-Host "$CTime - Number of ListValues: $($ListValues.Count)"
+                Write-Host "$CTime - Number of ListValues: $($ListValues.Count) - Number of Values: $($Value.Count)"
                 $ComparisonResults = Compare-Object $Value $ListValues -IncludeEqual
-                $RemoveList = $ComparisonResults | Where SideIndicator -eq "=>" | Select-Object -ExpandProperty InputObject
+                $RemoveList = $ComparisonResults | Where-Object SideIndicator -eq "=>" | Select-Object -ExpandProperty InputObject
                 $CTime = Get-TimeStamp
                 Write-Host "$CTime - RemoveList Count: $($RemoveList.Count)"
-                $AddList = $ComparisonResults | Where SideIndicator -eq "<=" | Select-Object -ExpandProperty InputObject
+                $AddList = $ComparisonResults | Where-Object SideIndicator -eq "<=" | Select-Object -ExpandProperty InputObject
                 $CTime = Get-TimeStamp
                 Write-Host "$CTime - AddList Count: $($AddList.Count)"
             } else {
@@ -118,7 +118,7 @@ Function Sync-LrListItems {
             # Bulk remove of the RemoveList items
             if ($RemoveList) {
                 Write-Host "Remove Count: $($RemoveList.Count)"
-                # For large number of removals, break the additions into 100,000 items per API call
+                # For large number of removals, break the additions into 50,000 items per API call
                 if ($RemoveList.Count -gt 50000) {
                     Write-Host "Enter Removal Segmentation"
                     $SegmentCount = ([Math]::Round(($($RemoveList.Count) / 50000)+ 0.05, 2))
