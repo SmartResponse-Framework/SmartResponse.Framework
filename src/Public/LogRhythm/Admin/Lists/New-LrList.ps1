@@ -131,8 +131,10 @@ Function New-LrList {
             $Guid = $Name.ToString()
         } else {
             $GuidResults = Get-LRListGuidByName -Name $Name.ToString() -Exact
-            if (($GuidResults.GetType() -eq [System.Guid]) -Or (Test-Guid $GuidResults)) {
-                $Guid = $GuidResults.ToString()
+            if ($GuidResults) {
+                if (($GuidResults.GetType() -eq [System.Guid]) -Or (Test-Guid $GuidResults)) {
+                    $Guid = $GuidResults.ToString()
+                }
             }
         }
 
