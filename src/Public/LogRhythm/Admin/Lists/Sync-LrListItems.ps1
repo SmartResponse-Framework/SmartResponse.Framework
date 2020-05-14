@@ -97,19 +97,17 @@ Function Sync-LrListItems {
         }
 
         if ($($ErrorObject.ListGuid) -and $($ErrorObject.ListName)) {
-            $CTime = Get-TimeStamp
-            Write-Host "$CTime - Retrieving List Values for: $($ErrorObject.ListName))"
+            Write-Host "$(Get-TimeStamp) - Retrieving List Values for: $($ErrorObject.ListName)"
             $ListValues = Get-LrListItems -Name $ErrorObject.ListName -ValuesOnly
-            if ($Value.Count -gt 1) {
-                $CTime = Get-TimeStamp
-                Write-Host "$CTime - Number of ListValues: $($ListValues.Count) - Number of Values: $($Value.Count)"
-                $ComparisonResults = Compare-Object $Value $ListValues -IncludeEqual
+            if ($Value.Count -gt 1 -And $ListValues.Count -gt 1) {
+                Write-Host "$(Get-TimeStamp) - Number of ListValues: $($ListValues.Count) - Number of Values: $($Value.Count)"
+                #$ComparisonResults = Compare-Object $Value $ListValues
+                $ComparisonResults = Compare-StringArrays $Value $ListValues -Unsorted
+                Write-Host "$(Get-TimeStamp) - Comparison Complete"
                 $RemoveList = $ComparisonResults | Where-Object SideIndicator -eq "=>" | Select-Object -ExpandProperty InputObject
-                $CTime = Get-TimeStamp
-                Write-Host "$CTime - RemoveList Count: $($RemoveList.Count)"
+                Write-Host "$(Get-TimeStamp) - RemoveList Count: $($RemoveList.Count)"
                 $AddList = $ComparisonResults | Where-Object SideIndicator -eq "<=" | Select-Object -ExpandProperty InputObject
-                $CTime = Get-TimeStamp
-                Write-Host "$CTime - AddList Count: $($AddList.Count)"
+                Write-Host "$(Get-TimeStamp) - AddList Count: $($AddList.Count)"
             } else {
                 $AddList = $Value
             }
@@ -117,19 +115,19 @@ Function Sync-LrListItems {
 
             # Bulk remove of the RemoveList items
             if ($RemoveList) {
-                Write-Host "Remove Count: $($RemoveList.Count)"
+                Write-Host "$(Get-TimeStamp) - Remove Count: $($RemoveList.Count)"
                 # For large number of removals, break the additions into 50,000 items per API call
-                if ($RemoveList.Count -gt 50000) {
-                    Write-Host "Enter Removal Segmentation"
-                    $SegmentCount = ([Math]::Round(($($RemoveList.Count) / 50000)+ 0.05, 2))
+                if ($RemoveList.Count -gt 10000) {
+                    Write-Host "$(Get-TimeStamp) - Enter Removal Segmentation"
+                    $SegmentCount = ([Math]::Round(($($RemoveList.Count) / 10000)+ 0.05, 2))
                     $SegmentedRemoveList = Create-LrPsArraySegments -InputArray $RemoveList -Segments $SegmentCount
                     foreach ($RemoveArray in $SegmentedRemoveList) {
                         $CTime = Get-TimeStamp
-                        Write-Host "$CTime - Submitting removal..."
+                        Write-Host "$(Get-TimeStamp) - Submitting removal..."
                         Remove-LrListItem -name $ErrorObject.ListName -Value $RemoveArray -ItemType $ItemType
-                        start-sleep 3
+                        start-sleep .5
                     }
-                    $RemovalResults = "Removal Summary - List: $($ErrorObject.ListName) Quantity: $($RemoveList.Count)"
+                    $RemovalResults = "$(Get-TimeStamp) - Removal Summary - List: $($ErrorObject.ListName) Quantity: $($RemoveList.Count)"
                 } else {
                     if ($ItemType) {
                         $RemovalResults = Remove-LrListItem -name $ErrorObject.ListName -Value $RemoveList -ItemType $ItemType
@@ -137,24 +135,28 @@ Function Sync-LrListItems {
                         $RemovalResults = Remove-LrListItem -name $ErrorObject.ListName -Value $RemoveList
                     } 
                 }
-
             }
 
             # Bulk addition of the AddList items
             if ($AddList) {
-                Write-Host "Remove Count: $($AddList.Count)"
+                Write-Host "$(Get-TimeStamp) - Addition Count: $($AddList.Count)"
                 # For large number of additions, break the additions into 100,000 items per API call
-                if ($AddList.Count -gt 50000) {
-                    Write-Host "$CTime - Enter Addition Segmentation"
-                    $SegmentCount = ([Math]::Round(($($AddList.Count) / 50000)+ 0.05, 2))
+                if ($AddList.Count -gt 10000) {
+                    Write-Host "$(Get-TimeStamp) - Enter Addition Segmentation"
+                    $SegmentCount = ([Math]::Round(($($AddList.Count) / 10000)+ 0.05, 2))
                     $SegmentedAddList = Create-LrPsArraySegments -InputArray $AddList -Segments $SegmentCount
                     foreach ($AddArray in $SegmentedAddList) {
-                        $CTime = Get-TimeStamp
-                        Write-Host "Submitting addition..."
-                        Add-LrListItem -name $ErrorObject.ListName -Value $AddArray -ItemType $ItemType
-                        start-sleep 3
+                        Write-Host "$(Get-TimeStamp) - Submitting addition..."
+                        Try {
+                            Add-LrListItem -name $ErrorObject.ListName -Value $AddArray -ItemType $ItemType
+                        } Catch {
+                            Write-Host "$(Get-TimeStamp) - Failed to submit entries.  Entry Dump:"
+                            Write-Host "$AddArray"
+                        }
+                        
+                        start-sleep .5
                     }
-                    $RemovalResults = "Addition Summary - List: $($ErrorObject.ListName) Quantity: $($AddList.Count)"
+                    $RemovalResults = "$(Get-TimeStamp) - Addition Summary - List: $($ErrorObject.ListName) Quantity: $($AddList.Count)"
                 } else {
                     if ($ItemType) {
                         $AdditionResults = Add-LrListItem -Name $ErrorObject.ListNAme -Value $AddList -ItemType $ItemType
