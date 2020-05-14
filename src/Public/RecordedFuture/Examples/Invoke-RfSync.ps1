@@ -2,24 +2,73 @@ Function Invoke-RfSync {
     # This script serves as a psudo application to support utilizing RecordedFuture Threat Lists via the LogRhythm SIEM.
     # LogRhythm Administrators can control which lists can be synchronized and the seperator between suspicious and high-risk lists
     # all via LogRhythm Lists.
+    # Begin Section - General Setup
+    $ListPrefix = "D4 RF"
+    $ListReadAccess = "PublicRestrictedAdmin"
+    $ListWriteAccess = "PublicRestrictedAdmin"
 
+    # End Section - General Setup
+    # Begin Section - Hash Setup & Control
+    # Establish LR List of available Hash Threat Lists
+    $RfHashConfThreatList = "$ListPrefix Conf: Hash - Available Risk Lists"
+    $RfHashConfRiskThreshold = "$ListPrefix Conf: Hash - Risk Threshold"
+    $RfHashEnabledThreatList = "$ListPrefix Conf: Hash - Enabled Risk Lists"
 
-    # Section - URL 
+    # Determine if LR List exists
+    $ListStatusHash = Get-LrList -Name $RfHashConfThreatList
 
+    # Create the list if it does not exist
+    if (!$ListStatusHash) {
+        New-LrList -Name $RfHashConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future Hash Risk Lists.  Do not modify this list manually." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
+    } else {
+        Write-Verbose "$(Get-TimeStamp) - List Verification: $RfHashConfThreatList exists.  Synchronizing contents between Recorded Future and this LogRhythm list."
+    }
+
+    # Sync Items
+    Try {
+        $RfHashRiskLists = Show-RfHashRiskLists
+        $RfHashRiskDescriptions = $RfHashRiskLists | Select-Object -ExpandProperty description
+    } Catch {
+        Write-Host "$(Get-TimeStamp) - Unable to retrieve Recorded Future Hash Threat Lists.  See Show-RfHashRiskLists"
+    }
+    Sync-LrListItems -name $RfHashConfThreatList -ItemType "generalvalue" -UseContext "message" -Value $RfHashRiskDescriptions
+
+    # User Enabled URL List
+    $ListStatusHashEnabled = Get-LrList -Name $RfHashEnabledThreatList
+
+    # Create the list if it does not exist
+    if (!$ListStatusHashEnabled) {
+        New-LrList -Name $RfHashEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future URL Threat Lists.  Modify this list manually with values from $RfUrlConfThreatList." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
+    } else {
+        Write-Verbose "$(Get-TimeStamp) - List Verification: $RfHashEnabledThreatList exists."
+    }
+
+    # Risk Threshold Management List
+    $ListStatusHashRisk = Get-LrList -Name $RfHashConfRiskThreshold
+
+    # Create the list if it does not exist
+    if (!$ListStatusHashRisk) {
+        New-LrList -Name $RfHashConfRiskThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for High Risk qualification.  Results from URL Risk Lists with a RiskLevel lower than the value populated on this list will be categorized as RF URL: Suspicious `$RFURLRiskListName.  Results from URL Risk Lists with a RiskLevel equal to or greater than the value populated on this list will be categorized as RF URL: High Risk `$RFURLRiskListName." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
+        Add-LrListItem -Name $RfHashConfRiskThreshold -Value 85 -ItemType "generalvalue"
+    } else {
+        Write-Verbose "$(Get-TimeStamp) - List Verification: $RfHashConfRiskThreshold exists."
+    }
+    # End Section - Setup & Control - Hash
+    # -----------------------------------
+    # Begin Section - Setup & Control - URL
     # Establish LR List of available URL Threat Lists
-    $RfUrlConfThreatList = "RF Conf: URL - Available Risk Lists"
-    $RfUrlConfRiskThreshold = "RF Conf: URL - Risk Threshold"
-    $RfUrlEnabledThreatList = "RF Conf: URL - Enabled Risk Lists"
-
+    $RfUrlConfThreatList = "$ListPrefix Conf: URL - Available Risk Lists"
+    $RfUrlConfRiskThreshold = "$ListPrefix Conf: URL - Risk Threshold"
+    $RfUrlEnabledThreatList = "$ListPrefix Conf: URL - Enabled Risk Lists"
 
     # Determine if LR List exists
     $ListStatus = Get-LrList -Name $RfUrlConfThreatList
 
     # Create the list if it does not exist
     if (!$ListStatus) {
-        New-LrList -Name $RfUrlConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future URL Risk Lists.  Do not modify this list manually." -ReadAccess "PublicRestrictedAdmin" -WriteAccess "PublicRestrictedAdmin" 
+        New-LrList -Name $RfUrlConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future URL Risk Lists.  Do not modify this list manually." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
     } else {
-        Write-Verbose "List Verification: $RfUrlConfThreatList exists.  Synchronizing contents between Recorded Future and this LogRhythm list."
+        Write-Verbose "$(Get-TimeStamp) - List Verification: $RfUrlConfThreatList exists.  Synchronizing contents between Recorded Future and this LogRhythm list."
     }
 
     # Sync Items
@@ -27,7 +76,7 @@ Function Invoke-RfSync {
         $RfUrlRiskLists = Show-RfUrlRiskLists
         $RfUrlRiskDescriptions = $RfUrlRiskLists | Select-Object -ExpandProperty description
     } Catch {
-        Write-Host "Unable to retrieve Recorded Future IP Threat Lists.  See Show-RfIPRiskLists"
+        Write-Host "$(Get-TimeStamp) - Unable to retrieve Recorded Future Url Threat Lists.  See Show-RfUrlRiskLists"
     }
     Sync-LrListItems -name $RfUrlConfThreatList -ItemType "generalvalue" -UseContext "message" -Value $RfUrlRiskDescriptions
 
@@ -36,9 +85,9 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatus) {
-        New-LrList -Name $RfUrlEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future URL Threat Lists.  Modify this list manually with values from $RfUrlConfThreatList." -ReadAccess "PublicRestrictedAdmin" -WriteAccess "PublicRestrictedAdmin" 
+        New-LrList -Name $RfUrlEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future URL Threat Lists.  Modify this list manually with values from $RfUrlConfThreatList." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
     } else {
-        Write-Verbose "List Verification: $RfUrlEnabledThreatList exists."
+        Write-Verbose "$(Get-TimeStamp) - List Verification: $RfUrlEnabledThreatList exists."
     }
 
     # Risk Threshold Management List
@@ -46,73 +95,82 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatus) {
-        New-LrList -Name $RfUrlConfRiskThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for High Risk qualification.  Results from URL Risk Lists with a RiskLevel lower than the value populated on this list will be categorized as RF URL: Suspicious `$RFURLRiskListName.  Results from URL Risk Lists with a RiskLevel equal to or greater than the value populated on this list will be categorized as RF URL: High Risk `$RFURLRiskListName." -ReadAccess "PublicRestrictedAdmin" -WriteAccess "PublicRestrictedAdmin" 
-        Add-LrListItem -Name $RfUrlConfRiskThreshold -Value 65 -ItemType "generalvalue"
+        New-LrList -Name $RfUrlConfRiskThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for High Risk qualification.  Results from URL Risk Lists with a RiskLevel lower than the value populated on this list will be categorized as RF URL: Suspicious `$RFURLRiskListName.  Results from URL Risk Lists with a RiskLevel equal to or greater than the value populated on this list will be categorized as RF URL: High Risk `$RFURLRiskListName." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
+        Add-LrListItem -Name $RfUrlConfRiskThreshold -Value 85 -ItemType "generalvalue"
     } else {
-        Write-Verbose "List Verification: $RfUrlConfRiskThreshold exists."
+        Write-Verbose "$(Get-TimeStamp) - List Verification: $RfUrlConfRiskThreshold exists."
     }
+    # End Section - Setup & Control - URL
+    # -----------------------------------
+    # Begin Section - Value Sync - Hash
 
-
+    # End Section - Value Sync - Hash
+    # -----------------------------------
+    # Begin Section - Value Sync - Url
     # Create IP Threat Lists based on RfUrlEnabledThreatList values
-    $EnabledUrlRiskLists = Get-LrListItems -Name $RfUrlEnabledThreatList -ValuesOnly
-    if ($EnabledUrlRiskLists) {
-        $UrlRiskCutoff = Get-LrListItems -Name $RfUrlConfRiskThreshold -ValuesOnly
+    $EnabledRiskListsUrl = Get-LrListItems -Name $RfUrlEnabledThreatList -ValuesOnly
+    if ($EnabledRiskListsUrl) {
+        Write-Host "$(Get-TimeStamp) - Begin - Recorded Future URL Risk List Sync"
+        $RiskCutoff = Get-LrListItems -Name $RfUrlConfRiskThreshold -ValuesOnly
 
-        ForEach ($RiskList in $EnabledUrlRiskLists) {
+        ForEach ($RiskListUrl in $EnabledRiskListsUrl) {
             # Fork each RiskList into two Lists
-            Write-Host "Working: $RiskList"
+            Write-Host "$(Get-TimeStamp) - Working: $RiskListUrl"
+
             # Map list Description to List Name
             Try {
-                Write-Host "Mapping RecordedFuture Risk List Description to Name"
-                $UrlListName = $RfUrlRiskLists.Where({($_.description -like $RiskList)}).name
-                $UrlListResultQuantity = $($RfUrlRiskLists.Where({($_.description -like $RiskList)}) | Select-Object -ExpandProperty count)
+                Write-Host "$(Get-TimeStamp) - Mapping RecordedFuture Risk List Description to Name"
+                $UrlListName = $RfUrlRiskLists.Where({($_.description -like $RiskListUrl)}).name
+                $UrlListResultQuantity = $($RfUrlRiskLists.Where({($_.description -like $RiskListUrl)}) | Select-Object -ExpandProperty count)
             } Catch {
-                Write-Host "Pulled list: $RiskList is not a valid list."
+                Write-Host "$(Get-TimeStamp) - Pulled list: $RiskListUrl is not a valid list."
             }
 
             # Update capitilization for RiskList Value
-            $RiskListName = (Get-Culture).TextInfo.ToTitleCase($RiskList)
+            $UrlRiskListName = (Get-Culture).TextInfo.ToTitleCase($RiskListUrl)
 
             # High Risk
             # Set High Risk name Schema
-            $HighRiskList = "RF: URL - High Risk- $RiskListName"
+            $UrlHighRiskList = "$($ListPrefix): URL - High Risk - $UrlRiskListName"
 
             # Check if list exists - Change to Get-LRListGuidByName
-            Write-Host "Testing HighRiskList Status"
-            $HighListStatus = Get-LrLists -name $HighRiskList -Exact
+            Write-Host "$(Get-TimeStamp) - Testing HighRiskList Status"
+            $UrlHighListStatus = Get-LrLists -name $UrlHighRiskList -Exact
 
-            # If the list doesn't exist, create it.  If it does exist, update short description.
-            if (!$HighListStatus) {
-                Write-Host "Creating List: $HighRiskList"
-                New-LrList -Name $HighRiskList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $RiskList.  RF Risk score between $UrlRiskCutoff and 99." -ReadAccess "PublicRestrictedAdmin" -WriteAccess "PublicRestrictedAdmin" 
+            # If the list exists then update it.  Else create it.
+            if ($UrlHighListStatus) {
+                Write-Host "$(Get-TimeStamp) - Updating List: $UrlHighRiskList"
+                New-LrList -Name $UrlHighRiskList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $RiskListUrl.  RF Risk score between $RiskCutoff and 99.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
             } else {
-                Write-Host "Updating List: $HighRiskList"
-                New-LrList -Name $HighRiskList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $RiskList.  RF Risk score between $UrlRiskCutoff and 99."
+                Write-Host "$(Get-TimeStamp) - Creating List: $UrlHighRiskList"
+                New-LrList -Name $UrlHighRiskList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $RiskListUrl.  RF Risk score between $RiskCutoff and 99.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
             }
 
-            # Suspicious
-            $SuspiciousRiskList = "RF: URL - Suspicious - $RiskListName"
+            # Suspicious Risk
+            # Set Suspicious Risk name Schema
+            $UrlSuspiciousRiskList = "$($ListPrefix): URL - Suspicious - $UrlRiskListName"
 
-            Write-Host "Testing SuspiciousList Status"
-            $LowListStatus = Get-LrLists -name $SuspiciousRiskList -Exact
-            # If the list doesn't exist, create it.
-            if (!$LowListStatus) {
-                Write-Host "Creating List: $SuspiciousRiskList"
-                New-LrList -Name $SuspiciousRiskList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $RiskList.  RF Risk score between 65 and $UrlRiskCutoff." -ReadAccess "PublicRestrictedAdmin" -WriteAccess "PublicRestrictedAdmin" 
+            Write-Host "$(Get-TimeStamp) - Testing SuspiciousList Status"
+            $UrlSuspiciousListStatus = Get-LrLists -name $UrlSuspiciousRiskList -Exact
+
+            # If the list exists then update it.  Else create it.
+            if ($UrlSuspiciousListStatus) {
+                Write-Host "$(Get-TimeStamp) - Updating List: $UrlSuspiciousRiskList"
+                New-LrList -Name $UrlSuspiciousRiskList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $RiskListUrl.  RF Risk score between 65 and $RiskCutoff.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
             } else {
-                Write-Host "Updating List: $SuspiciousRiskList"
-                New-LrList -Name $SuspiciousRiskList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $RiskList.  RF Risk score between 65 and $UrlRiskCutoff."
+                Write-Host "$(Get-TimeStamp) - Creating List: $UrlSuspiciousRiskList"
+                New-LrList -Name $UrlSuspiciousRiskList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $RiskListUrl.  RF Risk score between 65 and $RiskCutoff.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
             }
 
             # Pull list values
-            Write-Host "Running: Get-RfUrlRiskList -List $UrlListName"
+            Write-Host "$(Get-TimeStamp) - Running: Get-RfUrlRiskList -List $UrlListName"
             # Determine if compressed download required
             if ($UrlListResultQuantity -ge 2000000) {
                 #$ListResults = Get-RfUrlRiskList -List $UrlListName -Compressed $true
-                Write-Host "Error - List Quantity too large to process. List: $UrlListName RecordCount: $UrlListResultQuantity"
+                Write-Host "$(Get-TimeStamp) - Error - List Quantity too large to process. List: $UrlListName RecordCount: $UrlListResultQuantity"
                 $ListResults = "http://Error.ListOver2millionEntries.com"
             } else {
-                Write-Host "Retrieving List to process. List: $UrlListName RecordCount: $UrlListResultQuantity"
+                Write-Host "$(Get-TimeStamp) - Retrieving List to process. List: $UrlListName RecordCount: $UrlListResultQuantity"
                 $ListResults = Get-RfUrlRiskList -List $UrlListName
 
                 # Determin lowest risk score provided in list.
@@ -120,39 +178,44 @@ Function Invoke-RfSync {
 
                 # If the list has values with a Risk Score less than the default 65, update the list description to reflect the minimum.
                 if ($MinimumRiskScore -lt 65) {
-                    Write-Host "Updating List: $SuspiciousRiskList"
-                    New-LrList -Name $SuspiciousRiskList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $RiskList.  RF Risk score between $MinimumRiskScore and $UrlRiskCutoff."
+                    Write-Host "$(Get-TimeStamp) - Updating List: $UrlSuspiciousRiskList"
+                    New-LrList -Name $UrlSuspiciousRiskList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $RiskListUrl.  RF Risk score between $MinimumRiskScore and $RiskCutoff.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                 }
+
                 # Splitting results by Risk
                 Try {
-                    Write-Host "Splitting results where Risk is greater than or equal to $UrlRiskCutoff"
-                    $UrlHighResults = $ListResults.Where({([int32]$_.Risk -ge $UrlRiskCutoff)}).Name
-                    Write-Host "Splitting results where Risk is less than $UrlRiskCutoff"
-                    $UrlSuspiciousResults = $ListResults.Where({([int32]$_.Risk -lt $UrlRiskCutoff)}).Name
+                    Write-Host "$(Get-TimeStamp) - Splitting results where Risk is greater than or equal to $RiskCutoff"
+                    $UrlHighResults = $ListResults.Where({([int32]$_.Risk -ge $RiskCutoff)}).Name
+                    Write-Host "$(Get-TimeStamp) - Splitting results where Risk is less than $RiskCutoff"
+                    $UrlSuspiciousResults = $ListResults.Where({([int32]$_.Risk -lt $RiskCutoff)}).Name
                 } Catch {
-                    Write-Host "Error trying to split UrlHighResults and UrlSuspiciousResults"
-                    Write-Host "Current List: $UrlListName"
+                    Write-Host "$(Get-TimeStamp) - Error trying to split UrlHighResults and UrlSuspiciousResults"
+                    Write-Host "$(Get-TimeStamp) - Current List: $UrlListName"
                 }
 
                 # Populate Lists
                 # High Risk
                 if ($UrlHighResults.count -gt 0) {
-                    Write-Host "Syncing Quantity: $($UrlHighResults.count)  UrlSuspiciousResults to list $HighRiskList"
-                    Sync-LrListItems -Value $UrlHighResults -name $HighRiskList -ItemType "generalvalue"
+                    Write-Host "$(Get-TimeStamp) - Syncing Quantity: $($UrlHighResults.count)  UrlSuspiciousResults to list $UrlHighRiskList"
+                    Sync-LrListItems -Value $UrlHighResults -name $UrlHighRiskList -ItemType "generalvalue"
                 } else {
-                    Write-Host "High Risk Quantity: $($UrlHighResults.count)"
+                    Write-Host "$(Get-TimeStamp) - High Risk Quantity: $($UrlHighResults.count)"
                 }
 
                 # Suspicious Risks
                 if ($UrlSuspiciousResults.count -gt 0) {
-                    Write-Host "Syncing Quantity: $($UrlSuspiciousResults.count)  UrlSuspiciousResults to list $SuspiciousRiskList"
-                    Sync-LrListItems -Value $UrlSuspiciousResults -name $SuspiciousRiskList -ItemType "generalvalue"
+                    Write-Host "$(Get-TimeStamp) - Syncing Quantity: $($UrlSuspiciousResults.count)  UrlSuspiciousResults to list $UrlSuspiciousRiskList"
+                    Sync-LrListItems -Value $UrlSuspiciousResults -name $UrlSuspiciousRiskList -ItemType "generalvalue"
                 }  else {
-                    Write-Host "Suspicious Risk Quantity: $($UrlSuspiciousResults.count)"
+                    Write-Host "$(Get-TimeStamp) - Suspicious Risk Quantity: $($UrlSuspiciousResults.count)"
                 }
             }
+            Write-Host "$(Get-TimeStamp) - Clearing Variables: Url*"
+            Clear-Variable -Name Url*
         }
+        Write-Host "$(Get-TimeStamp) - End - Recorded Future URL Risk List Sync"
     }
+
     # Cleanup memory.
     [GC]::Collect()
 }
