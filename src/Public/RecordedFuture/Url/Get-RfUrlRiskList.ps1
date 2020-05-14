@@ -133,9 +133,6 @@ Function Get-RfUrlRiskList {
                     return $ExceptionMessage
                 }
             }
-            #$Output = $([Convert]::FromBase64String($Results.byte))
-            #$ResultBytes = Extract-GzipByteArray -byteArray $Results
-            #$Output = [System.Text.Encoding]::ASCII.GetString($ResultBytes) | ConvertFrom-Json | ConvertTo-Json -Depth 10
             return $Results
         }
 
