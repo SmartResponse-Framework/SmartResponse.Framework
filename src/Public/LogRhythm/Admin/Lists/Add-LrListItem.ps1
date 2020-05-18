@@ -26,7 +26,7 @@ Function Add-LrListItem {
         specified LogRhythm List when an item is successfully added.
     .INPUTS
         [System.Object] -> Name
-        [System.String] -> Value     The Value parameter can be provided via the PowerShell pipeline.
+        [System.String[array]] -> Value     The Value parameter can be provided via the PowerShell pipeline.  This value can be an array of values.
         [System.String] -> ItemType
         [System.Switch] -> LoadListItems
     .OUTPUTS
