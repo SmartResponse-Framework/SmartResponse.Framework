@@ -48,15 +48,30 @@ Function Get-LrNetworks {
         [int]$PageCount,
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [string]$Name,
+        [ValidateSet('asc','desc', ignorecase=$true)]
+        [string]$Direction,
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [string]$Entity,
+        [string]$Name,
 
         [Parameter(Mandatory = $false, Position = 4)]
-        [string]$RecordStatus,
+        [ValidateSet('all','active','retired', ignorecase=$true)]
+        [string]$RecordStatus = "active",
 
         [Parameter(Mandatory = $false, Position = 5)]
+        [string]$BIP,
+
+        [Parameter(Mandatory = $false, Position = 6)]
+        [string]$EIP,
+
+        [Parameter(Mandatory = $false, Position = 7)]
+        [string]$Entity,
+
+        [Parameter(Mandatory = $false, Position = 8)]
+        [ValidateSet('name','bip','eip','entity', ignorecase=$true)]
+        [string]$OrderBy = "Entity",
+
+        [Parameter(Mandatory = $false, Position = 9)]
         [switch]$Exact
     )
 
@@ -77,6 +92,14 @@ Function Get-LrNetworks {
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Type                  =   $null
+            Code                  =   $null
+            Note                  =   $null
+        }
+
         #region: Process Query Parameters____________________________________________________
         $QueryParams = [Dictionary[string,string]]::new()
 
@@ -102,6 +125,38 @@ Function Get-LrNetworks {
             $QueryParams.Add("entity", $_entityName)
         }
 
+        # Return results direction, ascending or descending
+        if ($Direction) {
+            $ValidStatus = "ASC", "DESC"
+            if ($ValidStatus.Contains($($Direction.ToUpper()))) {
+                $_direction = $Direction.ToUpper()
+                $QueryParams.Add("dir", $_direction)
+            } else {
+                throw [ArgumentException] "Direction [$Direction] must be: asc or desc"
+            }
+        }
+
+        # Filter by Begin IP Address
+        if ($BIP) {
+            $IPStatus = Test-ValidIPv4Address $BIP
+            if ($IPStatus.IsValid) {
+                $_bIP = $BIP
+                $QueryParams.Add("BIP", $_bIP)
+            } else {
+                throw [ArgumentException] "BIP [$BIP] must be valid IPv4 Address"
+            }
+        }
+
+        # Filter by End IP Address
+        if ($EIP) {
+            $IPStatus = Test-ValidIPv4Address $EIP
+            if ($IPStatus.IsValid) {
+                $_eIP = $EIP
+                $QueryParams.Add("EIP", $_eIP)
+            } else {
+                throw [ArgumentException] "EIP [$EIP] must be valid IPv4 Address"
+            }
+        }
 
         # RecordStatus
         if ($RecordStatus) {
@@ -121,8 +176,9 @@ Function Get-LrNetworks {
             $QueryString = $QueryParams | ConvertTo-QueryString
             Write-Verbose "[$Me]: QueryString is [$QueryString]"
         }
-        #endregion
 
+
+        #endregion
         $RequestUri = $BaseUrl + "/networks/" + $QueryString
 
         # Send Request
@@ -131,23 +187,30 @@ Function Get-LrNetworks {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
         }
 
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
-        if ($Exact) {
-            $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
+        if ($ErrorObject.Error -eq $False) {
+            if ($Exact) {
+                $Pattern = "^$Name$"
+                $Response | ForEach-Object {
+                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                        Write-Verbose "[$Me]: Exact list name match found."
+                        $List = $_
+                        return $List
+                    }
                 }
+            } else {
+                return ,$Response
             }
         } else {
-            return $Response
+            return $ErrorObject
         }
     }
 
