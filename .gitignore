@@ -3,6 +3,8 @@
 # =============================================================
 # Ignore testing creds
 *.xml
+!actions.xml
+
 # Ingore Transcripts
 PowerShell_transcript*
 
