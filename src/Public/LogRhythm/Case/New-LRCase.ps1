@@ -123,7 +123,6 @@ Function New-LrCase {
         # Attach Alarm to Case
         if ($AlarmNumbers) {
             try {
-                #TEST: [New-LrCase]: This may not be working yet.
                 $UpdatedCase = Add-LrAlarmToCase `
                     -Credential $Credential `
                     -Id $Case.id `

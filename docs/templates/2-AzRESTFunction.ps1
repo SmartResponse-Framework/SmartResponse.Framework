@@ -7,7 +7,6 @@ Function Get-SrfAzRiskDetections {
     .SYNOPSIS
         XXXXXXXX
     .DESCRIPTION
-        #TODO: Documentation
         XXXXXXXX
     .PARAMETER Token
         An access token issued by the Microsoft identity platform with a valid claim to Microsoft
