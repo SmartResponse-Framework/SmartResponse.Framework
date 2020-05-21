@@ -60,7 +60,7 @@ $YesNo_Regex = "^[Yy]([Ee][Ss])?|[Nn][Oo]?$"
 $Yes_Regex = "^[Yy]([Ee][sS])?$"
 # Needed Information
 $LrPmHostName = ""
-$LrAieHost = ""
+$LrAieHostName = ""
 $LrTokenSecureString = ""
 $InstallScope = ""
 
@@ -79,8 +79,8 @@ while ([string]::IsNullOrEmpty($LrPmHostName)) {
 }
 
 
-# $LrAieHost => AieApiUrl
-while ([string]::IsNullOrEmpty($LrAieHost)) {
+# $LrAieHostName => AieApiUrl
+while ([string]::IsNullOrEmpty($LrAieHostName)) {
     # Default: Same as PM
     $Response = Read-Host -Prompt "  AIE Hostname [Same as PM]"
     $Response = $Response.Trim()
@@ -89,7 +89,7 @@ while ([string]::IsNullOrEmpty($LrAieHost)) {
     }
     # sanity check
     if ($Response -match $HostName_Regex) {
-        $LrAieHost = $Response
+        $LrAieHostName = $Response
     }
 }
 #endregion
@@ -153,7 +153,7 @@ $InstallPath = Get-LrtInstallPath -Scope $InstallScope
 Write-Host "`n[ Summary ] ============================" -ForegroundColor Green
 Write-Host "[ LogRhythm Configuration ]"
 Write-Host "  Platform Manager: $LrPmHostName"
-Write-Host "  AIE: $LrAieHost"
+Write-Host "  AIE: $LrAieHostName"
 Write-Host "  API Token: $apiAns"
 Write-Host "[ Installing ]: $($InstallPath.FullName)"
 
@@ -166,12 +166,19 @@ if (! ($Response -match $Yes_Regex)) {
 
 
 
-#region: New-LrPsConfig                                                                  
+#region: New-LrtConfig & Install-Lrt                                                                
+Write-Verbose "Writing config"
 
+try {
+    New-LrtConfig -PlatformManager $LrPmHostName -AIEHostName $LrAieHostName -LrApiKey $LrTokenSecureString
+} catch {
+    $PSCmdlet.ThrowTerminatingError($PSItem)
+}
+
+Write-Verbose "Installing Lrt Module"
+try {
+  Install-Lrt -ArchivePath $PSScriptRoot\LogRhythm.Tools.zip -Scope $InstallScope
+} catch {
+    $PSCmdlet.ThrowTerminatingError($PSItem)
+}
 #endregion
-
-
-# Install.ps1 (root directory)
-#   a. Prompts for PM Name, LR Token, install scope (User/System)
-# 	b. Calls Install-Lrt.ps1 w/ install scope
-# 	c. Calls New-LrPsConfig with PM name and secure string api key

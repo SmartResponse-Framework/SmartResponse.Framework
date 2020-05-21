@@ -29,13 +29,22 @@ Function New-LrtConfig {
         [string] $PlatformManager,
 
         [Parameter(Mandatory = $false, Position = 1)]
+        [string] $AIEngine,
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [securestring] $LrApiKey
     )
+
+
+    # Usually AIE Host is the PM, so if $AIEngine is empty set it to $PlatformManager
+    if ([string]::IsNullOrEmpty($AIEngine)) {
+        $AIEngine = $PlatformManager
+    }
 
     # NOTE: These two variables should be set exactly the same as they appear in module.psm1 !
     #       The name of the file may be ModuleName.config.json, but the object is still called
     #       [SrfPreferences] - too many things reference that now to be changed without extra testing.
-    $ModuleName = "LrPs"
+    $ModuleName = "Lrt"
     $PreferencesFileName = $ModuleName + ".config.json"
 
 

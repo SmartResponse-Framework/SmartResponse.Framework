@@ -6,7 +6,7 @@ using namespace Security.Principal
 function Install-Lrt {
     <#
     .SYNOPSIS
-        Installs the LrPs module in either the system or user PowerShell Modules directory.
+        Installs the Lrt module in either the system or user PowerShell Modules directory.
     .DESCRIPTION
         > Determine the proper install path based on the Scope (User|System)
         > Create directories as needed (User only)
@@ -29,7 +29,7 @@ function Install-Lrt {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [FileInfo] $ArchivePath,
+        [FileInfo] $Path,
 
         [Parameter(Mandatory = $false, Position = 1)]
         [ValidateSet('User','System')]
@@ -40,13 +40,13 @@ function Install-Lrt {
 
     #region: Parameter Validation                                                        
     # Install Archive - Same directory as Install-Lrt.ps1
-    if (! $ArchivePath) {
+    if (! $Path) {
         Write-Verbose "Archive not provided, looking in $PSScriptRoot"
         $DefaultArchivePath = Join-Path -Path $PSScriptRoot -ChildPath $ModuleInfo.Module.ArchiveFileName
-        $ArchivePath = [FileInfo]::new($DefaultArchivePath)
+        $Path = [FileInfo]::new($DefaultArchivePath)
     }
 
-    if (! $ArchivePath.Exists) {
+    if (! $Path.Exists) {
         throw [ArgumentException] "Failed to locate install archive $Archive."
     }
 
@@ -136,7 +136,7 @@ function Install-Lrt {
     
 
     Write-Verbose "Installing to $InstallPath"
-    try { Expand-Archive -Path $ArchivePath.FullName -DestinationPath $InstallPath }
+    try { Expand-Archive -Path $Path.FullName -DestinationPath $InstallPath }
     catch { $PSCmdlet.ThrowTerminatingError($PSItem) }
 
     #endregion
