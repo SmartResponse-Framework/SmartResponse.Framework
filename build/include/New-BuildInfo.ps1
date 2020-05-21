@@ -15,7 +15,7 @@ Function New-BuildInfo {
     .OUTPUTS
         None
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

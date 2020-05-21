@@ -1,6 +1,6 @@
 # Helpers
 
-The Helpers directory contains .NET solutions created for use in SmartResponse.Framework where a dll makes more sense than a script.
+The Helpers directory contains .NET solutions created for use in LogRhythm.Tools where a dll makes more sense than a script.
 
 This can be particularly useful for custom types (objects) that will be used by many parts of the module - this makes the structure of the object more reliable and can include serialization, validation, or other self-contained features that are easier to maintain in a library than in a script.
 

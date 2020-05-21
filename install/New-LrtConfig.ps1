@@ -19,7 +19,7 @@ Function New-LrtConfig {
     .EXAMPLE
         PS C:\> Install-Lrt -LrPlatformManagerHost "platform-mgr.mydomain.com" -LrApiKey "abcd1234"
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

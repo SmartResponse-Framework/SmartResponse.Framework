@@ -23,7 +23,7 @@ Function Get-ModuleInfo {
     .EXAMPLE
         PS C:\> Get-ModuleInfo -Verbose
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

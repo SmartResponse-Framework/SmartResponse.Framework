@@ -11,7 +11,7 @@ Function ConvertFrom-UnixEpoch {
     .OUTPUTS
         System.DateTime
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

@@ -23,7 +23,7 @@ function Install-Lrt {
     .EXAMPLE
         Install-Lrt -Scope User
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

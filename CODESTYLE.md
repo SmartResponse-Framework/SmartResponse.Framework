@@ -8,13 +8,13 @@
 
 # Coding Guidelines
 
-**NOTE:** The code style standard for SmartResponse.Framework is a work in progress - most of the code conforms to these standards, but some functions were written before this style guide was compiled.
+**NOTE:** The code style standard for LogRhythm.Tools is a work in progress - most of the code conforms to these standards, but some functions were written before this style guide was compiled.
 
-For suggestions or discussion of code style please [open an issue](https://github.com/SmartResponse-Framework/SmartResponse.Framework/issues).
+For suggestions or discussion of code style please [open an issue](https://github.com/SmartResponse-Framework/LogRhythm.Tools/issues).
 
 ## Naming Conventions
 
-*In regards to naming*, SmartResponse.Framework follows the [DSC Resource Style Guidelines](https://github.com/PowerShell/DscResources/blob/master/StyleGuidelines.md) - with the exception of **Variables, which use PascalCase**.
+*In regards to naming*, LogRhythm.Tools follows the [DSC Resource Style Guidelines](https://github.com/PowerShell/DscResources/blob/master/StyleGuidelines.md) - with the exception of **Variables, which use PascalCase**.
 
 ### Functions
 
@@ -42,7 +42,7 @@ Exported functions should observe the following naming structure.
 | Part      | Description |
 | ----------- | ----------- |
 | `Verb` | The first part of the function follows the [approved verb list](https://docs.microsoft.com/en-us/powershell/developer/cmdlet/approved-verbs-for-windows-powershell-commands) published by Microsoft. |
-| `Module` | The second portion of the function name indicates that it is part of the SmartResponse.Framework module|
+| `Module` | The second portion of the function name indicates that it is part of the LogRhythm.Tools module|
 | `Classification` | The optional third part identifies if the function is related to PSRemoting, ActiveDirectory, Azure, or LogRhythm functionality.|
 | `Name` | The remaining portion of the function name is descriptive.|
 
@@ -144,7 +144,7 @@ All cmdlets should use [Comment Based Help](https://docs.microsoft.com/en-us/pow
         Include at least one example and its output.
     .LINK
         Always include a link to the main repo (not to the file itself)
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/LogRhythm.Tools
     #>
 ```
 

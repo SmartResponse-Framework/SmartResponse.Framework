@@ -3,11 +3,11 @@ using namespace System.IO
 
 <#
 .SYNOPSIS
-    Build and Import the most recent SmartResponse.Framework build in your current
+    Build and Import the most recent LogRhythm.Tools build in your current
     PowerShell session.
 .DESCRIPTION
     New-TestBuild.ps1 script was created as an easy way to build and/or import the
-    latest local build of SmartResponse.Framework for the current PowerShell session.
+    latest local build of LogRhythm.Tools for the current PowerShell session.
 
     Generally this is used to aid in the development process, where installing the 
     module under a PSModulePath is cumbersome for continuous testing.
@@ -50,7 +50,7 @@ using namespace System.IO
 .EXAMPLE
     PS C:\> .\New-TestBuild.ps1 -RemoveOld
 .NOTES
-    The SrfBuilder module, included in SmartResponse.Framework, is used for
+    The SrfBuilder module, included in LogRhythm.Tools, is used for
     creating a new module build.  You can also manually build the module
     by importing SrfBuilder and using its functions.
 
@@ -60,7 +60,7 @@ using namespace System.IO
     PS > Get-Help New-SrfBuild
     PS > Get-Help Install-SrfBuild
 .LINK
-    https://github.com/SmartResponse-Framework/SmartResponse.Framework
+    https://github.com/SmartResponse-Framework/LogRhythm.Tools
 #>
 
 [CmdletBinding()]
@@ -80,7 +80,7 @@ Param(
 
 $StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 # Unload current build
-Get-Module SmartResponse.Framework | Remove-Module -Force
+Get-Module LogRhythm.Tools | Remove-Module -Force
 
 
 #region: Remove Old Builds                                                               
@@ -123,7 +123,7 @@ if (Test-Path $NewBuildPath) {
     Write-Host "[Success]" -ForegroundColor Green
 } else {
     Write-Host "[Failure]" -ForegroundColor Red
-    throw [Exception] "Failed to build SmartResponse.Framework module. Review errors / call stack."
+    throw [Exception] "Failed to build LogRhythm.Tools module. Review errors / call stack."
 }
 
 

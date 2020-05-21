@@ -32,7 +32,7 @@ function Get-LrCaseEarliestEvidence
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/LogRhythm.Tools
     #>
 	param(
         [Parameter(Mandatory = $false, Position = 0)]

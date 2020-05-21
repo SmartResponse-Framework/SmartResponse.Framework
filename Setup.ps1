@@ -21,7 +21,7 @@ using namespace System.Collections.Generic
 .EXAMPLE
     xxxx
 .LINK
-    https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+    https://github.com/SmartResponse-Framework/LogRhythm.Tools        
 #>
 
 [CmdletBinding()]

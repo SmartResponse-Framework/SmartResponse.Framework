@@ -28,7 +28,7 @@ Function Add-LrPlaybookToCase {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

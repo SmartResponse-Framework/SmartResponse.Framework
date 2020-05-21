@@ -8,7 +8,7 @@ function UnInstall-SrfBuild {
     .SYNOPSIS
         Uninstalls the module.
     .DESCRIPTION
-        The UnInstall-SrfBuild cmdlet uninstalls the SmartResponse.Framework module from the local computer.
+        The UnInstall-SrfBuild cmdlet uninstalls the LogRhythm.Tools module from the local computer.
         The module install/uninstall root location is assumed to be C:\Program Files\WindowsPowerShell\Modules\
 
         *** NOTE *** 
@@ -27,7 +27,7 @@ function UnInstall-SrfBuild {
         ---
         Description: Will remove the module from the local computer.
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/LogRhythm.Tools
 #>
 
     [CmdletBinding()]

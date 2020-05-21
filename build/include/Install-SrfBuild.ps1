@@ -6,9 +6,9 @@ using namespace System.Management.Automation
 function Install-SrfBuild {
 <#
     .SYNOPSIS
-        Installs the SmartResponse.Framework module for all users.
+        Installs the LogRhythm.Tools module for all users.
     .DESCRIPTION
-        The Install-SrfBuild cmdlet installs the SmartResponse.Framework module in
+        The Install-SrfBuild cmdlet installs the LogRhythm.Tools module in
         C:\Program Files\WindowsPowerShell\Modules.
 
         If parameters are omitted, the most recent build is selected for installation -
@@ -44,7 +44,7 @@ function Install-SrfBuild {
         ---
         Description: Installs the specified BuildId.
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/LogRhythm.Tools
 #>
 
     [CmdletBinding()]

@@ -4,9 +4,9 @@ using namespace System.Collections.Generic
 function New-SrfBuild {
 <#
     .SYNOPSIS
-        Create a new build for the SmartResponse.Framework module.
+        Create a new build for the LogRhythm.Tools module.
     .DESCRIPTION
-        The New-SrfBuild cmdlet creates a new build for the SmartResponse.Framework
+        The New-SrfBuild cmdlet creates a new build for the LogRhythm.Tools
         module, based on the information stored in ModuleInfo.json and parameters provided
         to this cmdlet.
 
@@ -56,7 +56,7 @@ function New-SrfBuild {
         -----------
         Create a new build of this module as Version 1.0.1, without a release note.
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/LogRhythm.Tools
 #>
 
     [CmdletBinding()]

@@ -11,7 +11,7 @@ Function Get-Secret {
 
         This module has an exported list variable called $SecretList, which contains a 
         mapping of Service account names to SecretIds for convenience.  You can view 
-        this list by typing $SecretList in a terminal that has SmartResponse.Framework 
+        this list by typing $SecretList in a terminal that has LogRhythm.Tools 
         imported.
     .PARAMETER SecretId
         ID correcsponding to a stored credential in Secret Server. 
@@ -57,7 +57,7 @@ Function Get-Secret {
         Description: Credentials for SecretServer are deserialized from mycred.xml file and
         used to authenticate to Secret Server. The WDATPAuthKey credential is stored in $Token.
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/LogRhythm.Tools
     #>
     #region: Parameters
     [CmdletBinding()]

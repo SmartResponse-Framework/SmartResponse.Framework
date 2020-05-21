@@ -64,7 +64,7 @@ Function Get-LrAieDrilldown {
         in development and production environments and used in hundreds
         of SmartResponse actions.
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/LogRhythm.Tools
     #>
 
     #region: Parameters                                                                  

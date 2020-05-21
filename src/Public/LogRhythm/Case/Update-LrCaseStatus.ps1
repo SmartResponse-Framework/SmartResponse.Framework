@@ -57,7 +57,7 @@ Function Update-LrCaseStatus {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/SmartResponse-Framework/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
