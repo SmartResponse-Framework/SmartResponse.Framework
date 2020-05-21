@@ -28,6 +28,12 @@ using namespace System.Collections.Generic
 Param()
 
 
+#region: Import Commands                                                                 
+$InstallPsm1 = Join-Path -Path $PSScriptRoot -ChildPath "install\Lrt.Installer.psm1"
+Import-Module $InstallPsm1
+#endregion
+
+
 #region: STOP - Banner Time.                                                             
 Write-Host "888                       8888888b.  888               888    888                       88888888888                888          "
 Write-Host "888                       888   Y88b 888               888    888                           888                    888          "
@@ -50,18 +56,21 @@ Write-Host "Version 0.9.8`n" -ForegroundColor Blue
 # Input sanitization regexs
 $HostName_Regex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 $InstallScope_Regex = "^([Uu]ser|[Ss]ystem|[Ss]kip)$"
+$YesNo_Regex = "^[Yy]([Ee][Ss])?|[Nn][Oo]?$"
+$Yes_Regex = "^[Yy]([Ee][sS])?$"
 # Needed Information
 $LrPmHostName = ""
 $LrAieHost = ""
-$LrToken = ""
+$LrTokenSecureString = ""
 $InstallScope = ""
 
 
-
+#region: LogRhythm Hostnames                                                             
 # $LrPmHostName => AdminApiBaseUrl
 Write-Host "[ LogRhythm Configuration ] =================" -ForegroundColor Green
 while ([string]::IsNullOrEmpty($LrPmHostName)) {
     $Response = Read-Host -Prompt "  Platform Manager Hostname"
+    $Response = $Response.Trim()
     # sanity check
     if ($Response -match $HostName_Regex) {
         $LrPmHostName = $Response
@@ -74,6 +83,7 @@ while ([string]::IsNullOrEmpty($LrPmHostName)) {
 while ([string]::IsNullOrEmpty($LrAieHost)) {
     # Default: Same as PM
     $Response = Read-Host -Prompt "  AIE Hostname [Same as PM]"
+    $Response = $Response.Trim()
     if ([string]::IsNullOrEmpty($Response)) {
         $Response = $LrPmHostName
     }
@@ -82,20 +92,49 @@ while ([string]::IsNullOrEmpty($LrAieHost)) {
         $LrAieHost = $Response
     }
 }
+#endregion
 
 
-# $LrToken => Used to create LrApiToken
-while ([string]::IsNullOrEmpty($LrToken)) {
-    $Response = Read-Host -Prompt "  Paste API token" -AsSecureString
-    if ($Response.Length -gt 50) {
-        $LrToken = $Response
+
+#region: LrToken                                                                         
+# Ask user if they want to set the Lr API Token
+$SetApiToken = $null
+#BUG: Issue with "n" response
+$Response = Read-Host -Prompt "Set LogRhythm API Key (y/n)"
+$Response = $Response.Trim()
+while ($null -eq $SetApiToken) {
+    # Only accept yes/no answers (could change later if annoying)
+    if ($Response -match $YesNo_Regex) {
+        if ($Response -match $Yes_Regex) {
+            $SetApiToken = $true
+            break
+        }
+    } else {
+        $SetApiToken = $false
+        break
     }
 }
 
+# Get token if $SetApiToken = true
+if ($SetApiToken) {
+    while ([string]::IsNullOrEmpty($LrTokenSecureString)) {
+        # $Response in this case is a SecureString
+        # Empty responses will have a Length of 0 but won't be [string]::NullOrEmpty
+        $Response = Read-Host -Prompt "  Paste API token here" -AsSecureString
+        if ($Response.Length -gt 50) {
+            $LrTokenSecureString = $Response
+        }
+    }
+}
+#endregion
 
-Write-Host "`n[ Installation ] ---------===================" -ForegroundColor Green
+
+
+
+Write-Host "`n[ Installation ] ============================" -ForegroundColor Green
 while ([string]::IsNullOrEmpty($InstallScope)) {
     $Response = Read-Host -Prompt "  Install Scope (User|System|Skip)"
+    $Response = $Response.Trim()
     # find matches
     if ($Response -match $InstallScope_Regex) {
         $InstallScope = $Response
@@ -103,18 +142,36 @@ while ([string]::IsNullOrEmpty($InstallScope)) {
 }
 
 
-# Summary
-# LogRhythm Config
-# Platform Manager Host
-# AIE Host
-# Token (characters)
 
-# Installing (yes/no)
-# Install location?
+#region: Summary Report                                                                  
+# Some verbiage vars
+$apiAns = "<skipped>"
+if ($SetApiToken) {
+    $apiAns = "<set>"
+}
+$InstallPath = Get-LrtInstallPath -Scope $InstallScope
+Write-Host "`n[ Summary ] ============================" -ForegroundColor Green
+Write-Host "[ LogRhythm Configuration ]"
+Write-Host "  Platform Manager: $LrPmHostName"
+Write-Host "  AIE: $LrAieHost"
+Write-Host "  API Token: $apiAns"
+Write-Host "[ Installing ]: $($InstallPath.FullName)"
 
+$Response = Read-Host -Prompt "Proceed (y/n)"
+if (! ($Response -match $Yes_Regex)) {
+    Write-Host "`n User aborted." -ForegroundColor Yellow
+    return
+}
+#endregion
+
+
+
+#region: New-LrPsConfig                                                                  
+
+#endregion
 
 
 # Install.ps1 (root directory)
 #   a. Prompts for PM Name, LR Token, install scope (User/System)
-# 	b. Calls Install-LrPs.ps1 w/ install scope
+# 	b. Calls Install-Lrt.ps1 w/ install scope
 # 	c. Calls New-LrPsConfig with PM name and secure string api key

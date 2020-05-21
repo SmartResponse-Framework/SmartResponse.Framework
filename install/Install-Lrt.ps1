@@ -3,7 +3,7 @@ using namespace System.IO
 using namespace System.Collections.Generic
 using namespace Security.Principal
 
-function Install-LrPs {
+function Install-Lrt {
     <#
     .SYNOPSIS
         Installs the LrPs module in either the system or user PowerShell Modules directory.
@@ -21,7 +21,7 @@ function Install-LrPs {
     .OUTPUTS
         None
     .EXAMPLE
-        Install-LrPs -Scope User
+        Install-Lrt -Scope User
     .LINK
         https://github.com/SmartResponse-Framework/SmartResponse.Framework        
     #>
@@ -36,14 +36,10 @@ function Install-LrPs {
         [string] $Scope = "User"
     )
 
-
-    # A bit hacky... until Build is overhauled, manually import this for now.
-    . $PSScriptRoot\Get-ModuleInfo.ps1
-    . $PSScriptRoot\Uninstall-LrPs.ps1
     $ModuleInfo = Get-ModuleInfo
 
     #region: Parameter Validation                                                        
-    # Install Archive - Same directory as Install-LrPs.ps1
+    # Install Archive - Same directory as Install-Lrt.ps1
     if (! $ArchivePath) {
         Write-Verbose "Archive not provided, looking in $PSScriptRoot"
         $DefaultArchivePath = Join-Path -Path $PSScriptRoot -ChildPath $ModuleInfo.Module.ArchiveFileName
@@ -65,7 +61,7 @@ function Install-LrPs {
     if ($Scope -eq "System") {
         Write-Verbose "Installing with scope: System"
         # Determine install path for system
-        $SystemScopePath = Join-Path -Path $Env:ProgramFiles -ChildPath "WindowsPowerShell\Modules"
+        $SystemScopePath = Get-LrtInstallPath -Scope $Scope
         
         # Check admin privileges
         $CurrentUser = [WindowsIdentity]::GetCurrent()
@@ -75,19 +71,19 @@ function Install-LrPs {
         }
 
         # Ensure path exists - we won't attempt to create it!
-        if (! (Test-Path -Path $SystemScopePath)) {
+        if (! $SystemScopePath.Exists) {
             Write-Host "Failed to locate system module directory $SystemScopePath." -ForegroundColor Red
         }
 
         # Add to PSModulePath if needed (weird if its missing though!)
-        if (! ($ModulePaths.Contains($SystemScopePath))) {
+        if (! ($ModulePaths.Contains($SystemScopePath.FullName))) {
             Write-Verbose "System modules directory not in module path. Adding."
             $p = [Environment]::GetEnvironmentVariable("PSModulePath")
-            $p += ";$SystemScopePath"
+            $p += ";$($SystemScopePath.FullName)"
             [Environment]::SetEnvironmentVariable("PSModulePath",$p)
         }
 
-        $InstallPath = Join-Path -Path $SystemScopePath -ChildPath $ModuleInfo.Module.Name
+        $InstallPath = Join-Path -Path $SystemScopePath.FullName -ChildPath $ModuleInfo.Module.Name
     }
     #endregion
 
@@ -96,31 +92,23 @@ function Install-LrPs {
     #region: Scope: User                                                                     
     if ($Scope -eq "User") {
         Write-Verbose "Installing with scope: User"
-        $ModulePathBase = $Env:HOME  # this allows us to test a bit easier...
-        
-        # Paths
-        $UserDocs = Join-Path -Path $ModulePathBase -ChildPath "Documents"
-        $UserDocsWPS = Join-Path -Path $UserDocs -ChildPath "WindowsPowerShell"
-        $UserScopePath = Join-Path -Path $UserDocsWPS "Modules"
+        $UserScopePath = Get-LrtInstallPath -Scope $Scope
 
         # Create WindowsPowerShell / Modules directories if needed
-        if (! (Test-Path $UserScopePath)) {
-            if (! (Test-Path $UserDocsWPS)) {
-                New-Item -Path $UserDocs -Name "WindowsPowerShell" -ItemType Directory | Out-Null    
-            }
-            New-Item -Path $UserDocsWPS -Name "Modules" -ItemType Directory | Out-Null
-            Write-Verbose "Created directory $UserScopePath"
+        if (! $UserScopePath.Exists) {
+            New-Item -Path $Env:HOME -Name "WindowsPowerShell\Modules" -ItemType Directory | Out-Null    
+            Write-Verbose "Created directory $($UserScopePath.FullName)"
         }
 
         # Add to PSModulePath if necessary
-        if (! ($ModulePaths.Contains($UserScopePath))) {
+        if (! ($ModulePaths.Contains($UserScopePath.FullName))) {
             Write-Verbose "User modules directory not in module path. Adding."
             $p = [Environment]::GetEnvironmentVariable("PSModulePath")
-            $p += ";$UserScopePath"
+            $p += ";$($UserScopePath.FullName)"
             [Environment]::SetEnvironmentVariable("PSModulePath",$p)
         }
 
-        $InstallPath = Join-Path -Path $UserScopePath -ChildPath $ModuleInfo.Module.Name
+        $InstallPath = Join-Path -Path $UserScopePath.FullName -ChildPath $ModuleInfo.Module.Name
     }
     #endregion
 
@@ -139,7 +127,7 @@ function Install-LrPs {
         Write-Verbose "An installation already exists at $InstallPath"
         Write-Verbose "Attempting to remove."
         try {
-            $InstallPath | Uninstall-LrPs
+            $InstallPath | UnInstall-Lrt
         }
         catch {
             $PSCmdlet.ThrowTerminatingError($PSItem)

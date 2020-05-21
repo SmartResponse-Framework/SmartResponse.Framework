@@ -5,7 +5,7 @@
 # Create Directory Structure
     # Create Directory [ModuleName-Release]
     # Create [install] directory
-        # Copy: Root\install\Install-LrPs.ps1
+        # Copy: Root\install\Install-Lrt.ps1
         # Copy: Root\install\New-LrPsConfig.ps1
     # Copy Root\install\Install.ps1
     # Copy Root\ModuleInfo
@@ -18,7 +18,7 @@
 
 #  [LrPs-Release.zip]
 # 	+ install\
-# 		- Install-LrPs.ps1
+# 		- Install-Lrt.ps1
 # 		- New-LrPsConfig.ps1
 # 	- Install.ps1
 # 	- ModuleInfo.json

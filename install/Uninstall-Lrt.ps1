@@ -3,12 +3,12 @@ using namespace System.IO
 using namespace System.Security.Principal
 using namespace System.Management.Automation
 
-function UnInstall-LrPs {
+function UnInstall-Lrt {
 <#
     .SYNOPSIS
         Uninstalls the module.
     .DESCRIPTION
-        The UnInstall-LrPs cmdlet uninstalls the LrPs module from the local computer.
+        The UnInstall-Lrt cmdlet uninstalls the LrPs module from the local computer.
         By default the installation directory is C:\Program Files\WindowsPowerShell\Modules\
 
         When unauthorized access errors are thrown, close all PowerShell and IDE windows and re-run this cmdlet.
@@ -20,7 +20,7 @@ function UnInstall-LrPs {
         None
         Throws exception if the installation path is not found.
     .EXAMPLE
-        PS C:\> UnInstall-LrPs -InstallPath "c:\users\bob\Documents\WindowsPowerShell\Modules\LrPs\"
+        PS C:\> UnInstall-Lrt -InstallPath "c:\users\bob\Documents\WindowsPowerShell\Modules\LrPs\"
         ---
         Description: Will remove the module from the local computer.
     .LINK

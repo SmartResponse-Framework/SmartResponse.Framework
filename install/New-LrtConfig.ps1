@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function New-LrPsConfig {
+Function New-LrtConfig {
     <#
     .SYNOPSIS
         Performs the initial setup and installs this module to c:\Program Files\WindowsPowerShell\Modules
@@ -17,7 +17,7 @@ Function New-LrPsConfig {
     .OUTPUTS
         None
     .EXAMPLE
-        PS C:\> Install-LrPs -LrPlatformManagerHost "platform-mgr.mydomain.com" -LrApiKey "abcd1234"
+        PS C:\> Install-Lrt -LrPlatformManagerHost "platform-mgr.mydomain.com" -LrApiKey "abcd1234"
     .LINK
         https://github.com/SmartResponse-Framework/SmartResponse.Framework
     #>
