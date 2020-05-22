@@ -24,7 +24,7 @@ function UnInstall-Lrt {
         ---
         Description: Will remove the module from the local computer.
     .LINK
-        https://github.com/SmartResponse-Framework/LogRhythm.Tools
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
 #>
 
     [CmdletBinding()]
@@ -32,37 +32,109 @@ function UnInstall-Lrt {
         [Parameter(
             Mandatory = $false,
             ValueFromPipeline = $true,
+            ParameterSetName = 'Path',
             Position = 0
         )]
-        [DirectoryInfo] $InstallPath
+        [DirectoryInfo] $InstallPath,
+
+        [Parameter(
+            Mandatory = $false,
+            ParameterSetName = 'Scope',
+            Position = 1
+        )]
+        [ValidateSet('User','System')]
+        [string] $Scope
     )
 
-    # Load ModuleInfo
-    . $PSScriptRoot\Get-ModuleInfo.ps1
+    #TODO: Revamp this to make it more simple.  Maybe no params and just check for both scopes.
+    # For each found, prompt the user if they want to remove it.
+    # Check for user first, and complete that.
+    # If there is a system scope and they want it removed, check for admin 
+
+    #region: Path Setup                                                                  
     $ModuleInfo = Get-ModuleInfo
 
-
-    # Default System Install Path
-    $SystemInstallPath = Join-Path -Path "C:\Program Files\WindowsPowerShell\Modules" -ChildPath $ModuleInfo.Module.Name
-    if ([string]::IsNullOrEmpty($InstallPath)) {
-        $InstallPath = [DirectoryInfo]::new($SystemInstallPath)
-    }
+    $SystemDir = Get-LrtInstallPath -Scope System
+    $SystemInstallPath = Join-Path -Path $SystemDir -ChildPath $ModuleInfo.Module.Name
+    $SystemInstallDir = [DirectoryInfo]::new($SystemInstallPath)
 
 
-    # Check that the install path exists
-    if (! $InstallPath.Exists) {
-        throw [ArgumentException] "Failed to find install path $InstallPath"
-    }
+    $UserDir = Get-LrtInstallPath -Scope User
+    $UserInstallPath = Join-Path -Path $UserDir -ChildPath $ModuleInfo.Module.Name
+    $UserInstallDir = [DirectoryInfo]::new($UserInstallPath)    
+    #endregion
 
 
-    # Check if Administrator - System Install Path only
-    if ($InstallPath.FullName -eq $SystemInstallPath) {
-        $CurrentUser = New-Object Security.Principal.WindowsPrincipal([WindowsIdentity]::GetCurrent())
-        $IsAdmin = $CurrentUser.IsInRole([WindowsBuiltInRole]::Administrator)
-        if (-not $IsAdmin) {
-            throw [Exception] "To remove Lrt from the system install path, run the command with administrator rights."
+
+    #region: Get Locations                                                               
+    # I think this might be overkill, but I'm making this flexible because I don't know
+    # what future use cases might be.  This command can be called pretty blindly and it
+    # should work.
+    
+    # A list of locations to remove from.
+    $Installs = [List[string]]::new()
+
+
+    # InstallPath Option
+    if ($InstallPath) {
+        if ($InstallPath.Exists) {
+            $Installs.Add($InstallPath)
+        } else {
+            throw [ArgumentException] "Provided install path $InstallPath does not exist."
         }
     }
+
+    # Scope Option - Figure out which scope was requested and make sure it exists
+    if (! ([string]::IsNullOrEmpty($Scope))) {
+        # Scope: System
+        if ($Scope -eq "System") {
+            if (! $SystemInstallDir.Exists) {
+                throw [ArgumentException] "No install found in $($SystemInstallDir.FullName)"
+            }
+            $Installs.Add($SystemInstallDir.FullName)
+        }
+        # Scope: User
+        if ($Scope -eq "User") {
+            if (! $UserInstallDir.Exists) {
+                throw [ArgumentException] "No install found in $($UserInstallDir.FullName)"
+            }
+            $Installs.Add($UserInstallDir.FullName)
+        }
+    }
+
+    # No scope / No path - try to remove system & user if they exist
+    if ((! $InstallPath) -and ([string]::IsNullOrEmpty($Scope))) {
+        # Scope: System
+        if ($SystemInstallDir.Exists) {
+            $Installs.Add($SystemInstallDir.FullName)    
+        }
+        # Scope: User
+        if ($UserInstallDir.Exists) {
+            $Installs.Add($UserInstallDir.FullName)    
+        }
+    }
+    #endregion
+
+
+    if ($Installs.Count -eq 0) {
+        Write-Host "[Uninstall-Lrt]: Nothing to remove."
+        return
+    }
+
+    foreach ($install in $Installs) {
+        if ($install -eq $SystemInstallPath) {
+            if ($InstallPath.FullName -eq $SystemInstallPath) {
+                $CurrentUser = New-Object Security.Principal.WindowsPrincipal([WindowsIdentity]::GetCurrent())
+                $IsAdmin = $CurrentUser.IsInRole([WindowsBuiltInRole]::Administrator)
+                if (-not $IsAdmin) {
+                    throw [Exception] "To remove Lrt from the system install path, run the command with administrator rights."
+                }
+            }
+        }
+    }
+
+    # Check if Administrator - System Install Path only
+
 
     #region: Remove Installation Files                                                   
     # Get all files recursively

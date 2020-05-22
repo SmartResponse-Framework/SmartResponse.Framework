@@ -57,7 +57,7 @@ Function Get-Secret {
         Description: Credentials for SecretServer are deserialized from mycred.xml file and
         used to authenticate to Secret Server. The WDATPAuthKey credential is stored in $Token.
     .LINK
-        https://github.com/SmartResponse-Framework/LogRhythm.Tools
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
     #region: Parameters
     [CmdletBinding()]

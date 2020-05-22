@@ -8,7 +8,7 @@ After you submit a PR, Project maintainers and contributors will review and disc
 
 ## Coding Conventions
 
-For detailed information on code style and conventions, please review the [CODESTYLE.txt](https://github.com/SmartResponse-Framework/LogRhythm.Tools/issues) file.
+For detailed information on code style and conventions, please review the [CODESTYLE.txt](https://github.com/LogRhythm-Tools/LogRhythm.Tools/issues) file.
 
 ## Quick Guidelines
 

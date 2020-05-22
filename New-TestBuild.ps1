@@ -60,7 +60,7 @@ using namespace System.IO
     PS > Get-Help New-SrfBuild
     PS > Get-Help Install-SrfBuild
 .LINK
-    https://github.com/SmartResponse-Framework/LogRhythm.Tools
+    https://github.com/LogRhythm-Tools/LogRhythm.Tools
 #>
 
 [CmdletBinding()]

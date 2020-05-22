@@ -27,7 +27,7 @@ function UnInstall-SrfBuild {
         ---
         Description: Will remove the module from the local computer.
     .LINK
-        https://github.com/SmartResponse-Framework/LogRhythm.Tools
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
 #>
 
     [CmdletBinding()]

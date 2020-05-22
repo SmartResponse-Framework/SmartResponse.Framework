@@ -31,7 +31,7 @@ Function New-LrCase {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/LogRhythm.Tools
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

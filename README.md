@@ -3,9 +3,9 @@
 
 LogRhythm.Tools is a powershell module containing commands (cmdlets) intended primarily for use in LogRhythm SmartResponse Plugin development, but can also be used interactively.  
 
-This is an open source, community-driven project. Pull requests, are welcome and encouraged - please review the contribution guidelines below. Feel free to [submit an issue](https://github.com/SmartResponse-Framework/LogRhythm.Tools/issues) to discuss enhancements, design, bugs, questions or other feedback.
+This is an open source, community-driven project. Pull requests, are welcome and encouraged - please review the contribution guidelines below. Feel free to [submit an issue](https://github.com/LogRhythm-Tools/LogRhythm.Tools/issues) to discuss enhancements, design, bugs, questions or other feedback.
 
-:fire: **Everyone is encouraged to read and contribute to [open design issues](https://github.com/SmartResponse-Framework/LogRhythm.Tools/issues).**
+:fire: **Everyone is encouraged to read and contribute to [open design issues](https://github.com/LogRhythm-Tools/LogRhythm.Tools/issues).**
 
 ## News: February, 2020
 
@@ -78,7 +78,7 @@ Getting started is easy, if you have some familiarity with Git and PowerShell.
 ### Get and build the module
 
 ```powershell
-PS> git clone https://github.com/SmartResponse-Framework/LogRhythm.Tools
+PS> git clone https://github.com/LogRhythm-Tools/LogRhythm.Tools
 PS> cd LogRhythm.Tools
 ```
 
@@ -119,7 +119,7 @@ PS> Get-LrTags
 
 ### Configuration
 
-Currently there is a little configuration required for some cmdlets to function properly. This design is [open to discussion here](https://github.com/SmartResponse-Framework/LogRhythm.Tools/issues/1).
+Currently there is a little configuration required for some cmdlets to function properly. This design is [open to discussion here](https://github.com/LogRhythm-Tools/LogRhythm.Tools/issues/1).
 
 The configuration file is located in the repository under `~/src/include/SrfPreferences.json`.
 

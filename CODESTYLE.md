@@ -10,7 +10,7 @@
 
 **NOTE:** The code style standard for LogRhythm.Tools is a work in progress - most of the code conforms to these standards, but some functions were written before this style guide was compiled.
 
-For suggestions or discussion of code style please [open an issue](https://github.com/SmartResponse-Framework/LogRhythm.Tools/issues).
+For suggestions or discussion of code style please [open an issue](https://github.com/LogRhythm-Tools/LogRhythm.Tools/issues).
 
 ## Naming Conventions
 
@@ -144,7 +144,7 @@ All cmdlets should use [Comment Based Help](https://docs.microsoft.com/en-us/pow
         Include at least one example and its output.
     .LINK
         Always include a link to the main repo (not to the file itself)
-        https://github.com/SmartResponse-Framework/LogRhythm.Tools
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 ```
 

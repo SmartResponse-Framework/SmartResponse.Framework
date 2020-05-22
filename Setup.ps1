@@ -5,32 +5,28 @@ using namespace System.Collections.Generic
 
 <#
 .SYNOPSIS
-    xxxx
-.DESCRIPTION
-    xxxx
-.PARAMETER param1
-    xxxx
-.PARAMETER param2
-    xxxx
+    Install and configure the LogRhythm.Tools PowerShell module.
+.PARAMETER Dev
+    The Dev flag only changes where the Setup script looks for the installation archive.
+    Releases will have the install archive in the root directory, dev installs will have the install
+    in .\build\output\BuildId\
 .INPUTS
-    xxxx
+    None
 .OUTPUTS
-    xxxx
-.EXAMPLE
-    xxxx
-.EXAMPLE
-    xxxx
+    None
 .LINK
-    https://github.com/SmartResponse-Framework/LogRhythm.Tools        
+    https://github.com/LogRhythm-Tools/LogRhythm.Tools
 #>
 
 [CmdletBinding()]
-Param()
+Param( )
 
 
 #region: Import Commands                                                                 
 $InstallPsm1 = Join-Path -Path $PSScriptRoot -ChildPath "install\Lrt.Installer.psm1"
-Import-Module $InstallPsm1
+Import-Module $InstallPsm1 -Force
+
+$ModuleInfo = Get-ModuleInfo
 #endregion
 
 
@@ -52,17 +48,25 @@ Write-Host "Version 0.9.8`n" -ForegroundColor Blue
 
 
 
-
+#region: Variables                                                                       
 # Input sanitization regexs
 $HostName_Regex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 $InstallScope_Regex = "^([Uu]ser|[Ss]ystem|[Ss]kip)$"
 $YesNo_Regex = "^[Yy]([Ee][Ss])?|[Nn][Oo]?$"
 $Yes_Regex = "^[Yy]([Ee][sS])?$"
+$No_Regex = "^[Nn]([Oo])?$"
+
 # Needed Information
 $LrPmHostName = ""
 $LrAieHostName = ""
 $LrTokenSecureString = ""
 $InstallScope = ""
+
+# Location of install archive - in .\install\LogRhythm.Tools.zip
+$ArchivePath = Join-Path -Path $PSScriptRoot -ChildPath "install" | 
+    Join-Path -ChildPath $ModuleInfo.Module.ArchiveFileName
+#endregion
+
 
 
 #region: LogRhythm Hostnames                                                             
@@ -100,16 +104,19 @@ while ([string]::IsNullOrEmpty($LrAieHostName)) {
 # Ask user if they want to set the Lr API Token
 $SetApiToken = $null
 #BUG: Issue with "n" response
-$Response = Read-Host -Prompt "Set LogRhythm API Key (y/n)"
-$Response = $Response.Trim()
-while ($null -eq $SetApiToken) {
-    # Only accept yes/no answers (could change later if annoying)
-    if ($Response -match $YesNo_Regex) {
-        if ($Response -match $Yes_Regex) {
-            $SetApiToken = $true
-            break
-        }
-    } else {
+$Response = ""
+while ([string]::IsNullOrEmpty($Response)) {
+    $Response = Read-Host -Prompt "  Set LogRhythm API Key (y/n)"
+    $Response = $Response.Trim()
+    if (! ($Response -match $YesNo_Regex)) {
+        $Response = ""
+        continue
+    }
+    if ($Response -match $Yes_Regex) {
+        $SetApiToken = $true
+        break
+    }
+    if ($Response -match $No_Regex) {
         $SetApiToken = $false
         break
     }
@@ -130,8 +137,8 @@ if ($SetApiToken) {
 
 
 
-
-Write-Host "`n[ Installation ] ============================" -ForegroundColor Green
+#region: Install Options                                                                 
+Write-Host "`n[ Install Options ] ============================" -ForegroundColor Green
 while ([string]::IsNullOrEmpty($InstallScope)) {
     $Response = Read-Host -Prompt "  Install Scope (User|System|Skip)"
     $Response = $Response.Trim()
@@ -140,6 +147,7 @@ while ([string]::IsNullOrEmpty($InstallScope)) {
         $InstallScope = $Response
     }
 }
+#endregion
 
 
 
@@ -151,15 +159,15 @@ if ($SetApiToken) {
 }
 $InstallPath = Get-LrtInstallPath -Scope $InstallScope
 Write-Host "`n[ Summary ] ============================" -ForegroundColor Green
-Write-Host "[ LogRhythm Configuration ]"
-Write-Host "  Platform Manager: $LrPmHostName"
-Write-Host "  AIE: $LrAieHostName"
-Write-Host "  API Token: $apiAns"
-Write-Host "[ Installing ]: $($InstallPath.FullName)"
+Write-Host "  + LogRhythm Configuration"
+Write-Host "    - PM  Hostname: $LrPmHostName"
+Write-Host "    - AIE Hostname: $LrAieHostName"
+Write-Host "    - API Token:    $apiAns"
+Write-Host "    - Installing:   $($InstallPath.FullName)`n"
 
-$Response = Read-Host -Prompt "Proceed (y/n)"
+$Response = Read-Host -Prompt "  Proceed (y/n)"
 if (! ($Response -match $Yes_Regex)) {
-    Write-Host "`n User aborted." -ForegroundColor Yellow
+    Write-Host "`n <user aborted>" -ForegroundColor Yellow
     return
 }
 #endregion
@@ -167,18 +175,27 @@ if (! ($Response -match $Yes_Regex)) {
 
 
 #region: New-LrtConfig & Install-Lrt                                                                
-Write-Verbose "Writing config"
-
 try {
-    New-LrtConfig -PlatformManager $LrPmHostName -AIEHostName $LrAieHostName -LrApiKey $LrTokenSecureString
+    if ($SetApiToken) {
+        New-LrtConfig -PlatformManager $LrPmHostName -AIEngine $LrAieHostName -LrApiKey $LrTokenSecureString -Verbose
+    } else {
+        New-LrtConfig -PlatformManager $LrPmHostName -AIEngine $LrAieHostName -Verbose
+    }
 } catch {
     $PSCmdlet.ThrowTerminatingError($PSItem)
 }
 
-Write-Verbose "Installing Lrt Module"
+# Determine the config dir so we can print that information
+$ConfigDirPath = Join-Path `
+    -Path ([Environment]::GetFolderPath("LocalApplicationData"))`
+    -ChildPath $ModuleInfo.Module.Name
+
+Write-Host "  > LogRhythm.Tools config created in: $ConfigDirPath" -ForegroundColor Green
+
 try {
-  Install-Lrt -ArchivePath $PSScriptRoot\LogRhythm.Tools.zip -Scope $InstallScope
+  Install-Lrt -Scope $InstallScope
 } catch {
     $PSCmdlet.ThrowTerminatingError($PSItem)
 }
+Write-Host "  > LogRhythm.Tools module successfully installed for scope $InstallScope." -ForegroundColor Green
 #endregion

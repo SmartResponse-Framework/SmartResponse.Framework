@@ -31,7 +31,7 @@ Function Get-SrfBuild {
         Get-SrfBuild ([System.Guid]::Parse("d7fd1b45-5cba-4bb5-8d12-05620b7e0689"))
         Get-SrfBuild -Installed
     .LINK
-        https://github.com/SmartResponse-Framework/LogRhythm.Tools
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
     
     [CmdletBinding()]

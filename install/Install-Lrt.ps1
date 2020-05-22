@@ -13,6 +13,9 @@ function Install-Lrt {
         > Add to PSModulePath if needed
         ? Check for previous version
         > Extract to install path
+    .PARAMETER Path
+        Path to the archive that contains the module source files and psm1.
+        In most use cases the archive will be under the install folder.
     .PARAMETER Scope
         User:   c:\Users\<user>\Documents\WindowsPowerShell\Modules\
         System: c:\Program Files\WindowsPowerShell\Modules\
@@ -47,7 +50,7 @@ function Install-Lrt {
     }
 
     if (! $Path.Exists) {
-        throw [ArgumentException] "Failed to locate install archive $Archive."
+        throw [ArgumentException] "Failed to locate install archive $($Path.FullName)."
     }
 
     # Collection of paths currently in PSModulePath

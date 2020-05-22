@@ -19,7 +19,7 @@ Function New-LrtConfig {
     .EXAMPLE
         PS C:\> Install-Lrt -LrPlatformManagerHost "platform-mgr.mydomain.com" -LrApiKey "abcd1234"
     .LINK
-        https://github.com/SmartResponse-Framework/LogRhythm.Tools
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -35,38 +35,37 @@ Function New-LrtConfig {
         [securestring] $LrApiKey
     )
 
-
     # Usually AIE Host is the PM, so if $AIEngine is empty set it to $PlatformManager
     if ([string]::IsNullOrEmpty($AIEngine)) {
         $AIEngine = $PlatformManager
     }
 
-    # NOTE: These two variables should be set exactly the same as they appear in module.psm1 !
-    #       The name of the file may be ModuleName.config.json, but the object is still called
-    #       [SrfPreferences] - too many things reference that now to be changed without extra testing.
-    $ModuleName = "Lrt"
-    $PreferencesFileName = $ModuleName + ".config.json"
+    # Load module information
+    $ModuleInfo = Get-ModuleInfo
+    $LocalAppData = [Environment]::GetFolderPath("LocalApplicationData")
 
 
     # Configuration directory: config.json & LrApiCredential will be stored in Local ApplicationDatas
     $ConfigDirPath = Join-Path `
-        -Path ([Environment]::GetFolderPath("LocalApplicationData"))`
-        -ChildPath $ModuleName
-
-
-    # (SrfPreferences source file)
-    $ConfigFilePath = Join-Path -Path $ConfigDirPath -ChildPath $PreferencesFileName
-
+        -Path $LocalAppData `
+        -ChildPath $ModuleInfo.Module.Name
 
     # Create configuration directory if it doesn't exist
     if (! (Test-Path -Path $ConfigDirPath)) {
-        New-Item -Path ([Environment]::GetFolderPath("LocalApplicationData")) `
-            -Name $ModuleName -ItemType Directory | Out-Null
+        New-Item -Path $LocalAppData `
+            -Name $ModuleInfo.Module.Name -ItemType Directory | Out-Null
     }
+
+    # (config file install path)
+    $ConfigFilePath = Join-Path -Path $ConfigDirPath -ChildPath $ModuleInfo.Module.Conf
+
+
+
 
     # Copy a blank config to configuration directory if it does not exist
     if (! (Test-Path -Path $ConfigFilePath)) {
-        Copy-Item -Path "$PSScriptRoot\$PreferencesFileName" -Destination $ConfigDirPath
+        $ConfSrc = Join-Path -Path $PSScriptRoot -ChildPath $ModuleInfo.Module.Conf
+        Copy-Item -Path $ConfSrc -Destination $ConfigDirPath
     }
 
 

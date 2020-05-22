@@ -4,8 +4,8 @@
 # NOTE: These two variables should be set exactly the same as they appear in setup\New-LrtConfig!
 #       The name of the file may be $ModuleName.config.json, but the object is still called
 #       [SrfPreferences] - too many things reference that currently to be changed without extra testing.
-$ModuleName = "Lrt"
-$PreferencesFileName = $ModuleName + ".config.json"
+$ModuleName = "LogRhythm.Tools"
+$PreferencesFileName = $ModuleName + ".conf"
 
 
 # [Namespaces]: Directories to include in this module
