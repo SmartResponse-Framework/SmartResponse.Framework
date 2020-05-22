@@ -45,33 +45,36 @@ Function Get-LrNetworks {
         [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int]$PageCount,
+        [int]$PageValuesCount = 1000,
 
         [Parameter(Mandatory = $false, Position = 2)]
+        [int]$PageCount = 1,
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('asc','desc', ignorecase=$true)]
         [string]$Direction,
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [string]$Name,
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
         [string]$RecordStatus = "active",
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 6)]
         [string]$BIP,
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 7)]
         [string]$EIP,
 
-        [Parameter(Mandatory = $false, Position = 7)]
+        [Parameter(Mandatory = $false, Position = 8)]
         [string]$Entity,
 
-        [Parameter(Mandatory = $false, Position = 8)]
+        [Parameter(Mandatory = $false, Position = 9)]
         [ValidateSet('name','bip','eip','entity', ignorecase=$true)]
         [string]$OrderBy = "Entity",
 
-        [Parameter(Mandatory = $false, Position = 9)]
+        [Parameter(Mandatory = $false, Position = 10)]
         [switch]$Exact
     )
 
@@ -104,20 +107,23 @@ Function Get-LrNetworks {
         $QueryParams = [Dictionary[string,string]]::new()
 
         # PageCount
-        if ($PageCount) {
-            $_pageCount = $PageCount
+        if ($PageValuesCount) {
+            $_pageValueCount = $PageValuesCount
         } else {
-            $_pageCount = 1000
+            $_pageValueCount = 1000
         }
-        $QueryParams.Add("count", $_pageCount)
+        # PageValuesCount - Amount of Values per Page
+        $QueryParams.Add("count", $_pageValueCount)
 
+        # Query Offset - PageCount
+        $Offset = ($PageCount -1) * $_pageValueCount
+        $QueryParams.Add("offset", $Offset)
 
         # Filter by Object Name
         if ($Name) {
             $_name = $Name
             $QueryParams.Add("name", $_name)
         }
-
 
         # Filter by Object Entity Name
         if ($Entity) {
@@ -170,15 +176,13 @@ Function Get-LrNetworks {
 
         }
 
-
-
+        # Build QueryString
         if ($QueryParams.Count -gt 0) {
             $QueryString = $QueryParams | ConvertTo-QueryString
             Write-Verbose "[$Me]: QueryString is [$QueryString]"
         }
 
-
-        #endregion
+        # Request URL
         $RequestUri = $BaseUrl + "/networks/" + $QueryString
 
         # Send Request
@@ -192,27 +196,29 @@ Function Get-LrNetworks {
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
         }
+    }
 
+    End {
+        if ($Response.Count -eq $_pageValueCount) {
+            # Need to get next page results
+            $CurrentPage = $PageCount + 1
+            #return 
+            Return $Response + (Get-LrNetworks -PageCount $CurrentPage) 
+        }
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
-        if ($ErrorObject.Error -eq $False) {
-            if ($Exact) {
-                $Pattern = "^$Name$"
-                $Response | ForEach-Object {
-                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                        Write-Verbose "[$Me]: Exact list name match found."
-                        $List = $_
-                        return $List
-                    }
+        if ($Exact) {
+            $Pattern = "^$Name$"
+            $Response | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
                 }
-            } else {
-                return ,$Response
             }
         } else {
-            return $ErrorObject
+            return $Response
         }
     }
-
-    End { }
 }

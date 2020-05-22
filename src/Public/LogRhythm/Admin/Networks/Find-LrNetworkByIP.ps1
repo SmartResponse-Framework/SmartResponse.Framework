@@ -63,10 +63,13 @@ Function Find-LrNetworkByIP {
 
     Process {
         # Matches Found Variable
-        $IPResults = $null
+        $IPResults = @()
 
+        # Check for existence of Beginning IP Address
         if ($BIP) {
+            # Submit request
             $BIPResults = Get-LrNetworks -BIP $BIP
+            # If Error returned, return error.  Else, append results to IPResults
             if ($BIPResults.Error -eq $true) {
                 Return $BIPResults
             } else {
@@ -74,8 +77,10 @@ Function Find-LrNetworkByIP {
             }
         }
 
+        # Check for existence of Ending IP Address
         if ($EIP) {
             $EIPResults = Get-LrNetworks -EIP $EIP
+            # If Error returned, return error.  Else, append results retaining only unique entries
             if ($EIPResults.Error -eq $true) {
                 Return $EIPResults
             } else {
@@ -88,10 +93,13 @@ Function Find-LrNetworkByIP {
         }
 
         if ($IP) {
+            # Collect all Network Entities
             $LrNetworks = Get-LrNetworks
+            # Inspect each Network Entry for IP Address within Network Range
             ForEach ($Network in $LrNetworks) {
                 $AddressWithin = Test-IPv4AddressInRange -IP $IP -BIP $Network.BIP -EIP $Network.EIP
                 if ($AddressWithin) {
+                    # If AddressWithin discovered append results retaining only unique entries
                     if ($null -ne $IPResults) {
                         $ComparisonResults = Compare-Object $Network $IPResults
                         $IPResults += Compare-Object $Network $IPResults | Where-Object SideIndicator -eq "=>" | Select-Object -ExpandProperty InputObject
@@ -101,6 +109,8 @@ Function Find-LrNetworkByIP {
                 }
             }
         }
+        
+        # Return results as array object if Count > 1
         if ($IPResults.Count -gt 1) {
             Return ,$IPResults
         } else {
