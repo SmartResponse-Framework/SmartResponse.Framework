@@ -19,31 +19,43 @@ using namespace System.Collections.Generic
 #>
 
 [CmdletBinding()]
-Param( )
+#TODO: Add a "config only" option to update the config.
+Param(
+    [Parameter(Mandatory = $false, Position = 0)]
+    [switch] $ConfigOnly
+)
+
 
 
 #region: Import Commands                                                                 
 $InstallPsm1 = Join-Path -Path $PSScriptRoot -ChildPath "install\Lrt.Installer.psm1"
 Import-Module $InstallPsm1 -Force
 
-$ModuleInfo = Get-ModuleInfo
+$_moduleInfo = Get-ModuleInfo
+$ModuleInfo = $_moduleInfo.Module
 #endregion
 
 
 #region: STOP - Banner Time.                                                             
-Write-Host "888                       8888888b.  888               888    888                       88888888888                888          "
-Write-Host "888                       888   Y88b 888               888    888                           888                    888          "
-Write-Host "888                       888    888 888               888    888                           888                    888          "
-Write-Host "888      .d88b.   .d88b.  888   d88P 88888b.  888  888 888888 88888b.  88888b.d88b.         888   .d88b.   .d88b.  888 .d8888b  "
-Write-Host "888     d88`"`"88b d88P`"88b 8888888P`"  888 `"88b 888  888 888    888 `"88b 888 `"888 `"88b        888  d88`"`"88b d88`"`"88b 888 88K      "
-Write-Host "888     888  888 888  888 888 T88b   888  888 888  888 888    888  888 888  888  888        888  888  888 888  888 888 `"Y8888b. "
-Write-Host "888     Y88..88P Y88b 888 888  T88b  888  888 Y88b 888 Y88b.  888  888 888  888  888 d8b    888  Y88..88P Y88..88P 888      X88 "
-Write-Host "88888888 `"Y88P`"   `"Y88888 888   T88b 888  888  `"Y88888  `"Y888 888  888 888  888  888 Y8P    888   `"Y88P`"   `"Y88P`"  888  88888P' "
-Write-Host "                      888                          888                                                                          "
-Write-Host "                 Y8b d88P                     Y8b d88P                                                                          "
-Write-Host "                  `"Y88P`"                       `"Y88P`"                                                                           "
-Write-Host "`n`n"
-Write-Host "Version 0.9.8`n" -ForegroundColor Blue
+$ReleaseTagLength = ($ModuleInfo.ReleaseTag).Length
+$s = ""
+for ($i = 0; $i -lt $ReleaseTagLength; $i++) {
+    $s += "_"
+}
+Write-Host "888                       8888888b.  888               888    888                       88888888888                888"
+Write-Host "888                       888   Y88b 888               888    888                           888                    888"
+Write-Host "888                       888    888 888               888    888                           888                    888"
+Write-Host "888      .d88b.   .d88b.  888   d88P 88888b.  888  888 888888 88888b.  88888b.d88b.         888   .d88b.   .d88b.  888 .d8888b"
+Write-Host "888     d88`"`"88b d88P`"88b 8888888P`"  888 `"88b 888  888 888    888 `"88b 888 `"888 `"88b        888  d88`"`"88b d88`"`"88b 888 88K"
+Write-Host "888     888  888 888  888 888 T88b   888  888 888  888 888    888  888 888  888  888        888  888  888 888  888 888 `"Y8888b."
+Write-Host "888     Y88..88P Y88b 888 888  T88b  888  888 Y88b 888 Y88b.  888  888 888  888  888 d8b    888  Y88..88P Y88..88P 888      X88"
+Write-Host "88888888 `"Y88P`"   `"Y88888 888   T88b 888  888  `"Y88888  `"Y888 888  888 888  888  888 Y8P    888   `"Y88P`"   `"Y88P`"  888  88888P'"
+Write-Host "                      888        _______           888        $s"
+Write-Host "                 Y8b d88P        " -NoNewline
+Write-Host "v $($ModuleInfo.Version)      " -NoNewline -ForegroundColor Cyan
+Write-Host "Y8b d88P        " -NoNewline
+Write-Host "$($ModuleInfo.ReleaseTag)" -ForegroundColor Magenta
+Write-Host "                  `"Y88P`"                       `"Y88P`"`n`n`n"
 #endregion
 
 
@@ -64,14 +76,19 @@ $InstallScope = ""
 
 # Location of install archive - in .\install\LogRhythm.Tools.zip
 $ArchivePath = Join-Path -Path $PSScriptRoot -ChildPath "install" | 
-    Join-Path -ChildPath $ModuleInfo.Module.ArchiveFileName
+    Join-Path -ChildPath $ModuleInfo.ArchiveFileName
+if (! (Test-Path $ArchivePath)) {
+    $Err = "Could not locate install archive LogRhythm.Tools.zip. Replace the archive or re-download this release."
+    $Err += "Alternatively, you can install manually using Install-Lrt -Path <path to archive>"
+    throw [FileNotFoundException] $Err
+}
 #endregion
 
 
 
 #region: LogRhythm Hostnames                                                             
 # $LrPmHostName => AdminApiBaseUrl
-Write-Host "[ LogRhythm Configuration ] =================" -ForegroundColor Green
+Write-Host "[ LogRhythm Configuration ] =================" -ForegroundColor Cyan
 while ([string]::IsNullOrEmpty($LrPmHostName)) {
     $Response = Read-Host -Prompt "  Platform Manager Hostname"
     $Response = $Response.Trim()
@@ -138,7 +155,7 @@ if ($SetApiToken) {
 
 
 #region: Install Options                                                                 
-Write-Host "`n[ Install Options ] ============================" -ForegroundColor Green
+Write-Host "`n[ Install Options ] ============================" -ForegroundColor Cyan
 while ([string]::IsNullOrEmpty($InstallScope)) {
     $Response = Read-Host -Prompt "  Install Scope (User|System|Skip)"
     $Response = $Response.Trim()
@@ -158,44 +175,57 @@ if ($SetApiToken) {
     $apiAns = "<set>"
 }
 $InstallPath = Get-LrtInstallPath -Scope $InstallScope
-Write-Host "`n[ Summary ] ============================" -ForegroundColor Green
+Write-Host "`n[ Summary ] ============================" -ForegroundColor Cyan
 Write-Host "  + LogRhythm Configuration"
 Write-Host "    - PM  Hostname: $LrPmHostName"
 Write-Host "    - AIE Hostname: $LrAieHostName"
 Write-Host "    - API Token:    $apiAns"
 Write-Host "    - Installing:   $($InstallPath.FullName)`n"
+#endregion
 
-$Response = Read-Host -Prompt "  Proceed (y/n)"
+
+
+#region: Write Config                                                                    
+$Response = Read-Host -Prompt "  >> Write Config? (y/n)"
 if (! ($Response -match $Yes_Regex)) {
-    Write-Host "`n <user aborted>" -ForegroundColor Yellow
-    return
+    Write-Host "`n <skipped config>" -ForegroundColor Yellow
+} else {
+    try {
+        if ($SetApiToken) {
+            # Create Config - With API Key
+            New-LrtConfig -PlatformManager $LrPmHostName -AIEngine $LrAieHostName -LrApiKey $LrTokenSecureString -Verbose
+        } else {
+            # Create Config - No API Key
+            New-LrtConfig -PlatformManager $LrPmHostName -AIEngine $LrAieHostName -Verbose
+        }
+    } catch {
+        $PSCmdlet.ThrowTerminatingError($PSItem)
+    }
+
+    # Display the location of configuration to inform / remind users.
+    $ConfigDirPath = Join-Path `
+        -Path ([Environment]::GetFolderPath("LocalApplicationData"))`
+        -ChildPath $ModuleInfo.Name
+    Write-Host "    - LogRhythm.Tools config created in: $ConfigDirPath" -ForegroundColor Green
 }
 #endregion
 
 
 
-#region: New-LrtConfig & Install-Lrt                                                                
-try {
-    if ($SetApiToken) {
-        New-LrtConfig -PlatformManager $LrPmHostName -AIEngine $LrAieHostName -LrApiKey $LrTokenSecureString -Verbose
-    } else {
-        New-LrtConfig -PlatformManager $LrPmHostName -AIEngine $LrAieHostName -Verbose
-    }
-} catch {
-    $PSCmdlet.ThrowTerminatingError($PSItem)
+#region: Install Module                                                                  
+$Response = Read-Host -Prompt "  >> Install Module? (y/n)"
+if (! ($Response -match $Yes_Regex)) {
+    Write-Host "`n <skipped install>" -ForegroundColor Yellow
+    return
 }
 
-# Determine the config dir so we can print that information
-$ConfigDirPath = Join-Path `
-    -Path ([Environment]::GetFolderPath("LocalApplicationData"))`
-    -ChildPath $ModuleInfo.Module.Name
-
-Write-Host "  > LogRhythm.Tools config created in: $ConfigDirPath" -ForegroundColor Green
 
 try {
   Install-Lrt -Scope $InstallScope
 } catch {
     $PSCmdlet.ThrowTerminatingError($PSItem)
 }
-Write-Host "  > LogRhythm.Tools module successfully installed for scope $InstallScope." -ForegroundColor Green
+Write-Host "    - LogRhythm.Tools module successfully installed for scope $InstallScope." -ForegroundColor Green
+
+Write-Host "`n`nTo get started: `n> Import-Module LogRhythm.Tools"
 #endregion

@@ -33,12 +33,12 @@ Creates a new build for this repository's module source (/src).
 **Parameters:**
 
 * `-Version` (x.y.z) Leaving out the version parameter uses the version in `ModuleInfo.json`
-* `-ReleaseNotes` Adds a release note to the module's manifest file.
+* `-ReleaseTag` Adds a release note to the module's manifest file.
 
 **Example:**
 
 ```PowerShell
-PS C:\> New-SrfBuild -Version 1.0.6 -ReleaseNotes "Solved Collatz Conjecture"
+PS C:\> New-SrfBuild -Version 1.0.6 -ReleaseTag "Solved Collatz Conjecture"
 ```
 
 ## `Install-SrfBuild`

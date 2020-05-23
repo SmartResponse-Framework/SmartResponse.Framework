@@ -36,7 +36,7 @@ Function New-BuildInfo {
         BuildTime    = "2000-01-01 01:01:00Z"
         Path         = "c:\"
         Psm1Path     = "c:\"
-        ReleaseNotes = "none"
+        ReleaseTag = "none"
     }
 
     # If [Force] parameter is set, create a new BuildInfo file.

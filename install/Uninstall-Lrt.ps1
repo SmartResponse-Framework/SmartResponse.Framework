@@ -46,7 +46,8 @@ function UnInstall-Lrt {
         [string] $Scope
     )
 
-    #TODO: Revamp this to make it more simple.  Maybe no params and just check for both scopes.
+    #TODO: [Uninstall-Lrt] This command is still a work in progress.
+    # Simply the current design
     # For each found, prompt the user if they want to remove it.
     # Check for user first, and complete that.
     # If there is a system scope and they want it removed, check for admin 

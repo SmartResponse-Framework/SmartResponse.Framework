@@ -37,7 +37,7 @@ function New-SrfBuild {
         
         If omitted, the version from ModuleInfo.json will be used instead. The Version number 
         is used for directory naming, as well as the module's new manifest file (psd1).
-    .PARAMETER ReleaseNotes
+    .PARAMETER ReleaseTag
         A comment to be added to the module's manifest file. This can be used to identify any
         key features or bug fixes. This also helps to distinguish between multiple builds.
         If ommitted, this is left blank.
@@ -66,136 +66,144 @@ function New-SrfBuild {
         [string] $Version = "0.0.0",
 
         [Parameter(Mandatory=$false,Position=1)]
-        [string] $ReleaseNotes = "None",
+        [string] $ReleaseTag = "None",
 
         [Parameter(Mandatory=$false, Position=2)]
         [switch] $ReturnPsm1Path
     )
 
-    Begin { 
-        # Pattern to match required version format
-        $VersionMatch = [regex]::new("^\d\.\d\.\d")
-        if (-not ($Version -match $VersionMatch)) {
-            throw [exception] "Invalid Version ($Version). Expected Format: x.y.z"
-        }
+
+    # Pattern to match required version format
+    $VersionMatch = [regex]::new("^\d\.\d\.\d")
+    if (-not ($Version -match $VersionMatch)) {
+        throw [exception] "Invalid Version ($Version). Expected Format: x.y.z"
     }
 
 
-    Process {
-        #region: Directories and Paths
-        Write-Verbose "[New-SrfBuild]: Starting Build"
-        $Target = "out"
-        
-        # Prep Build Directories
-        $BuildId = [Guid]::NewGuid()
 
 
-        # GET: ~/build/
-        $BuildDir = ([DirectoryInfo]::new($PSScriptRoot)).Parent
-        $BuildPath = $BuildDir.FullName
+    #region: Directories and Paths                                                   
+    Write-Verbose "[New-SrfBuild]: Starting Build"
+    $Target = "out"
+    
+    # Prep Build Directories
+    $BuildId = [Guid]::NewGuid()
 
 
-        # GET: ~/src/
-        # (Join-Path $BuildDir.Parent.FullName "src")
-        $SrcDir = [DirectoryInfo]::new((Join-Path $BuildDir.Parent.FullName "src"))
-        $SrcPath = $SrcDir.FullName
+    # GET: ~/build/
+    $BuildDir = ([DirectoryInfo]::new($PSScriptRoot)).Parent
+    $BuildPath = $BuildDir.FullName
 
 
-        # LOAD: ModuleInfo
-        $ModuleInfoPath = Join-Path $SrcDir.Parent.FullName "ModuleInfo.json"
-        $ModuleInfo = Get-Content ($ModuleInfoPath) -Raw | ConvertFrom-Json
-
-        # LOAD: BuildInfo file - create if it doesn't exist
-        $BuildInfoPath = Join-Path $BuildPath "BuildInfo.json"
-        if (! (Test-Path $BuildInfoPath)) { New-BuildInfo }
-        $BuildInfo = Get-Content $BuildInfoPath -Raw | ConvertFrom-Json
+    # GET: ~/src/
+    $SrcDir = [DirectoryInfo]::new((Join-Path $BuildDir.Parent.FullName "src"))
+    $SrcPath = $SrcDir.FullName
 
 
-        # NEW: ~/build/target/guid/
-        $BuildContainerDir = New-Item -Path (Join-Path $BuildPath $Target) -Name $BuildId -ItemType "directory"
-        $BuildContainerPath = $BuildContainerDir.FullName
+    # LOAD: ModuleInfo
+    $ModuleInfo = Get-ModuleInfo
+    $ModuleInfoPath = Join-Path -Path $SrcDir.Parent.FullName -ChildPath "ModuleInfo.json"
 
 
-        # NEW: ~/build/target/guid/version
-        if ($Version.Equals("0.0.0")) {
-            $Version = $ModuleInfo.Module.Version
-        }
-        #$BuildSrcDir = mkdir (Join-Path $BuildContainerDir.FullName $Version)
-        $BuildSrcDir = New-Item -Path $BuildContainerDir.FullName -Name $Version -ItemType "directory"
-        $BuildSrcPath = $BuildSrcDir.FullName
-        $BuildPsd1Path = Join-Path $BuildSrcPath $ModuleInfo.Module.Psd1
-        $BuildPsm1Path = Join-Path $BuildSrcPath $ModuleInfo.Module.Psm1
-        #endregion
+    # LOAD: BuildInfo file - create if it doesn't exist
+    $BuildInfoPath = Join-Path $BuildPath "BuildInfo.json"
+    if (! (Test-Path $BuildInfoPath)) { New-BuildInfo }
+    $BuildInfo = Get-Content $BuildInfoPath -Raw | ConvertFrom-Json
 
 
-
-        #region: Copy Source To Build
-        Write-Verbose "[New-SrfBuild]: Copying files..."
-        # Copy Source Directories
-        Copy-Item $SrcPath\Public -Destination $BuildSrcPath -Recurse
-        Copy-Item $SrcPath\Private -Destination $BuildSrcPath -Recurse
-        Copy-Item $SrcPath\Include -Destination $BuildSrcPath -Recurse
-
-        Copy-Item (Join-Path $SrcPath $ModuleInfo.Module.Ps1xml) -Destination $BuildSrcPath
-        Copy-Item (Join-Path $SrcPath $ModuleInfo.Module.Psm1) -Destination $BuildSrcPath
-        
-        $RequiredModules = $ModuleInfo.Module.RequiredModules
-
-        # Process any extra files to be included with the module.
-        foreach ($item in $ModuleInfo.Assemblies) {
-            $itemSrcPath = Join-Path $SrcPath $item
-            if (Test-Path $itemSrcPath) {
-                Copy-Item $itemSrcPath -Destination $BuildSrcPath
-            } else {
-                Write-Host "WARNING: Failed to copy item $item to build destination." -ForegroundColor Yellow
-                Write-Host "  Source:      $itemSrcPath" -ForegroundColor DarkGray
-                Write-Host "  Destination: $BuildSrcPath\$item" -ForegroundColor DarkGray
-            }
-        }
-        #endregion
+    # NEW: ~/build/target/guid/
+    $BuildContainerDir = New-Item -Path (Join-Path $BuildPath $Target) -Name $BuildId -ItemType "directory"
+    $BuildContainerPath = $BuildContainerDir.FullName
 
 
-
-        #region: Create Manifest
-        # Create Manifest
-        New-ModuleManifest -Path $BuildPsd1Path `
-            -RootModule $ModuleInfo.Module.Psm1 `
-            -Guid $BuildId `
-            -Author $ModuleInfo.Module.Author `
-            -CompanyName $ModuleInfo.Module.CompanyName `
-            -Copyright $ModuleInfo.Module.Copyright `
-            -ModuleVersion $Version `
-            -Description $ModuleInfo.Module.Description `
-            -PowerShellVersion $ModuleInfo.Module.PowerShellVersion `
-            -RequiredModules $RequiredModules `
-            -Tags $ModuleInfo.Module.Tags `
-            -ProjectUri $ModuleInfo.Module.ProjectUri `
-            -FormatsToProcess $ModuleInfo.Module.Ps1xml `
-            -ReleaseNotes $ReleaseNotes `
-            -RequiredAssemblies $ModuleInfo.Assemblies
-        #endregion
-
-
-
-        #region: Archive and Update
-        Write-Verbose "[New-SrfBuild]: Creating build archive..."
-        # Compress Module for distribution
-        $BuildSrcDir | Compress-Archive -DestinationPath (Join-Path $BuildContainerPath $ModuleInfo.Module.ArchiveFileName)
-
-        # Update Test Config
-        $BuildInfo.Version = $Version
-        $BuildInfo.Guid = $BuildId
-        $BuildInfo.BuildTime = [datetime]::now.ToString('u')
-        $BuildInfo.Path = $BuildContainerDir.FullName
-        $BuildInfo.Psm1Path = $BuildPsm1Path
-        $BuildInfo.ReleaseNotes = $ReleaseNotes
-        $BuildInfo | ConvertTo-Json | Out-File $BuildInfoPath
-
-        Write-Verbose "[New-SrfBuild]: Complete! $BuildId"
-        if ($ReturnPsm1Path) {
-            return $BuildPsm1Path
-        }
-        return $BuildId
-        #endregion
+    # NEW: ~/build/target/guid/version
+    if ($Version.Equals("0.0.0")) {
+        $Version = $ModuleInfo.Module.Version
     }
+    #$BuildSrcDir = mkdir (Join-Path $BuildContainerDir.FullName $Version)
+    $BuildSrcDir = New-Item -Path $BuildContainerDir.FullName -Name $Version -ItemType "directory"
+    $BuildSrcPath = $BuildSrcDir.FullName
+    $BuildPsd1Path = Join-Path $BuildSrcPath $ModuleInfo.Module.Psd1
+    $BuildPsm1Path = Join-Path $BuildSrcPath $ModuleInfo.Module.Psm1
+    #endregion
+
+
+
+    #region: Copy Source To Build                                                    
+    Write-Verbose "[New-SrfBuild]: Copying files..."
+    # Copy Source Directories
+    Copy-Item $SrcPath\Public -Destination $BuildSrcPath -Recurse
+    Copy-Item $SrcPath\Private -Destination $BuildSrcPath -Recurse
+    Copy-Item $SrcPath\Include -Destination $BuildSrcPath -Recurse
+
+    Copy-Item (Join-Path $SrcPath $ModuleInfo.Module.Ps1xml) -Destination $BuildSrcPath
+    Copy-Item (Join-Path $SrcPath $ModuleInfo.Module.Psm1) -Destination $BuildSrcPath
+    
+    $RequiredModules = $ModuleInfo.Module.RequiredModules
+
+    # Process any extra files to be included with the module.
+    foreach ($item in $ModuleInfo.Assemblies) {
+        $itemSrcPath = Join-Path $SrcPath $item
+        if (Test-Path $itemSrcPath) {
+            Copy-Item $itemSrcPath -Destination $BuildSrcPath
+        } else {
+            Write-Host "WARNING: Failed to copy item $item to build destination." -ForegroundColor Yellow
+            Write-Host "  Source:      $itemSrcPath" -ForegroundColor DarkGray
+            Write-Host "  Destination: $BuildSrcPath\$item" -ForegroundColor DarkGray
+        }
+    }
+    #endregion
+
+
+
+    #region: Create Manifest                                                         
+    # Create Manifest
+    New-ModuleManifest -Path $BuildPsd1Path `
+        -RootModule $ModuleInfo.Module.Psm1 `
+        -Guid $BuildId `
+        -Author $ModuleInfo.Module.Author `
+        -CompanyName $ModuleInfo.Module.CompanyName `
+        -Copyright $ModuleInfo.Module.Copyright `
+        -ModuleVersion $Version `
+        -Description $ModuleInfo.Module.Description `
+        -PowerShellVersion $ModuleInfo.Module.PowerShellVersion `
+        -RequiredModules $RequiredModules `
+        -Tags $ModuleInfo.Module.Tags `
+        -ProjectUri $ModuleInfo.Module.ProjectUri `
+        -FormatsToProcess $ModuleInfo.Module.Ps1xml `
+        -ReleaseNotes $ReleaseTag `
+        -RequiredAssemblies $ModuleInfo.Assemblies
+    #endregion
+
+
+
+    #region: Archive and Update                                                      
+    Write-Verbose "[New-SrfBuild]: Creating build archive..."
+    # Compress Module for distribution
+    $BuildSrcDir | Compress-Archive -DestinationPath (Join-Path $BuildContainerPath $ModuleInfo.Module.ArchiveFileName)
+
+    # Update Test Config
+    $BuildInfo.Version = $Version
+    $BuildInfo.Guid = $BuildId
+    $BuildInfo.BuildTime = [datetime]::now.ToString('u')
+    $BuildInfo.Path = $BuildContainerDir.FullName
+    $BuildInfo.Psm1Path = $BuildPsm1Path
+    $BuildInfo.ReleaseTag = $ReleaseTag
+    $BuildInfo | ConvertTo-Json | Out-File $BuildInfoPath
+    #endregion
+
+
+
+    #region: Update ModuleInfo.json                                                      
+    $ModuleInfo.Module.Version = $Version
+    $ModuleInfo.Module.ReleaseTag = $ReleaseTag
+    $ModuleInfo | ConvertTo-Json | Out-File $ModuleInfoPath
+    #endregion
+
+
+    Write-Verbose "[New-SrfBuild]: Complete! $BuildId"
+    if ($ReturnPsm1Path) {
+        return $BuildPsm1Path
+    }
+    return $BuildId
 }

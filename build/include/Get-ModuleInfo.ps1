@@ -26,6 +26,13 @@ Function Get-ModuleInfo {
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
+    #ISSUE: [Legacy SrfBuilder] Duplicate of Get-ModuleInfo in /install/
+    # These need to be somehow combined or otherwise remediated. 
+    # All of the other build commands aren't needed for releases, so it may not
+    # make sense to combine them into the same module.
+    # Or the Publish-Lrt command could be updated to only move the install scripts into
+    # the release, ommitting the build commands.
+
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
