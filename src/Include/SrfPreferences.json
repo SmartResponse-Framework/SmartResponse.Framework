@@ -1,6 +1,7 @@
 {
     "CertPolicyRequired": true,
     "LrDeployment": {
+        "Version":"7.5.0",
         "AdminApiBaseUrl": "https://localhost:8501/lr-admin-api",
         "CaseApiBaseUrl": "https://localhost:8501/lr-case-api",
         "AieApiUrl": "https://localhost:8501/lr-drilldown-cache-api",
