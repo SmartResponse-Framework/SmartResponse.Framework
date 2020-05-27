@@ -4,7 +4,7 @@
 [regex]$RegexExternal = '^.*(?<tag>[eE][xX][tT][eE][rR][nN][aA][lL]).*$'
 
 # Import CSV with updated Headers, removing the header from the original CSV.  Add a new column for Entity set to Global Entity.
-$Networks = Import-Csv C:\Users\Eric.Hart\Downloads\infoblox_logrythm.csv -Header 'Name', 'ShortDesc', 'LongDesc', 'RiskLevel', 'Zone', 'Location', 'BIP', 'EIP' | Select-Object -Skip 1 | Select-Object *,@{Name='Entity';Expression={''}}
+$Networks = Import-Csv C:\Users\Administrator\Documents\GitHub\SmartResponse.Framework\examples\LogRhythm\SIEM\Admin\Networks\infoblox_logrythm.csv -Header 'Name', 'ShortDesc', 'LongDesc', 'RiskLevel', 'Zone', 'Location', 'BIP', 'EIP' | Select-Object -Skip 1 | Select-Object *,@{Name='Entity';Expression={''}}
 
 foreach ($Network in $Networks) {
     Write-Host "----- New Csv Entry -----"
@@ -34,7 +34,7 @@ foreach ($Network in $Networks) {
     }
 
     # If network does not exist, create it.  Else, update it.
-    if ($NetworkStatus.Note -eq "NetworkID Discovery: No Network found") {
+    if (($NetworkStatus.Note -eq "NetworkID Discovery: No Network found") -or ($null -eq $NetworkStatus)) {
         Try {
             Write-Host "$(Get-Timestamp) - Createing Network: $($Network.Name)"
             $Network | Create-LrNetwork 
@@ -56,7 +56,7 @@ foreach ($Network in $Networks) {
         } Catch {
             Write-Host "$(Get-Timestamp) - Unable to update network for entry: $Network"
         }
-        
+        start-sleep -seconds 1
     }
     Write-Host "----- End Csv Entry -----"
 }
