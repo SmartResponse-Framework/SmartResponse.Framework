@@ -46,7 +46,7 @@ Function Update-LrNetwork {
 
     .PARAMETER RecordStatus
         String used to restrict results based on RecordStatus.
-        Valid entries: "New", "Active", "Retired"
+        Valid entries: "Active", "Retired"
     .PARAMETER HostZone
         Set network zone.  
         
@@ -121,7 +121,7 @@ Function Update-LrNetwork {
         [string]$ThreatLevelComment,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 9)]
-        [ValidateSet('new','retired','active', ignorecase=$true)]
+        [ValidateSet('retired','active', ignorecase=$true)]
         [string]$RecordStatus,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]

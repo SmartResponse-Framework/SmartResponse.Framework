@@ -99,8 +99,8 @@ Function Create-LrNetwork {
         [string]$ThreatLevelComment,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 8)]
-        [ValidateSet('new','retired','active', ignorecase=$true)]
-        [string]$RecordStatus = "new",
+        [ValidateSet('retired','active', ignorecase=$true)]
+        [string]$RecordStatus = "active",
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 9)]
         [ValidateSet('unknown','internal','dmz','external', ignorecase=$true)]

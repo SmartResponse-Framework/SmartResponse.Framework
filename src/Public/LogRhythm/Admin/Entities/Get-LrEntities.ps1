@@ -85,6 +85,9 @@ Function Get-LrEntities {
         # Define HTTP Method
         $Method = $HttpMethod.Get
 
+        # Define LogRhythm Version
+        $LrVersion = $SrfPreferences.LRDeployment.Version
+
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
     }
@@ -113,7 +116,15 @@ Function Get-LrEntities {
         if ($Direction) {
             $ValidStatus = "ASC", "DESC"
             if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                $_direction = $Direction.ToUpper()
+                if ($LrVersion -like "7.5.*") {
+                    if($Direction.ToUpper() -eq "ASC") {
+                        $_direction = "ascending"
+                    } else {
+                        $_direction = "descending"
+                    }
+                } else {
+                    $_direction = $Direction.ToUpper()
+                }
                 $QueryParams.Add("dir", $_direction)
             } else {
                 throw [ArgumentException] "Direction [$Direction] must be: asc or desc."
