@@ -86,7 +86,7 @@ Function Find-LrNetworkByIP {
             if ($EIPResults.Error -eq $true) {
                 Return $EIPResults
             } else {
-                if ($null -ne $BIPResults) {
+                if ($null -ne $EIPResults) {
                     if ($null -ne $IPResults) {
                         $IPResults += Compare-Object $EIPResults $IPResults | Where-Object SideIndicator -eq "<=" | Select-Object -ExpandProperty InputObject
                     } else {
