@@ -67,6 +67,9 @@ Function New-LrSearch {
         [Parameter(Mandatory = $false,  Position = 3)]
         [bool]$QueryRawLog = $true,
 
+        [Parameter(Mandatory = $false,  Position = 3)]
+        [bool]$QueryEventManager = $true,
+
         [Parameter(Mandatory = $false, Position = 5)]
         [ValidateSet('maxn','paged','pagedsorteddateasc','pagedsorteddatedesc', 'pagedsortedriskasc', 'pagedsortedriskdesc', ignorecase=$true)]
         [string]$SearchMode = "pagedSortedDateAsc",
@@ -126,10 +129,58 @@ Function New-LrSearch {
         [string]$ItemFilterMode = "filterin",
 
         [Parameter(Mandatory = $false, Position = 12)]
-        [string]$ItemFilterType = "",
+        [string]$Param1MetaField = "User (Origin or Impacted)",
 
         [Parameter(Mandatory = $false, Position = 12)]
-        [string]$ItemFilterValue = ""
+        [string]$Param1Value = "administrator",
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
+        [string]$Param1Operator = "none",
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [ValidateSet('value' ,'SQLPattern' ,'Regex', ignorecase=$true)]
+        [string]$Param1MatchType = "value",
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [ValidateSet('filterin','filterout', ignorecase=$true)]
+        [string]$Param1FilterType = "filterin",
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [string]$Param2MetaField = "User (Origin or Impacted)",
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [string]$Param2Value = $null,
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
+        [string]$Param2Operator = "none",
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [ValidateSet('value' ,'SQLPattern' ,'Regex', ignorecase=$true)]
+        [string]$Param2MatchType = "value",
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [ValidateSet('filterin','filterout', ignorecase=$true)]
+        [string]$Param2FilterType = "filterin",
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [string]$Param3MetaField = "User (Origin or Impacted)",
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [string]$Param3Value = $null,
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
+        [string]$Param3Operator = "none",
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [ValidateSet('value' ,'SQLPattern' ,'Regex', ignorecase=$true)]
+        [string]$Param3MatchType = "value",
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [ValidateSet('filterin','filterout', ignorecase=$true)]
+        [string]$Param3FilterType = "filterin"
     )
 
     Begin {
@@ -276,6 +327,64 @@ Function New-LrSearch {
             default {$_itemFilterMode = 0}
         }
 
+        # If the MetaField is integer, lookup Metadata fields by ID
+        if ($Param1MetaField) {
+            if ([int]::TryParse($Param1MetaField, [ref]$_int)) {
+                $Param1Results = Test-LrFilterType -Id $Param1MetaField
+            } else {
+                $Param1Results = Test-LrFilterType -DisplayName $Param1MetaField
+                if ($Param1Results.IsValid -eq $false) {
+                    $Param1Results = Test-LrFilterType -EnumName $Param1MetaField 
+                }
+            }
+            if ($Param1Results.IsValid -eq $false) {
+                Return "Unable to lookup Parameter 1 - Metadata Type: $Param1MetaField"
+            } else {
+                $_param1FilterType = $Param1Results.id
+                $_param1ValueType = $Param1Results.ValueTypeEnum
+                $_param1ValueName = $Param1Results.DisplayName
+            }
+        }
+
+        # If the MetaField is integer, lookup Metadata fields by ID
+        if ($Param2MetaField) {
+            if ([int]::TryParse($Param2MetaField, [ref]$_int)) {
+                $Param2Results = Test-LrFilterType -Id $Param2MetaField
+            } else {
+                $Param2Results = Test-LrFilterType -DisplayName $Param2MetaField
+                if ($Param2Results.IsValid -eq $false) {
+                    $Param2Results = Test-LrFilterType -EnumName $Param2MetaField 
+                }
+            }
+            if ($Param2Results.IsValid -eq $false) {
+                Return "Unable to lookup Parameter 2 - Metadata Type: $Param2MetaField"
+            } else {
+                $_param2FilterType = $Param2Results.id
+                $_param2ValueType = $Param2Results.ValueTypeEnum
+                $_param2ValueName = $Param2Results.DisplayName
+            }
+        }
+
+        # If the MetaField is integer, lookup Metadata fields by ID
+        if ($Param3MetaField) {
+            if ([int]::TryParse($Param3MetaField, [ref]$_int)) {
+                $Param3Results = Test-LrFilterType -Id $Param3MetaField
+            } else {
+                $Param3Results = Test-LrFilterType -DisplayName $Param3MetaField
+                if ($Param3Results.IsValid -eq $false) {
+                    $Param3Results = Test-LrFilterType -EnumName $Param3MetaField 
+                }
+            }
+            if ($Param3Results.IsValid -eq $false) {
+                Return "Unable to lookup Parameter 3 - Metadata Type: $Param3MetaField"
+            } else {
+                $_param3FilterType = $Param1Results.id
+                $_param3ValueType = $Param1Results.ValueTypeEnum
+                $_param3ValueName = $Param1Results.DisplayName
+            }
+        }
+
+
         if ($ItemFilterType) {
             # Check if LogSource value is an integer
             if ([int]::TryParse($ItemFilterType, [ref]$_int)) {
@@ -343,22 +452,38 @@ FIRST FILTER ITEM GOES HERE:
             searchMode = $_searchMode
             searchServerIPAddress = $SearchServerIPAddress
             dateCriteria = @{
+                useInsertedDate = "false"
                 lastIntervalValue = $LastIntervalValue
                 lastIntervalUnit = $_lastIntervalUnit
             }
             queryLogSources = @()
             queryFilter = @{
-                msgFilterType = "Grouped"
+                msgFilterType = $_msgFilterType
+                isSavedFilter = "false"
                 filterGroup = @{
-                    filterItemType = "Group"
-                    fieldOperator = "And"
-                    filterMode = "FilterIn"
-                    filterGroupOperator = "And"
-                    filterItems = @()
-                    name = "Filter Group"
+                    filterItemType = $_groupFilterItemType
+                    fieldOperator = $_itemFilterFieldOperator
+                    filterMode = $_groupFilterMode
+                    filterGroupOperator = $_groupFilterOperator
+                    filterItems = @( @{
+                        filterItemType = 0
+                        fieldOperator = 0
+                        filterMode = 1
+                        filterType = 29
+                        values = @(@{
+                            filterType = 29
+                            valueType = 4
+                            value = @{
+                                value = "administrator"
+                                matchType = 0
+                            }
+                            displayValue = "administrator"
+                        })
+                        name = "User (Origin)"
+                    })
                 }
             }
-        } | ConvertTo-Json -Depth 5
+        } | ConvertTo-Json -Depth 7
 
         Write-Host $BodyContents
 

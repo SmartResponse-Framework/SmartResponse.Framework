@@ -62,19 +62,19 @@ Function Get-LrSearchResults {
         [string]$SearchGuid,
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [string]$Sort = "",
+        [string]$Sort,
 
         [Parameter(Mandatory = $false,  Position = 3)]
-        [string]$GroupBy = "",
+        [string]$GroupBy = "null",
 
         [Parameter(Mandatory = $false,  Position = 4)]
-        [string]$Fields = "",
+        [string]$Fields,
 
         [Parameter(Mandatory = $false,  Position = 5)]
-        [string]$PageOrigin = 0,
+        [string]$PageOrigin = 1,
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [string]$PageSize = 1
+        [string]$PageSize = 10
     )
 
     Begin {
@@ -119,17 +119,19 @@ Function Get-LrSearchResults {
 
         # Establish Body Contents
         $BodyContents = [PSCustomObject]@{
-            searchGuid = $SearchGuid
-            search = @{
-                sort = $Sort
-                groupBy = $GroupBy
-                fields = $Fields
+            data = @{
+                searchGuid = $SearchGuid
+                search = @{
+                    sort = @()
+                    groupBy = $GroupBy
+                    fields = @()
+                }
+                paginator = @{
+                    origin = $PageOrigin
+                    page_size = $PageSize
+                }
             }
-            paginator = @{
-                origin = $PageOrigin
-                page_size = $PageSize
-            }
-        } | ConvertTo-Json -Depth 2
+        } | ConvertTo-Json -Depth 3
 
         Write-Host $BodyContents
 
@@ -139,7 +141,7 @@ Function Get-LrSearchResults {
 
         # Send Request
         try {
-            $Response = Invoke-RestMethod $RequestUri -Headers $Headers -Method $Method -Body $BodyContents
+            $Response = Invoke-RestMethod $RequestUri -Headers $Headers -Method $Method -Body $BodyContents -MaximumRedirection 10
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
