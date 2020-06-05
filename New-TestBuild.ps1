@@ -75,13 +75,15 @@ Param(
     [switch] $PassThru,
 
     [Parameter(Mandatory = $false, Position = 3)]
-    [switch] $Dev
+    [switch] $Dev,
+
+    [Parameter(Mandatory = $false, Position = 4)]
+    [string] $RfApiToken = "$PSScriptRoot\tests\cred_RFApiToken.xml"
 )
 
 $StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 # Unload current build
 Get-Module LogRhythm.Tools | Remove-Module -Force
-
 
 #region: Remove Old Builds                                                               
 if ($RemoveOld) {
@@ -163,6 +165,28 @@ catch [Exception] {
 Write-Host "===========================================" -ForegroundColor Gray
 #endregion
 
+
+#region: Recorded Future Api Token Preference                                                          
+Write-Host "Import Recorded Future Api Token: " -NoNewline
+try { 
+    $Token = Import-Clixml -Path $RfApiToken
+    $SrfPreferences.RecordedFuture.ApiKey = $Token
+    Write-Host "[Success]" -ForegroundColor Green
+}
+catch [CryptographicException] { 
+    Write-Host "[Access Denied]" -ForegroundColor Red
+    $PSCmdlet.ThrowTerminatingError($PSItem)
+}
+catch [FileNotFoundException] {
+    # this is normal for anyone not intending to use this feature
+    Write-Host "[Not Found]" -ForegroundColor Gray
+}
+catch [Exception] {
+    Write-Host "[Failed]" -ForegroundColor Red
+    $PSCmdlet.ThrowTerminatingError($PSItem)
+}
+Write-Host "===========================================" -ForegroundColor Gray
+#endregion
 
 # Build Info
 $StopWatch.Stop()
