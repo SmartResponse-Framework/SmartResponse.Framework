@@ -12,7 +12,7 @@ Function Add-LrAlarmToCase {
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        the preference variable $SrfPreferences.LrDeployment.LrApiCredential
         with a valid Api Token.
     .PARAMETER Id
         The Id of the case for which to add alarms.
@@ -27,7 +27,7 @@ Function Add-LrAlarmToCase {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

@@ -11,7 +11,7 @@ Function Add-LrPlaybookToCase {
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        the preference variable $SrfPreferences.LrDeployment.LrApiCredential
         with a valid Api Token.
     .PARAMETER Id
         Unique identifier for the case, either as an RFC 4122 formatted string,
@@ -28,7 +28,7 @@ Function Add-LrPlaybookToCase {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -51,7 +51,11 @@ Function Add-LrPlaybookToCase {
             Position = 2
         )]
         [ValidateNotNull()]
-        [string] $Playbook
+        [string] $Playbook,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $PassThru
     )
 
 
@@ -71,12 +75,10 @@ Function Add-LrPlaybookToCase {
 
 
     Process {
-        # Get Case Id
-        try {
-            #TEST: [Add-LrPlaybookToCase]: Case is never used?
-            $Case = Get-LrCaseById -Credential $Credential -Id $Id -ErrorAction SilentlyContinue
-        } catch {
-            $PSCmdlet.ThrowTerminatingError($PSItem)
+        # Validate Case ID (Guid || Int)
+        $IdInfo = Test-LrCaseIdFormat $Id
+        if (! $IdInfo.IsValid) {
+            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         }
 
 
@@ -114,11 +116,7 @@ Function Add-LrPlaybookToCase {
 
         # Request
         try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method `
-                -Body $Body
+            Invoke-RestMethod -Uri $RequestUri -Headers $Headers -Method $Method -Body $Body | Out-Null
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
@@ -129,7 +127,9 @@ Function Add-LrPlaybookToCase {
             $PSCmdlet.ThrowTerminatingError($PSItem)
         }
 
-        return $Response
+        if ($PassThru) {
+            Get-LrCaseById -Id $Id
+        }
     }
 
 

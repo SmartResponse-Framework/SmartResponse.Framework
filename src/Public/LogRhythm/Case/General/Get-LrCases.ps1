@@ -19,7 +19,7 @@ Function Get-LrCases {
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        the preference variable $SrfPreferences.LrDeployment.LrApiCredential
         with a valid Api Token.
     .PARAMETER DueBefore
         Filter results that have a due date before the specified date.
@@ -110,7 +110,7 @@ Function Get-LrCases {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

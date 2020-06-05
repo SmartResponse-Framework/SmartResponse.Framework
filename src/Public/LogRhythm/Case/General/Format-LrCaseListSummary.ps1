@@ -31,7 +31,7 @@ Function Format-LrCaseListSummary {
             Status      : {@{Name=Completed; Count=498}, @{Name=Resolved; Count=2}}
             Owners      : {@{Name=Cruise, Frank; Count=463}, @{Name=Smith, Bob; Count=36}...}
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

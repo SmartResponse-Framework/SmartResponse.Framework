@@ -1,5 +1,5 @@
 $CmdletName = ($MyInvocation.MyCommand.Name).Split(".")[0]
-Describe "SmartResponse.Framework: $CmdletName" {
+Describe "LogRhythm.Tools: $CmdletName" {
     # Import Test Data
     $TestData = Get-Content -Path "$PSScriptRoot\$CmdletName.TestData.json" -Raw | ConvertFrom-Json
 

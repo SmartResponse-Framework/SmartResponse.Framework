@@ -18,7 +18,7 @@ Function ConvertTo-Rfc3339 {
         ---
         2019-10-05T13:00:00Z
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

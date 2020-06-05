@@ -14,7 +14,7 @@ function Get-LrCaseEarliestEvidence
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        the preference variable $SrfPreferences.LrDeployment.LrApiCredential
         with a valid Api Token.
     .PARAMETER Id
         Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
@@ -32,7 +32,7 @@ function Get-LrCaseEarliestEvidence
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 	param(
         [Parameter(Mandatory = $false, Position = 0)]

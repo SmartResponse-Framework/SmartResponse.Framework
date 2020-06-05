@@ -3,36 +3,35 @@ using namespace System
 Get-Module ActiveDirectory | Remove-Module
 #Requires -Modules ActiveDirectory
 
-Function Set-LrPSADUserRandomPassword {
+Function Set-SrfADUserRandomPassword {
     <#
     .SYNOPSIS
         Randomly set a new password for user account.
     .PARAMETER Identity
         AD User Account for password change.
-    .PARAMETER DesiredPw
-        String to be convereted to Securestring and applied to the AD account.
+    .PARAMETER SecretId
+        Secret Server Account Id with which to perform the action.
+    .EXAMPLE
+        Set-SrfADUserPassword -Identity testuser -SecretId 121212
     #>
     
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory=$True,Position=0)]
-        [pscredential] $Credential,
-
-        [Parameter(Mandatory=$True,Position=1)]
         [string] $Identity,
 
         [Parameter(Mandatory = $false, Position=2)]
         [ValidateLength(8, 120)]
-        [string] $DesiredPw
+        [string] $DesiredPw,
+
+        [Parameter(Mandatory=$True,Position=1)]
+        [pscredential] $Credential
     )
 
     $ThisFunction = $MyInvocation.MyCommand
-    if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-        $Verbose = $true
-    }
 
     # Check User Account
-    if (!(Test-LrPSADUserExists $Identity)) {
+    if (!(Test-SrfADUserExists $Identity)) {
         Write-Verbose "[$ThisFunction]: Could not find user [$Identity]"
         return $false
     }
@@ -60,9 +59,9 @@ Function Set-LrPSADUserRandomPassword {
     }
 
     # check PasswordExpired and PasswordLastSet
-    $Result = Get-LrPSADUserInfo -Identity $Identity
+    $Result = Get-SrfADUserInfo -Identity $Identity
 
     # note: the combo above sets the PasswordLastSet property to $null for some reason - a bug in the AD powershell commands maybe
-    # therefore compare the PasswordAge to null, as it is not calculated in Get-LrPSADUserInfo if the property is null
+    # therefore compare the PasswordAge to null, as it is not calculated in Get-SrfADUserInfo if the property is null
     return ($Result.PasswordExpired -And ($null -eq $Result.PasswordAge))
 }

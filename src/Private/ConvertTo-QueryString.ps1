@@ -29,7 +29,7 @@ Function ConvertTo-QueryString {
         ---
         ?field1=value1&field2=value%202&field3=False
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

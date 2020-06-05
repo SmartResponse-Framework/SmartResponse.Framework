@@ -22,9 +22,9 @@ function Initialize-Test {
     }
     
     # Remove module if already imported
-    if (Get-Module SmartResponse.Framework) {
+    if (Get-Module LogRhythm.Tools) {
         Write-Verbose "Previous build is imported - unloading."
-        Remove-Module SmartResponse.Framework
+        Remove-Module LogRhythm.Tools
     }
 
     # Load Module

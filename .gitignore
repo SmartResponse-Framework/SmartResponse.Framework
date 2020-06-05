@@ -8,7 +8,7 @@ PowerShell_transcript*
 
 build/out/*
 !build/out/readme.md
-
+release/*
 
 
 ## Ignore Visual Studio temporary files, build results, and

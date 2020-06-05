@@ -3,3 +3,5 @@ foreach ($function in $BuildFunctions) {
     . $function.FullName
 }
 Export-ModuleMember -Function $BuildFunctions.BaseName
+Export-ModuleMember -Variable ModuleName
+Export-ModuleMember -Variable PreferencesFileName

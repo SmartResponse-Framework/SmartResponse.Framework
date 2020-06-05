@@ -3,7 +3,7 @@
 # essentially a light version of the production SmartResponse Plugin for
 # creating a case.
 
-# Initialize Test  (normally this would just be "Import-Module SmartResponse.Framework")
+# Initialize Test  (normally this would just be "Import-Module LogRhythm.Tools")
 $TestRoot = ((([System.IO.DirectoryInfo]::new($PSScriptRoot)).Parent).Parent).FullName
 . (Join-Path $TestRoot "Initialize-Test.ps1")
 Initialize-Test
