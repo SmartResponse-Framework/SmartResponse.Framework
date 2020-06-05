@@ -27,7 +27,7 @@ Param(
 
 
 
-#region: Import Commands                                                                 
+#region: Import Commands                                                                           
 $InstallPsm1 = Join-Path -Path $PSScriptRoot -ChildPath "install\Lrt.Installer.psm1"
 Import-Module $InstallPsm1 -Force
 
@@ -36,7 +36,7 @@ $ModuleInfo = $_moduleInfo.Module
 #endregion
 
 
-#region: STOP - Banner Time.                                                             
+#region: STOP - Banner Time.                                                                       
 $ReleaseTagLength = ($ModuleInfo.ReleaseTag).Length
 $s = ""
 for ($i = 0; $i -lt $ReleaseTagLength; $i++) {
@@ -60,19 +60,23 @@ Write-Host "                  `"Y88P`"                       `"Y88P`"`n`n`n"
 
 
 
-#region: Variables                                                                       
+#region: Variables                                                                                 
 # Input sanitization regexs
-$HostName_Regex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+$VersionRegex = "^[0-9]\.[0-9]\.[0-9]$"
 $InstallScope_Regex = "^([Uu]ser|[Ss]ystem|[Ss]kip)$"
 $YesNo_Regex = "^[Yy]([Ee][Ss])?|[Nn][Oo]?$"
 $Yes_Regex = "^[Yy]([Ee][sS])?$"
 $No_Regex = "^[Nn]([Oo])?$"
 
 # Needed Information
+$LrVersion = ""
+$DataIndexerIP = ""
 $LrPmHostName = ""
 $LrAieHostName = ""
 $LrTokenSecureString = ""
 $InstallScope = ""
+$SecretServerHostname = ""
+
 
 # Location of install archive - in .\install\LogRhythm.Tools.zip
 $ArchivePath = Join-Path -Path $PSScriptRoot -ChildPath "install" | 
@@ -86,38 +90,52 @@ if (! (Test-Path $ArchivePath)) {
 
 
 
-#region: LogRhythm Hostnames                                                             
-# $LrPmHostName => AdminApiBaseUrl
+#region: LogRhythm Configuration                                                                   
+
+
+#region: LogRhythm Version                                                                         
 Write-Host "[ LogRhythm Configuration ] =================" -ForegroundColor Cyan
-while ([string]::IsNullOrEmpty($LrPmHostName)) {
-    $Response = Read-Host -Prompt "  Platform Manager Hostname"
+# LogRhythm Version
+while ([string]::IsNullOrEmpty($LrVersion)) {
+    $Response = Read-Host -Prompt "  LogRhythm Version"
     $Response = $Response.Trim()
     # sanity check
-    if ($Response -match $HostName_Regex) {
-        $LrPmHostName = $Response
-        Write-Verbose "Platform Manager set to: $LrPmHostName"
-    }
-}
-
-
-# $LrAieHostName => AieApiUrl
-while ([string]::IsNullOrEmpty($LrAieHostName)) {
-    # Default: Same as PM
-    $Response = Read-Host -Prompt "  AIE Hostname [Same as PM]"
-    $Response = $Response.Trim()
-    if ([string]::IsNullOrEmpty($Response)) {
-        $Response = $LrPmHostName
-    }
-    # sanity check
-    if ($Response -match $HostName_Regex) {
-        $LrAieHostName = $Response
+    if ($Response -match $VersionRegex) {
+        $LrVersion = $Response
+        Write-Verbose "LogRhythm version set to: $LrVersion"
     }
 }
 #endregion
 
 
 
-#region: LrToken                                                                         
+#region: LogRhythm Hostnames                                                                       
+# Data Indexer IP
+while ([string]::IsNullOrEmpty($DataIndexerIP)) {
+    $Response = Read-Host -Prompt "  Data Indexer IP"
+    $Response = $Response.Trim()
+    # sanity check
+    if (Test-IsIpAddress -IpAddress $Response) {
+        $DataIndexerIP = $Response
+        Write-Verbose "Data Indexer IP set to: $DataIndexerIP"
+    }
+}
+
+# Platform Manager
+while ([string]::IsNullOrEmpty($LrPmHostName)) {
+    $Response = Read-Host -Prompt "  Platform Manager Hostname"
+    $Response = $Response.Trim()
+    # sanity check
+    if (Test-IsHostname -Hostname $Response) {
+        $LrPmHostName = $Response
+        Write-Verbose "Platform Manager set to: $LrPmHostName"
+    }
+}
+#endregion
+
+
+
+#region: LrToken                                                                                   
 # Ask user if they want to set the Lr API Token
 $SetApiToken = $null
 #BUG: Issue with "n" response
@@ -151,10 +169,15 @@ if ($SetApiToken) {
     }
 }
 #endregion
+#endregion
 
 
+#region: $SecretServerHostname                                                                     
+#TODO: Finish SecretServer Integration
+#endregion
 
-#region: Install Options                                                                 
+
+#region: Install Options                                                                           
 Write-Host "`n[ Install Options ] ============================" -ForegroundColor Cyan
 while ([string]::IsNullOrEmpty($InstallScope)) {
     $Response = Read-Host -Prompt "  Install Scope (User|System|Skip)"
@@ -168,7 +191,7 @@ while ([string]::IsNullOrEmpty($InstallScope)) {
 
 
 
-#region: Summary Report                                                                  
+#region: Summary Report                                                                            
 # Some verbiage vars
 $apiAns = "<skipped>"
 if ($SetApiToken) {
@@ -177,15 +200,15 @@ if ($SetApiToken) {
 $InstallPath = Get-LrtInstallPath -Scope $InstallScope
 Write-Host "`n[ Summary ] ============================" -ForegroundColor Cyan
 Write-Host "  + LogRhythm Configuration"
+Write-Host "    - Data Indexer: $DataIndexerIP"
 Write-Host "    - PM  Hostname: $LrPmHostName"
-Write-Host "    - AIE Hostname: $LrAieHostName"
 Write-Host "    - API Token:    $apiAns"
 Write-Host "    - Installing:   $($InstallPath.FullName)`n"
 #endregion
 
 
 
-#region: Write Config                                                                    
+#region: Write Config                                                                              
 $Response = Read-Host -Prompt "  >> Write Config? (y/n)"
 if (! ($Response -match $Yes_Regex)) {
     Write-Host "`n <skipped config>" -ForegroundColor Yellow
@@ -193,10 +216,10 @@ if (! ($Response -match $Yes_Regex)) {
     try {
         if ($SetApiToken) {
             # Create Config - With API Key
-            New-LrtConfig -PlatformManager $LrPmHostName -AIEngine $LrAieHostName -LrApiKey $LrTokenSecureString -Verbose
+            New-LrtConfig -LrVersion $LrVersion -PlatformManager $LrPmHostName -DataIndexerIP $DataIndexerIP -SecretServerHostname $SecretServerHostname -LrApiKey $LrTokenSecureString -Verbose
         } else {
             # Create Config - No API Key
-            New-LrtConfig -PlatformManager $LrPmHostName -AIEngine $LrAieHostName -Verbose
+            New-LrtConfig -PlatformManager $LrPmHostName -Verbose
         }
     } catch {
         $PSCmdlet.ThrowTerminatingError($PSItem)
@@ -212,7 +235,7 @@ if (! ($Response -match $Yes_Regex)) {
 
 
 
-#region: Install Module                                                                  
+#region: Install Module                                                                            
 $Response = Read-Host -Prompt "  >> Install Module? (y/n)"
 if (! ($Response -match $Yes_Regex)) {
     Write-Host "`n <skipped install>" -ForegroundColor Yellow

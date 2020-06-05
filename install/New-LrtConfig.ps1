@@ -24,22 +24,25 @@ Function New-LrtConfig {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Mandatory = $false, Position = 0)]
+        [string] $LrVersion,
+
+        [Parameter(Mandatory = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string] $PlatformManager,
 
-        [Parameter(Mandatory = $false, Position = 1)]
-        [string] $AIEngine,
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [securestring] $LrApiKey
+        [string] $DataIndexerIP,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [securestring] $LrApiKey,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
+        [string] $SecretServerHostname
     )
-
-    # Usually AIE Host is the PM, so if $AIEngine is empty set it to $PlatformManager
-    if ([string]::IsNullOrEmpty($AIEngine)) {
-        $AIEngine = $PlatformManager
-    }
-
     # Load module information
     $ModuleInfo = Get-ModuleInfo
     $LocalAppData = [Environment]::GetFolderPath("LocalApplicationData")
@@ -77,11 +80,18 @@ Function New-LrtConfig {
     $AdminApiBaseUrl = "https://" + $PlatformManager +  ":8501/lr-admin-api"
     $CaseApiBaseUrl = "https://" + $PlatformManager +  ":8501/lr-case-api"
     $AieApiUrl = "https://" + $PlatformManager +  ":8501/lr-drilldown-cache-api"
+    $SearchApiUrl = "https://" + $PlatformManager +  ":8501/lr-search-api"
+    $SecretServerUrl = "https://" + $SecretServerHostname + "/winauthwebservices/sswinauthwebservice.asmx"
 
+    
     # Update LrDeployment config
+    $Prefs.SecretServerUrl = $SecretServerUrl
+    $Prefs.LrDeployment.Version = $LrVersion
+    $Prefs.LrDeployment.DataIndexerIP = $DataIndexerIP
     $Prefs.LrDeployment.AdminApiBaseUrl = $AdminApiBaseUrl
     $Prefs.LrDeployment.CaseApiBaseUrl = $CaseApiBaseUrl
     $Prefs.LrDeployment.AieApiUrl = $AieApiUrl
+    $Prefs.LrDeployment.SearchApiUrl = $SearchApiUrl
 
 
     # Write Preferences back to disk

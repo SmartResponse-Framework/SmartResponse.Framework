@@ -73,8 +73,7 @@ Function Get-Secret {
         [string] $AuthFilePath,
 
         [Parameter(Mandatory=$false, Position=3)]
-        [string] $SecretServerUrl = 
-            "https://secretserver.domain.com/winauthwebservices/sswinauthwebservice.asmx"
+        [string] $SecretServerUrl = $SrfPreferences.SecretServerUrl
     )
     # Verbose Parameter
     $Verbose = $false
