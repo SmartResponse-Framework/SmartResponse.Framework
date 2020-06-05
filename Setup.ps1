@@ -28,11 +28,17 @@ Param(
 
 
 #region: Import Commands                                                                           
-$InstallPsm1 = Join-Path -Path $PSScriptRoot -ChildPath "install\Lrt.Installer.psm1"
-Import-Module $InstallPsm1 -Force
+# Import Lrt.Installer
+Get-Module Lrt.Installer | Remove-Module -Force
+$LrtInstallerPath = Join-Path -Path $PSScriptRoot -ChildPath "install"
+Import-Module (Join-Path -Path $LrtInstallerPath -ChildPath "Lrt.Installer.psm1") -Force
 
+# Import ModuleInfo
 $_moduleInfo = Get-ModuleInfo
 $ModuleInfo = $_moduleInfo.Module
+
+# Import LogRhythm.Tools.conf
+$LrtConf = Get-Content -Path (Join-Path -Path $LrtInstallerPath -ChildPath "LogRhythm.Tools.conf")
 #endregion
 
 
@@ -68,14 +74,19 @@ $YesNo_Regex = "^[Yy]([Ee][Ss])?|[Nn][Oo]?$"
 $Yes_Regex = "^[Yy]([Ee][sS])?$"
 $No_Regex = "^[Nn]([Oo])?$"
 
+
 # Needed Information
-$LrVersion = ""
-$DataIndexerIP = ""
-$LrPmHostName = ""
-$LrAieHostName = ""
-$LrTokenSecureString = ""
-$InstallScope = ""
-$SecretServerHostname = ""
+$Setup = [PSCustomObject]@{
+    LrVersion = ""
+    LrDataIndexerIp = ""
+    LrPmHostName = ""
+    LrTokenSecureString = ""
+
+    InstallScope = ""
+    SecretServerHostname = ""
+}
+
+
 
 
 # Location of install archive - in .\install\LogRhythm.Tools.zip
@@ -92,17 +103,16 @@ if (! (Test-Path $ArchivePath)) {
 
 #region: LogRhythm Configuration                                                                   
 
-
 #region: LogRhythm Version                                                                         
 Write-Host "[ LogRhythm Configuration ] =================" -ForegroundColor Cyan
 # LogRhythm Version
-while ([string]::IsNullOrEmpty($LrVersion)) {
+while ([string]::IsNullOrEmpty($Setup.LrVersion)) {
     $Response = Read-Host -Prompt "  LogRhythm Version"
     $Response = $Response.Trim()
     # sanity check
     if ($Response -match $VersionRegex) {
-        $LrVersion = $Response
-        Write-Verbose "LogRhythm version set to: $LrVersion"
+        $Setup.LrVersion = $Response
+        Write-Verbose "LogRhythm version set to: $($Setup.LrVersion)"
     }
 }
 #endregion
@@ -111,13 +121,13 @@ while ([string]::IsNullOrEmpty($LrVersion)) {
 
 #region: LogRhythm Hostnames                                                                       
 # Data Indexer IP
-while ([string]::IsNullOrEmpty($DataIndexerIP)) {
+while ([string]::IsNullOrEmpty($Setup.LrDataIndexerIp)) {
     $Response = Read-Host -Prompt "  Data Indexer IP"
     $Response = $Response.Trim()
     # sanity check
     if (Test-IsIpAddress -IpAddress $Response) {
-        $DataIndexerIP = $Response
-        Write-Verbose "Data Indexer IP set to: $DataIndexerIP"
+        $Setup.LrDataIndexerIp = $Response
+        Write-Verbose "Data Indexer IP set to: $($Setup.LrDataIndexerIp)"
     }
 }
 
@@ -200,7 +210,7 @@ if ($SetApiToken) {
 $InstallPath = Get-LrtInstallPath -Scope $InstallScope
 Write-Host "`n[ Summary ] ============================" -ForegroundColor Cyan
 Write-Host "  + LogRhythm Configuration"
-Write-Host "    - Data Indexer: $DataIndexerIP"
+Write-Host "    - Data Indexer: $LrDataIndexerIp"
 Write-Host "    - PM  Hostname: $LrPmHostName"
 Write-Host "    - API Token:    $apiAns"
 Write-Host "    - Installing:   $($InstallPath.FullName)`n"
@@ -216,7 +226,7 @@ if (! ($Response -match $Yes_Regex)) {
     try {
         if ($SetApiToken) {
             # Create Config - With API Key
-            New-LrtConfig -LrVersion $LrVersion -PlatformManager $LrPmHostName -DataIndexerIP $DataIndexerIP -SecretServerHostname $SecretServerHostname -LrApiKey $LrTokenSecureString -Verbose
+            New-LrtConfig -LrVersion $LrVersion -PlatformManager $LrPmHostName -DataIndexerIP $LrDataIndexerIp -SecretServerHostname $SecretServerHostname -LrApiKey $LrTokenSecureString -Verbose
         } else {
             # Create Config - No API Key
             New-LrtConfig -PlatformManager $LrPmHostName -Verbose

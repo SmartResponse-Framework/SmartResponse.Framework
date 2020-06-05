@@ -27,13 +27,13 @@ Function New-LrtConfig {
         [Parameter(Mandatory = $false, Position = 0)]
         [string] $LrVersion,
 
-        [Parameter(Mandatory = $true, Position = 1)]
+        [Parameter(Mandatory = $false, Position = 1)]
+        [string] $DataIndexerIP,
+
+
+        [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNullOrEmpty()]
         [string] $PlatformManager,
-
-
-        [Parameter(Mandatory = $false, Position = 2)]
-        [string] $DataIndexerIP,
 
 
         [Parameter(Mandatory = $false, Position = 3)]
@@ -83,9 +83,9 @@ Function New-LrtConfig {
     $SearchApiUrl = "https://" + $PlatformManager +  ":8501/lr-search-api"
     $SecretServerUrl = "https://" + $SecretServerHostname + "/winauthwebservices/sswinauthwebservice.asmx"
 
-    
+
     # Update LrDeployment config
-    $Prefs.SecretServerUrl = $SecretServerUrl
+    $Prefs.SecretServer.BaseUrl = $SecretServerUrl
     $Prefs.LrDeployment.Version = $LrVersion
     $Prefs.LrDeployment.DataIndexerIP = $DataIndexerIP
     $Prefs.LrDeployment.AdminApiBaseUrl = $AdminApiBaseUrl
