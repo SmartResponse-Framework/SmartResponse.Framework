@@ -65,7 +65,7 @@ Function Get-LrSearchResults {
         [string]$Sort,
 
         [Parameter(Mandatory = $false,  Position = 3)]
-        [string]$GroupBy = "null",
+        [string]$GroupBy = "",
 
         [Parameter(Mandatory = $false,  Position = 4)]
         [string]$Fields,
@@ -74,7 +74,7 @@ Function Get-LrSearchResults {
         [string]$PageOrigin = 1,
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [string]$PageSize = 10
+        [string]$PageSize = 100
     )
 
     Begin {
@@ -137,7 +137,7 @@ Function Get-LrSearchResults {
 
 
         # Define Query URL
-        $RequestUri = $BaseUrl + "/actions/search/task"
+        $RequestUri = $BaseUrl + "/actions/search-result"
 
         # Send Request
         try {

@@ -1,4 +1,4 @@
-Function Create-SRFCredXml {
+Function New-LRTCredXml {
     <#
     .SYNOPSIS
         Create PSCredential stored in XML file format

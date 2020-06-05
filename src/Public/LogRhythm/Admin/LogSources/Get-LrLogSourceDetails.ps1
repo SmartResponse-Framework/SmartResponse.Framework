@@ -109,7 +109,6 @@ Function Get-LrLogSourceDetails {
             Note                  =   $null
             Value                 =   $Id
         }
-        
 
         # Check if ID value is an integer
         if ([int]::TryParse($Id, [ref]$_int)) {

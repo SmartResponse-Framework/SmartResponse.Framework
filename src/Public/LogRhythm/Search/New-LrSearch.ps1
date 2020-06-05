@@ -489,7 +489,7 @@ FIRST FILTER ITEM GOES HERE:
 
 
         # Define Query URL
-        $RequestUri = $BaseUrl + "/actions/search"
+        $RequestUri = $BaseUrl + "/actions/search-task"
 
         # Send Request
         try {
