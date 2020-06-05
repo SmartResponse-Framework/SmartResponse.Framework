@@ -14,11 +14,6 @@ $Namespaces = @(
     "Private"
 )
 
-# List of Packages (.dll files) used by module.
-$AssemblyList = [PSCustomObject]@{
-    ApiHelper = $(Join-Path $PSScriptRoot "ApiHelper.dll")
-}
-
 # Includes Dir
 $IncludeDirPath = [System.IO.DirectoryInfo]::new((Join-Path -Path $PSScriptRoot -ChildPath "Include"))
 #endregion

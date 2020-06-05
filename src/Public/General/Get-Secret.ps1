@@ -82,7 +82,6 @@ Function Get-Secret {
         $Verbose = $true
     }
     # Trust all certs, use Tls1.2
-    Write-Verbose "Calling Enable-TrustAllCertsPolicy from ApiHelper"
     Enable-TrustAllCertsPolicy
     # Set Return Object
     $ReturnCredential = $null

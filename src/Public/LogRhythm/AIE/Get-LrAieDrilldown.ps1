@@ -50,7 +50,7 @@ Function Get-LrAieDrilldown {
         AlarmID           : System.Int32
         AlarmGuid         : System.String (guid)
         Priority          : System.Int32
-        AIERuleName       : CHR: Defender ATP O365 Indicated Malware
+        AIERuleName       : Brute Force Login Attempts
         Status            : 4
         Logs              : [System.Object]
         SummaryFields     : System.Collections.Generic.Dictionary[string,string]

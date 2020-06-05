@@ -363,6 +363,4 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
-packages/ApiHelper/ApiHelper/obj/Debug/ApiHelper.csproj.CoreCompileInputs.cache
-packages/ApiHelper/ApiHelper/obj/Debug/ApiHelper.csprojAssemblyReference.cache
 build/BuildInfo.json
