@@ -1,23 +1,18 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Show-RfDomainRiskLists {
+Function Get-RfAlertSearch {
     <#
     .SYNOPSIS
-        Show the available RecordedFuture Domain threat lists.
+        Get Search results RecordedFuture Alert Rule(s).
     .DESCRIPTION
-        
+        Get RecordedFuture Alert Rules cmdlet retrieves the available Alert Rule title and id values.  
     .PARAMETER Token
         PSCredential containing an API Token in the Password field.
-
-    .PARAMETER NamesOnly
-        Returns only the Name value of the associated list.
-
-        This object is returned as an array to support passing arrays via pipeline as a parameter.
-    .PARAMETER DescriptionsOnly
-        Returns only the Description value of the associated list.
-
-        This object is returned as an array to support passing arrays via pipeline as a parameter.
+    .PARAMETER Freetext
+        Name of the RecordedFuture Alert Rules
+    .PARAMETER Limit
+        Default set to 100.
     .INPUTS
     .NOTES
         RecordedFuture-API
@@ -30,8 +25,16 @@ Function Show-RfDomainRiskLists {
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
         [pscredential] $Credential = $SrfPreferences.RecordedFuture.APIKey,
-        [switch] $NamesOnly,
-        [switch] $DescriptionsOnly
+
+        [datetime] $Triggered,
+        [string] $Assignee,
+        [string] $Status,
+        [string] $AlertRule,
+        [string] $FreeText,
+        [int] $Limit,
+        [int] $From,
+        [string] $OrderBy,
+        [string] $Direction
     )
 
     Begin {
@@ -49,11 +52,58 @@ Function Show-RfDomainRiskLists {
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
+
+        # Verify Status
+        $ValidStatus = @("unassigned", "assigned", "actionable", "no-action", "tuning")
+        if ($Status) {
+            if ($Status -like $ValidStatus) {
+                $Status = $ValidStatus
+            } else {
+                return "Please provide valid status: unassigned, assigned, actionable, no-action, tuning"
+            }
+        }
+
+        # Verify Direction
+        $ValidDirection = @("desc", "asc")
+        if ($Direction) {
+            if ($Direction -like $ValidDirection) {
+                $Direction = $ValidDirection
+            } else {
+                return "Please provide valid status: desc, asc"
+            }
+        }
     }
 
     Process {
         # Establish Query Parameters object
         $QueryParams = [Dictionary[string,string]]::new()
+
+        # Triggered
+        if ($Triggered) { $QueryParams.Add("triggered", $Triggered) }
+
+        # Assignee
+        if ($Assignee) { $QueryParams.Add("assignee", $Assignee) }
+
+        # Status
+        if ($Status) { $QueryParams.Add("status", $Status) }
+
+        # AlertRule
+        if ($AlertRule) { $QueryParams.Add("alertRule", $AlertRule) }
+
+        # Freetext
+        if ($FreeText) { $QueryParams.Add("freetext", $FreeText) }
+
+        # Limit
+        if ($Limit) { $QueryParams.Add("limit", $Limit) }
+
+        # From
+        if ($From) { $QueryParams.Add("from", $From) }
+
+        # OrderBy
+        if ($OrderBy) { $QueryParams.Add("orderby", $OrderBy) }
+
+        # Direction
+        if ($Direction) { $QueryParams.Add("direction", $Direction) }
 
         if ($QueryParams.Count -gt 0) {
             $QueryString = $QueryParams | ConvertTo-QueryString
@@ -63,7 +113,7 @@ Function Show-RfDomainRiskLists {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "domain/riskrules"
+        $RequestUrl = $BaseUrl + "alert/search" + $QueryString
         Write-Verbose "[$Me]: RequestUri: $RequestUrl"
 
         Try {
@@ -81,18 +131,10 @@ Function Show-RfDomainRiskLists {
             }
         }
 
+        
         # Return Values only as an array or all results as object
-        if ($NamesOnly) {
-            Return ,$Results.data.results.name
-        } elseif ($DescriptionsOnly) {
-            Return ,$Results.data.results.description
-        } else {
-            Return $Results.data.results
-        }
+        Return $Results.data.results
     }
- 
 
     End { }
-
-
 }

@@ -1,24 +1,18 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Show-RfDomainRiskLists {
+Function Get-RfAlert {
     <#
     .SYNOPSIS
-        Show the available RecordedFuture Domain threat lists.
+        Get RecordedFuture Alert details.
     .DESCRIPTION
-        
+        Get RecordedFuture Alert details based on Alert ID.  
     .PARAMETER Token
         PSCredential containing an API Token in the Password field.
-
-    .PARAMETER NamesOnly
-        Returns only the Name value of the associated list.
-
-        This object is returned as an array to support passing arrays via pipeline as a parameter.
-    .PARAMETER DescriptionsOnly
-        Returns only the Description value of the associated list.
-
-        This object is returned as an array to support passing arrays via pipeline as a parameter.
+    .PARAMETER Id
+        Id value for Recorded Future Alert retrieval.
     .INPUTS
+
     .NOTES
         RecordedFuture-API
     .LINK
@@ -30,8 +24,8 @@ Function Show-RfDomainRiskLists {
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
         [pscredential] $Credential = $SrfPreferences.RecordedFuture.APIKey,
-        [switch] $NamesOnly,
-        [switch] $DescriptionsOnly
+
+        [string] $Id
     )
 
     Begin {
@@ -52,18 +46,8 @@ Function Show-RfDomainRiskLists {
     }
 
     Process {
-        # Establish Query Parameters object
-        $QueryParams = [Dictionary[string,string]]::new()
-
-        if ($QueryParams.Count -gt 0) {
-            $QueryString = $QueryParams | ConvertTo-QueryString
-            Write-Verbose "[$Me]: QueryString is [$QueryString]"
-        }
-
-
-
         # Define Search URL
-        $RequestUrl = $BaseUrl + "domain/riskrules"
+        $RequestUrl = $BaseUrl + "alert/" + $Id
         Write-Verbose "[$Me]: RequestUri: $RequestUrl"
 
         Try {
@@ -81,18 +65,10 @@ Function Show-RfDomainRiskLists {
             }
         }
 
+        
         # Return Values only as an array or all results as object
-        if ($NamesOnly) {
-            Return ,$Results.data.results.name
-        } elseif ($DescriptionsOnly) {
-            Return ,$Results.data.results.description
-        } else {
-            Return $Results.data.results
-        }
+        Return $Results.data
     }
- 
 
     End { }
-
-
 }

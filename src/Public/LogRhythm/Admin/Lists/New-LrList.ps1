@@ -48,56 +48,60 @@ Function New-LrList {
         [ValidateNotNull()]
         [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=1)]
         [ValidateNotNull()]
         [string] $Name,
 
-        [Parameter(Mandatory=$True, Position=2)]
+        [Parameter(Mandatory=$false, ValueFromPipeline=$false, Position=2)]
+        [ValidateNotNull()]
+        [string] $Guid = $null,
+
+        [Parameter(Mandatory=$True, Position=3)]
         [string] $ListType,
 
-        [Parameter(Mandatory=$false, Position=3)]
+        [Parameter(Mandatory=$false, Position=4)]
         [string] $ShortDescription,
 
-        [Parameter(Mandatory=$false, Position=4)]
+        [Parameter(Mandatory=$false, Position=5)]
         [string] $LongDescription,
 
-        [Parameter(Mandatory=$false, Position=5)]
+        [Parameter(Mandatory=$false, Position=6)]
         [string[]] $UseContext = "None",
 
-        [Parameter(Mandatory=$false, Position=6)]
+        [Parameter(Mandatory=$false, Position=7)]
         [bool] $AutoImport = $false,
 
-        [Parameter(Mandatory=$false, Position=7)]
+        [Parameter(Mandatory=$false, Position=8)]
         [bool] $AutoImportPatterns = $false,
 
-        [Parameter(Mandatory=$false, Position=8)]
+        [Parameter(Mandatory=$false, Position=9)]
         [bool] $AutoImportReplaceExisting = $false,
 
-        [Parameter(Mandatory=$false, Position=9)]
+        [Parameter(Mandatory=$false, Position=10)]
         [string] $AutoImportFileName,
 
-        [Parameter(Mandatory=$false, Position=10)]
+        [Parameter(Mandatory=$false, Position=11)]
         [string] $ReadAccess = "PublicRestrictedAdmin",
 
-        [Parameter(Mandatory=$false, Position=11)]
+        [Parameter(Mandatory=$false, Position=12)]
         [string] $WriteAccess = "PublicRestrictedAdmin",
 
-        [Parameter(Mandatory=$false, Position=12)]
+        [Parameter(Mandatory=$false, Position=13)]
         [bool] $RestrictedRead = $false,
 
-        [Parameter(Mandatory=$false, Position=13)]
+        [Parameter(Mandatory=$false, Position=14)]
         [string] $EntityName = "Primary Site",
 
-        [Parameter(Mandatory=$false, Position=14)]
+        [Parameter(Mandatory=$false, Position=15)]
         [int] $TimeToLiveSeconds = $null,
 
-        [Parameter(Mandatory=$false, Position=15)]
+        [Parameter(Mandatory=$false, Position=16)]
         [bool] $NeedToNotify = $false,
 
-        [Parameter(Mandatory=$false, Position=16)]
+        [Parameter(Mandatory=$false, Position=17)]
         [bool] $DoesExpire = $false,
 
-        [Parameter(Mandatory=$false, Position=17)]
+        [Parameter(Mandatory=$false, Position=18)]
         [int64] $Owner = 0
     )
                                                                    
@@ -122,6 +126,18 @@ Function New-LrList {
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
 
+        # Process Identity Object
+        if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
+            $Guid = $Name.ToString()
+        } else {
+            $GuidResults = Get-LRListGuidByName -Name $Name.ToString() -Exact
+            if ($GuidResults) {
+                if (($GuidResults.GetType() -eq [System.Guid]) -Or (Test-Guid $GuidResults)) {
+                    $Guid = $GuidResults.ToString()
+                }
+            }
+        }
+
         # Validate List Type
         $ListTypes = @("Application", "Classification", "CommonEvent", "Host", "Location", "MsgSource", "MsgSourceType", "MPERule", "Network", "User", "GeneralValue", "Entity", "RootEntity", "IP", "IPRange", "Identity")
         if ($ListTypes -contains $ListType) {
@@ -135,13 +151,12 @@ Function New-LrList {
             Write-Host "List type must contian:`r`n$ListTypes"
         }
 
-
-
         $UseContexts = @("None", "Address", "DomainImpacted", "Group", "HostName", "Message", "Object", "Process", "Session", "Subject", "URL", "User", "VendorMsgID", "DomainOrigin", "Hash", "Policy", "VendorInfo", "Result", "ObjectType", "CVE", "UserAgent", "ParentProcessId", "ParentProcessName", "ParentProcessPath", "SerialNumber", "Reason", "Status", "ThreatId", "ThreatName", "SessionType", "Action", "ResponseCode")
         [string[]]$FinalContext = @()
         if ($UseContexts -contains $UseContext) {
-            ForEach ($Context in $UseContext) {
-                if ($UseContext -is [array]) {
+            ForEach ($Context in $UseContexts) {
+                if ($UseContext.count -gt 1) {
+                    Write-Verbose "Use Context - Array: $UseContext"
                     ForEach ($Use in $UseContext) {
                         if ($Use -like $Context) {
                             # Establish FinalContext based on stored definitions
@@ -152,6 +167,7 @@ Function New-LrList {
                     if ($UseContext -like $Context) {
                         # Set FinalContext to stored definition
                         $FinalContext = $Context
+                        Write-Verbose "Use Context - Single: $UseContext  Mapped Context: $Context"
                     }
                 }
             }
@@ -210,9 +226,10 @@ Function New-LrList {
             listType = $ListType
             status = "Active"
             name = $Name
+            guid = $Guid
             shortDescription = $ShortDescription
             longDescription = $LongDescription
-            useContext = @("None")
+            useContext = @($FinalContext)
             autoImportOption = [PSCustomObject]@{
                 enabled = $AutoImport
                 usePatterns = $AutoImportPatterns

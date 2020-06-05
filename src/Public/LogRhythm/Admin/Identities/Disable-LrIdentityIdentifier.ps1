@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Retire-LrIdentityIdentifier {
+Function Disable-LrIdentityIdentifier {
     <#
     .SYNOPSIS
         Retire an Identifier from an existing TrueIdentity based on TrueID # and Identifier #.

@@ -1,22 +1,24 @@
+using namespace System
+using namespace System.Collections.Generic
 
-Function Show-RfHashiskLists {
+Function Show-RfHashRiskLists {
     <#
     .SYNOPSIS
-        Shows RecordedFuture Hash threat list.
+        Show the available RecordedFuture Hash threat lists.
     .DESCRIPTION
-        Shows or returns a RecordedFuture Hash threat list.  
+        
+    .PARAMETER Token
+        PSCredential containing an API Token in the Password field.
+
+    .PARAMETER NamesOnly
+        Returns only the Name value of the associated list.
+
+        This object is returned as an array to support passing arrays via pipeline as a parameter.
+    .PARAMETER DescriptionsOnly
+        Returns only the Description value of the associated list.
+
+        This object is returned as an array to support passing arrays via pipeline as a parameter.
     .INPUTS
-        Output -> String
-        Valid options: Object | Print
-
-        Object - Returns Powershell Object of List Results
-        Print  - Prints to screen List Results
-    .OUTPUTS
-        PSCustomObject representing the results or write-host printing the results.
-    .EXAMPLE
-        PS C:\> Show-RfDomainRiskLists -Output print
-        ---
-
     .NOTES
         RecordedFuture-API
     .LINK
@@ -27,73 +29,70 @@ Function Show-RfHashiskLists {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [string] $Output = "object"
+        [pscredential] $Credential = $SrfPreferences.RecordedFuture.APIKey,
+        [switch] $NamesOnly,
+        [switch] $DescriptionsOnly
     )
+
     Begin {
-        $ValidLists = @{
-            0 = @{
-                Name = "Reported by Insikt Group"
-                Value = "analystNote"
-            }
-            1 = @{
-                Name = "Historically Reported in Threat List"
-                Value = "historicalThreatListMembership"
-            }
-            2 = @{
-                Name = "Large"
-                Value = "large"
-            }
-            3 = @{
-                Name = "Linked to Cyber Attack"
-                Value = "linkedToCyberAttack"
-            }
-            4 = @{
-                Name = "Linked to Malware"
-                Value = "linkedToMalware"
-            }
-            5 = @{
-                Name = "Linked to Attack Vector"
-                Value = "linkedToVector"
-            }
-            6 = @{
-                Name = "Linked to Vulnerability"
-                Value = "linkedToVuln"
-            }
-            7 = @{
-                Name = "Malware SSL Certificate Fingerprint"
-                Value = "malwareSsl"
-            }
-            8 = @{
-                Name = "Observed in Underground Virus Testing Sites"
-                Value = "observedMalwareTesting"
-            }
-            9 = @{
-                Name = "Positive Malware Verdict"
-                Value = "positiveMalwareVerdict"
-            }
-            10 = @{
-                Name = "Recently Active Targeting Vulnerabilities in the Wild"
-                Value = "recentActiveMalware"
-            }
-            11 = @{
-                Name = "Trending in Recorded Future Analyst Community"
-                Value = "rfTrending"
-            }
-            12 = @{
-                Name = "Threat Researcher"
-                Value = "threatResearcher"
-            }
-        }
+        $BaseUrl = $SrfPreferences.RecordedFuture.BaseUrl
+        $Token = $Credential.GetNetworkCredential().Password
+
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("X-RFToken", $Token)
+
+        Write-Verbose "$($Headers | Out-String)"
+
+        # Request Setup
+        $Method = $HttpMethod.Get
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
     }
 
     Process {
-        if ($Output -like "print") {
-            for ($i = 0;$i -lt $ValidLists.Count;$i++){
-                Write-Host "Num: $i`tList: $($ValidLists[$i].Name)`tList Value: $($ValidLists[$i].Value)"
+        # Establish Query Parameters object
+        $QueryParams = [Dictionary[string,string]]::new()
+
+        if ($QueryParams.Count -gt 0) {
+            $QueryString = $QueryParams | ConvertTo-QueryString
+            Write-Verbose "[$Me]: QueryString is [$QueryString]"
+        }
+
+
+
+        # Define Search URL
+        $RequestUrl = $BaseUrl + "hash/riskrules"
+        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+
+        Try {
+            $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers
+        }
+        catch [System.Net.WebException] {
+            If ($_.Exception.Response.StatusCode.value__) {
+                $HTTPCode = ($_.Exception.Response.StatusCode.value__ ).ToString().Trim()
+                Write-Verbose "HTTP Code: $HTTPCode"
+            }
+            If  ($_.Exception.Message) {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
             }
         }
-        if ($Output -notlike "print") {
-            return $ValidLists
+
+        # Return Values only as an array or all results as object
+        if ($NamesOnly) {
+            Return ,$Results.data.results.name
+        } elseif ($DescriptionsOnly) {
+            Return ,$Results.data.results.description
+        } else {
+            Return $Results.data.results
         }
     }
+ 
+
+    End { }
+
+
 }
