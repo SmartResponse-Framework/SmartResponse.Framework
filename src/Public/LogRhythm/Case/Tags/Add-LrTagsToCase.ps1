@@ -73,6 +73,16 @@ Function Add-LrTagsToCase {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            ResponseUri           =   $null
+            Tags                  =   $Tags
+            Case                  =   $Id
+        }
         Write-Verbose "[$Me]: Case Id: $Id"
 
         # Get Case Id
@@ -93,8 +103,8 @@ Function Add-LrTagsToCase {
 
         # Convert / Validate Tags to Tag Numbers array
         $_tagNumbers = $Tags | Get-LrTagNumber
-        if (! $_tagNumbers) {
-            throw [ArgumentException] "Tag(s) $Tags not found."
+        if ($_tagNumbers.Error -eq $true) {
+            return $_tagNumbers
         }
 
         # Create request body with tag numbers
@@ -122,7 +132,12 @@ Function Add-LrTagsToCase {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.ResponseUri = $RequestUri
+            $ErrorObject.Error = $true
+            return $ErrorObject
         }
         
         return $Response

@@ -111,6 +111,16 @@ Function Get-LrTags {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            ResponseUri           =   $null
+            Tag                   =   $Name
+        }
+
         # Request URI
         $RequestUri = $BaseUrl + "/tags/?tag=$Name"
 
@@ -123,10 +133,14 @@ Function Get-LrTags {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.ResponseUri = $RequestUri
+            $ErrorObject.Error = $true
+            return $ErrorObject
         }
 
-        
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware 2"
         if ($Exact) {
@@ -138,12 +152,12 @@ Function Get-LrTags {
             }
             # No exact matches found
             return $null
+        } else {
+            return $Response
         }
     }
 
 
     End {
-        # Return all responses.
-        return $Response
     }
 }

@@ -32,36 +32,31 @@ Function Get-LrTagNumber {
         [string] $Tag
     )
 
-    Begin { }
+    Begin {
+        $_int = 1
+     }
 
     Process {
         # Validate Tag
-        $_int = $null
+
         if (! ([int]::TryParse($Tag, [ref]$_int))) {
             # Tag: name
             Write-Verbose "[$Me]: Verify Tag name $Tag"
-            try {
-                $_tag = Get-LrTags -Name $Tag -Exact
-            } catch { 
-                Write-Verbose "[$Me]: Unable to find Tag name $Tag"
-                return $null
-            }
-            if ($_tag) {
+            $_tag = Get-LrTags -Name $Tag -Exact
+            if ($_tag.Error -eq $true) {
+                return $_tag
+            } else {
                 Write-Verbose "[$Me]: Tag name verified: $($_tag.number)"
                 return $_tag.number
             }
         } else {
             # Tag: number
             Write-Verbose "[$Me]: Verify Tag number $Tag"
-            try {
-                $_tag = Get-LrTags | Where-Object { $_.number -eq $Tag }
-            }
-            catch {
-                Write-Verbose "[$Me]: Unable to find Tag number $Tag"
-                return $null
-            }
-            if ($_tag) {
-                Write-Verbose "[$Me]: Tag id verified: $($_tag.number)"
+            $_tag = Get-LrTag -Number $Tag
+            if ($_tag.Error -eq $true) {
+                return $_tag
+            } else {
+                Write-Verbose "[$Me]: Tag name verified: $($_tag.number)"
                 return $_tag.number
             }
         }
