@@ -130,6 +130,16 @@ Function Get-LrPlaybooks {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            ResponseUri           =   $null
+            Playbook              =   $Name
+        }
+
         # Request URI
         $RequestUri = $BaseUrl + "/playbooks/?playbook=$Name"
 
@@ -143,7 +153,12 @@ Function Get-LrPlaybooks {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.ResponseUri = $RequestUri
+            $ErrorObject.Error = $true
+            return $ErrorObject
         }
 
         
@@ -165,7 +180,12 @@ Function Get-LrPlaybooks {
         # for some reason, even if an exact playbook match is found, the function
         # will return it but KEEP RUNNING.
         if ($Exact -and (! $Playbook)) {
-            throw [Exception] "Unable to find exact match for playbook"
+            $ErrorObject.Code = 404
+            $ErrorObject.Type = "Object not found"
+            $ErrorObject.Note = "Playbook not found"
+            $ErrorObject.ResponseUri = $RequestUri
+            $ErrorObject.Error = $true
+            return $ErrorObject
         }
 
         # Return all responses.

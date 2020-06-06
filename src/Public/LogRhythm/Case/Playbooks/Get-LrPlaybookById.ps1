@@ -79,9 +79,22 @@ Function Get-LrPlaybookById {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            ResponseUri           =   $null
+            Value              =   $Name
+        }
         # Validate Playbook Id
         if (! (Test-Guid $Id)) {
-            throw [ArgumentException] "Id should be an RFC 4122 formatted string."
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "TypeMismatch"
+            $ErrorObject.Note = "Id should be an RFC 4122 formatted string."
+            $ErrorObject.Value = $Id
+            return $ErrorObject
         }
 
         
@@ -97,20 +110,26 @@ Function Get-LrPlaybookById {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "TypeMismatch"
+            $ErrorObject.ResponseUri = $RequestUri
             switch ($Err.statusCode) {
                 "404" {
-                    throw [KeyNotFoundException] `
-                        "[404]: Playbook ID $Id not found, or you do not have permission to view it."
+                    $ErrorObject.Type = "KeyNotFoundException"
+                    $ErrorObject.Note = "Playbook ID $Id not found, or you do not have permission to view it."
                  }
                  "401" {
-                     throw [UnauthorizedAccessException] `
-                        "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                    $ErrorObject.Type = "UnauthorizedAccessException"
+                    $ErrorObject.Note = "Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
                  }
                 Default {
-                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Note = $Err.message
                 }
             }
+            $ErrorObject.Value = $Id
+            return $ErrorObject
         }
 
         # Return all responses.

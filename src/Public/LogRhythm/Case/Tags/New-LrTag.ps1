@@ -89,8 +89,13 @@ Function New-LrTag {
 
         # Convert / Validate Tags to Tag Numbers array
         $_tagNumber = $Tag | Get-LrTagNumber
-        if ($_tagNumber) {
-            throw [ArgumentException] "Tag $Tag found."
+        if (($_tagNumber.Error -eq $true) -or ($_tagNumber)) {
+            $ErrorObject.Code = "ValueExists"
+            $ErrorObject.Type = "Duplicate"
+            $ErrorObject.Note = "Tag exists.  ID: $_tagNumber"
+            $ErrorObject.ResponseUri = "Reference results of: Get-LrTag -number $_tagNumber"
+            $ErrorObject.Error = $true
+            return $ErrorObject
         }
 
         # Create Body
