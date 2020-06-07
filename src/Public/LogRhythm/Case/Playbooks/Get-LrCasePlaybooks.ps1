@@ -26,7 +26,7 @@ Function Get-LrCasePlaybooks {
         If a match is not found, this cmdlet will throw exception
         [System.Collections.Generic.KeyNotFoundException]
     .EXAMPLE
-        PS C:\> Get-LrCasePlaybooks -Credential $Token -Id 8703
+        PS C:\> Get-LrCasePlaybooks -Id 8703
         ---
         id                 : E560822B-3685-48DE-AC25-0314B1C4124F
         name               : Phishing
@@ -51,6 +51,20 @@ Function Get-LrCasePlaybooks {
         pinned             : False
         datePinned         :
         procedures         : @{total=6; notCompleted=6; completed=0; skipped=0; pastDue=0}
+
+    .Example
+        Get-LrCasePlaybooks -Id "Case 2"
+
+        id                 : 409D10D8-0C79-4D44-B999-CC2F6358B254
+        name               : New Playbook
+        description        : Its pretty good.
+        originalPlaybookId : EB042520-5EEA-4CE5-9AF5-3A05EFD9BC88
+        dateAdded          : 2020-06-07T13:30:04.0997958Z
+        dateUpdated        : 2020-06-07T13:30:04.0997958Z
+        lastUpdatedBy      : @{number=-100; name=LogRhythm Administrator; disabled=False}
+        pinned             : False
+        datePinned         :
+        procedures         : @{total=0; notCompleted=0; completed=0; skipped=0; pastDue=0}
     .NOTES
         LogRhythm-API
     .LINK
@@ -93,21 +107,39 @@ Function Get-LrCasePlaybooks {
 
     Process {
         # Get Case Id
-        $IdInfo = Test-LrCaseIdFormat $Id
-        if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
-        } else {
-            # Convert CaseID Into to Guid
-            if ($IdInfo.IsGuid -eq $false) {
-                # Retrieve Case Guid
-                $CaseGuid = (Get-LrCaseById -Id $Id).id
-            } else {
-                $CaseGuid = $Id
+        # Test CaseID Format
+        $IdFormat = Test-LrCaseIdFormat $Id
+        if ($IdFormat.IsGuid -eq $True) {
+            # Lookup case by GUID
+            try {
+                $Case = Get-LrCaseById -Id $Id
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
             }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        } elseif(($IdFormat.IsGuid -eq $False) -and ($IdFormat.ISValid -eq $true)) {
+            # Lookup case by Number
+            try {
+                $Case = Get-LrCaseById -Id $Id
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        } else {
+            # Lookup case by Name
+            try {
+                $Case = Get-LrCases -Name $Id -Exact
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
         }
 
         
-        $RequestUri = $BaseUrl + "/cases/$CaseGuid/playbooks/"
+        $RequestUri = $BaseUrl + "/cases/$CaseNumber/playbooks/"
         Write-Verbose "[$Me]: RequestUri: $RequestUri"
 
         # REQUEST
