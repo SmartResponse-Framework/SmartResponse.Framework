@@ -11,7 +11,7 @@ Function Get-RfUrlRiskList {
         PSCredential containing an API Token in the Password field.
         
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $SrfPreferences.VirusTotal.VtApiToken
+        the preference variable $LrtConfig.VirusTotal.VtApiToken
         with a valid Api Token.
     .PARAMETER List
         Name of the RecordedFuture URL ThreatList
@@ -43,14 +43,14 @@ Function Get-RfUrlRiskList {
     .NOTES
         Recorded Future - API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.RecordedFuture.APIKey,
+        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey,
 
         [string] $List,
         [string] $Format = "csv/splunk",
@@ -62,7 +62,7 @@ Function Get-RfUrlRiskList {
 
     Begin {
         $ResultsList = [list[psobject]]::new()
-        $BaseUrl = $SrfPreferences.RecordedFuture.BaseUrl
+        $BaseUrl = $LrtConfig.RecordedFuture.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers

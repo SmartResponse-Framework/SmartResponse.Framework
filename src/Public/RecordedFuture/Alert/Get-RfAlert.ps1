@@ -16,20 +16,20 @@ Function Get-RfAlert {
     .NOTES
         RecordedFuture-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.RecordedFuture.APIKey,
+        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey,
 
         [string] $Id
     )
 
     Begin {
-        $BaseUrl = $SrfPreferences.RecordedFuture.BaseUrl
+        $BaseUrl = $LrtConfig.RecordedFuture.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
