@@ -15,7 +15,7 @@ Function Add-LrPlaybookToCase {
         with a valid Api Token.
     .PARAMETER Id
         Unique identifier for the case, either as an RFC 4122 formatted string,
-        or as a number.
+        or as a number, or the exact name of the case.
     .PARAMETER Playbook
         Unique identifier for the playbook. This can either be the Playbook's ID
         as an RFC 4122 formatted string, or the exact name of the playbook.
@@ -24,7 +24,19 @@ Function Add-LrPlaybookToCase {
     .OUTPUTS
         PSCustomObject representing the added playbook.
     .EXAMPLE
-        PS C:\> 
+        PS C:\> Add-LrPlaybookToCase -Id "Case 2" -Playbook "New playbook"
+
+
+        id                 : 409D10D8-0C79-4D44-B999-CC2F6358B254
+        name               : New Playbook
+        description        : Its pretty good.
+        originalPlaybookId : EB042520-5EEA-4CE5-9AF5-3A05EFD9BC88
+        dateAdded          : 2020-06-07T13:30:04.0997958Z
+        dateUpdated        : 2020-06-07T13:30:04.0997958Z
+        lastUpdatedBy      : @{number=-100; name=LogRhythm Administrator; disabled=False}
+        pinned             : False
+        datePinned         :
+        procedures         : @{total=0; notCompleted=0; completed=0; skipped=0; pastDue=0}
     .NOTES
         LogRhythm-API
     .LINK
@@ -72,36 +84,56 @@ Function Add-LrPlaybookToCase {
 
     Process {
         # Get Case Id
-        try {
-            #TEST: [Add-LrPlaybookToCase]: Case is never used?
-            $Case = Get-LrCaseById -Credential $Credential -Id $Id -ErrorAction SilentlyContinue
-        } catch {
-            $PSCmdlet.ThrowTerminatingError($PSItem)
+        # Test CaseID Format
+        $IdFormat = Test-LrCaseIdFormat $Id
+        if ($IdFormat.IsGuid -eq $True) {
+            # Lookup case by GUID
+            try {
+                $Case = Get-LrCaseById -Id $Id
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        } elseif(($IdFormat.IsGuid -eq $False) -and ($IdFormat.ISValid -eq $true)) {
+            # Lookup case by Number
+            try {
+                $Case = Get-LrCaseById -Id $Id
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        } else {
+            # Lookup case by Name
+            try {
+                $Case = Get-LrCases -Name $Id -Exact
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
         }
 
 
         # Validate Playbook Ref
         if (Test-Guid $Playbook) {
             # If $Playbook is a valid Guid format
-            try {
-                # Get Playbook by Guid
-                $Pb = Get-LrPlaybookById -Credential $Credential -Id $Playbook -ErrorAction SilentlyContinue
-                Write-Verbose "[$Me]: Playbook: $Pb"
-            }
-            catch {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
+            # Get Playbook by Guid
+            $Pb = Get-LrPlaybookById -Id $Playbook
+            Write-Verbose "[$Me]: Playbook: $Pb"
+            if ($Pb.error -eq $true) {
+                Return $Pb
             }
         } else {
             # Get Playbook by Name (Exact)
-            try {
-                $Pb = Get-LrPlaybooks -Name $Playbook -Credential $Credential -Exact
-            }
-            catch {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
+            $Pb = Get-LrPlaybooks -Name $Playbook -Exact
+            if ($Pb.error -eq $true) {
+                Return $Pb
+            } 
         }
 
-        $RequestUri = $BaseUrl + "/cases/$Id/playbooks/"
+        $RequestUri = $BaseUrl + "/cases/$CaseNumber/playbooks/"
         Write-Verbose "[$Me]: RequestUri: $RequestUri"
 
         # Request Body
