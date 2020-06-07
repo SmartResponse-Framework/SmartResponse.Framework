@@ -94,16 +94,36 @@ foreach ($include in $Includes.GetEnumerator()) {
 #region: Import API Keys                                                                 
 # Load API Keys from LrtConfig
 foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
-    if ($ConfigCategory.Value.HasKey) {
-        $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
-        $KeyFile = [FileInfo]::new($KeyFileName)
-        if ($KeyFile.Exists) {
-            $ConfigCategory.Value.ApiKey = Import-Clixml -Path $KeyFile.FullName
-        } else {
-            Write-Warning "Unable to load key: $KeyFileName from $($KeyFileName.Directory.FullName)"
+    # $myObject.PSobject.Properties.name -match "myPropertyNameToTest"
+
+    foreach($ConfigCategory in $LrtConfig.PSObject.Properties){                                   
+        if("ApiKey" -in $ConfigCategory.Value.PSObject.Properties.Name) {
+            $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
+            $KeyFile = [FileInfo]::new("$ConfigDirPath\$KeyFileName")
+
+            if ($KeyFile.Exists) {
+                $LrtConfig.($ConfigCategory.Name).ApiKey = Import-Clixml -Path $KeyFile.FullName    
+            } else {
+                Write-Warning "Unable to load key: $KeyFileName from $($ConfigDirPath)"
+            }
+            break
         }
     }
 }
+#     if($ConfigCategory.Value.PSObject.Properties.Name -eq "ApiKey") {
+#         $ConfigCategory.Value.PSObject.Properties.Value
+#     }
+#     if ($ConfigCategory.Value.PSObject.Properties) {
+#         $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
+#         Write-Host "$ConfigDirPath\$KeyFileName"
+#         $KeyFile = [FileInfo]::new("$ConfigDirPath\$KeyFileName")
+#         if ($KeyFile.Exists) {
+#             $ConfigCategory.Value.ApiKey = Import-Clixml -Path $KeyFile.FullName
+#         } else {
+            
+#         }
+#     }
+# }
 #endregion
 
 
