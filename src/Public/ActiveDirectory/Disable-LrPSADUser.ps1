@@ -3,7 +3,7 @@ using namespace System
 Get-Module ActiveDirectory | Remove-Module
 #Requires -Modules ActiveDirectory
 
-Function Disable-LrPSADUser {
+Function Disable-SrfADUser {
     <#
     .SYNOPSIS
         Disable an Active Directory user account.
@@ -13,7 +13,7 @@ Function Disable-LrPSADUser {
         [pscredential] Credentials to use for local auth.
         Default: Current User
     .EXAMPLE
-        Disable-LrPSADUser -Identity testuser -Credential (Get-Credential)
+        Disable-SrfADUser -Identity testuser -Credential (Get-Credential)
     #>
     
     [CmdletBinding()]
@@ -33,7 +33,7 @@ Function Disable-LrPSADUser {
     }
 
     # Check User Account
-    if (!(Test-LrPSADUserExists $Identity)) {
+    if (!(Test-SrfADUserExists $Identity)) {
         Write-Verbose "[$ThisFunction]: Could not find user [$Identity]."
         return $false
     }

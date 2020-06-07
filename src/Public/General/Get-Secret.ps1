@@ -11,7 +11,7 @@ Function Get-Secret {
 
         This module has an exported list variable called $SecretList, which contains a 
         mapping of Service account names to SecretIds for convenience.  You can view 
-        this list by typing $SecretList in a terminal that has SmartResponse.Framework 
+        this list by typing $SecretList in a terminal that has LogRhythm.Tools 
         imported.
     .PARAMETER SecretId
         ID correcsponding to a stored credential in Secret Server. 
@@ -57,7 +57,7 @@ Function Get-Secret {
         Description: Credentials for SecretServer are deserialized from mycred.xml file and
         used to authenticate to Secret Server. The WDATPAuthKey credential is stored in $Token.
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
     #region: Parameters
     [CmdletBinding()]
@@ -73,8 +73,7 @@ Function Get-Secret {
         [string] $AuthFilePath,
 
         [Parameter(Mandatory=$false, Position=3)]
-        [string] $SecretServerUrl = 
-            "https://secretserver.domain.com/winauthwebservices/sswinauthwebservice.asmx"
+        [string] $SecretServerUrl = $LrtConfig.SecretServer.BaseUrl
     )
     # Verbose Parameter
     $Verbose = $false
@@ -82,7 +81,6 @@ Function Get-Secret {
         $Verbose = $true
     }
     # Trust all certs, use Tls1.2
-    Write-Verbose "Calling Enable-TrustAllCertsPolicy from ApiHelper"
     Enable-TrustAllCertsPolicy
     # Set Return Object
     $ReturnCredential = $null
