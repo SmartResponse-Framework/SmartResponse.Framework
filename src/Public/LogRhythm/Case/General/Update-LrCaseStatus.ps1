@@ -14,7 +14,7 @@ Function Update-LrCaseStatus {
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        the preference variable $LrtConfig.LogRhythm.ApiKey
         with a valid Api Token.
     .PARAMETER Id
         Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
@@ -57,23 +57,18 @@ Function Update-LrCaseStatus {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 1
-        )]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [object] $Id,
-
 
         [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNullOrEmpty()]
@@ -90,7 +85,7 @@ Function Update-LrCaseStatus {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2

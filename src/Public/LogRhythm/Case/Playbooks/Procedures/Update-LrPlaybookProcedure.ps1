@@ -2,45 +2,64 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function New-LrPlaybook {
+Function Update-LrProcedure {
     <#
     .SYNOPSIS
-        Create a new playbook to a LogRhythm playbook.
+        Apply updates to a LogRhythm playbook's procedures.
     .DESCRIPTION
-        The New-LrPlaybookToCase cmdlet adds a playbook to LogRhythm.
+        Add, update, remove, or reorder playbook procedures. The procedures specified in the request body will replace all existing procedures for the playbook.
+
+        Any existing procedure that is not listed in the request body will be removed.
+
+        The order of the list in the request body will become the procedure order.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
         the preference variable $LrtConfig.LogRhythm.ApiKey
         with a valid Api Token.
-    .PARAMETER Name
-        Name of the new Playbook.  Limited to 150 characters.
-    .PARAMETER Description
-        Summary of the playbook.  Limited to 1000 characters.
-    .PARAMETER Permissions
-        Roles and entities that can read/write to this playbook.
-    .PARAMETER Entities
-        List of entity numbers that can access this playbook.  An empty list will assign the playbook to the user's default entity.
-    .PARAMETER Tags
-        List of tag (identifiers or names).
+    .PARAMETER Id
+        Id or Name of the existing playbook.
+    .PARAMETER Procedure01
+        Object representing all data required for the First Procedure.
+
+        Object structure:
+        @{
+            id = ProcedureStepID, 
+            name = Name of the procedure, 
+            description = Detailed information on the procedure, 
+            dueWithinSeconds = Duration in seconds it is due after attached to a case
+        }
+
+        id - Nullable field that does not need to be presented.
+        Name - String limited to 150 characters.
+        Description - String limited to 4000 characters.
+        dueWithinSeconds - Integer limited to range 0 - 31536000.  Default: 0
+    .PARAMETER Procedure02
+        Reference Procedure01 notes.
+    .PARAMETER Procedure03
+        Reference Procedure01 notes.
+    .PARAMETER Procedure04
+        Reference Procedure01 notes.
+    .PARAMETER Procedure05
+        Reference Procedure01 notes.
+    .PARAMETER Procedure06
+        Reference Procedure01 notes.
+    .PARAMETER Procedure07
+        Reference Procedure01 notes.
+    .PARAMETER Procedure08
+        Reference Procedure01 notes.
+    .PARAMETER Procedure09
+        Reference Procedure01 notes.
+    .PARAMETER Procedure10
+        Reference Procedure01 notes.
+    .PARAMETER Procedure11
+        Reference Procedure01 notes.
     .INPUTS
         [System.Object] "Id" ==> [Id] : The ID of the Case to modify.
     .OUTPUTS
         PSCustomObject representing the added playbook.
     .EXAMPLE
-        PS C:\> New-LrPlaybook -Name "This ones better 9." -Description "Just a bit different." -Tags @("Boxers", "Sticker") -Force
-
-        id            : E10111E4-DDC7-4D98-A619-5B80CA55BABF
-        name          : This ones better 9.
-        description   : Just a bit different.
-        permissions   : @{read=privateOwnerOnly; write=privateOwnerOnly}
-        owner         : @{number=-100; name=LogRhythm Administrator; disabled=False}
-        retired       : False
-        entities      : {@{number=1; name=Primary Site; fullName=Primary Site}}
-        dateCreated   : 2020-06-06T19:31:24.6916651Z
-        dateUpdated   : 2020-06-06T19:31:24.6916651Z
-        lastUpdatedBy : @{number=-100; name=LogRhythm Administrator; disabled=False}
-        tags          : {@{number=8; text=Boxers}, @{number=7; text=Sticker}}
+        PS C:\> Update-LrProcedure
     .NOTES
         LogRhythm-API
     .LINK
@@ -54,28 +73,13 @@ Function New-LrPlaybook {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
-        [string] $Name,
-
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 2)]
-        [string] $Description,
-
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
-        [string] $Permissions,
-
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
-        [string] $Entities,
-
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 5)]
-        [object[]] $Tags,
-
-        [Parameter(Mandatory = $false, Position = 6)]
-        [switch] $Force
+        [string] $Id
     )
 
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -84,7 +88,7 @@ Function New-LrPlaybook {
         $Headers.Add("Content-Type","application/json")
 
         # Request URI
-        $Method = $HttpMethod.Post
+        $Method = $HttpMethod.Put
 
         # Int reference
         $_int = 1
@@ -99,18 +103,26 @@ Function New-LrPlaybook {
             Type                  =   $null
             Note                  =   $null
             ResponseUri           =   $null
-            Value              =   $Name
+            Value                 =   $Id
         }
 
         # Validate Playbook Ref
-        $Pb = Get-LrPlaybooks -Name $Name -Credential $Credential -Exact
-        if ($Pb.Name -eq $Name) {
-            $ErrorObject.Code = $Pb.id
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "Duplicate"
-            $ErrorObject.Note = "Playbook with same name exists."
-            $ErrorObject.ResponseUri = "$BaseUrl/playbooks/$($Pb.id)/"
-            return $ErrorObject
+        $Guid = Test-Guid -Guid $Id
+        if ($Guid -eq $true) {
+            $Pb = Get-LrPlaybookById -Id $Id
+            if ($Pb.Error -eq $true) {
+                return $Pb
+            }
+        } else {
+            $Pb = Get-LrPlaybooks -Name $Id -Credential $Credential -Exact
+            if (!$Pb.Name -eq $Id) {
+                $ErrorObject.Code = "404"
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "Null"
+                $ErrorObject.Note = "Playbook does not exist."
+                $ErrorObject.ResponseUri = "$BaseUrl/playbooks/$($Pb.id)/"
+                return $ErrorObject
+            }
         }
 
         if($Tags) {
@@ -154,30 +166,59 @@ Function New-LrPlaybook {
                     $_tags += $TagResults
                 }
             }
-        # No tags requested, set tags to no value.
+        # No tags requested, set tags to previous value.
         } else {
-            $_tags = $null
+            $_tags = $Pb.tags.number
         }
 
+        # New new value set, apply new value.  Otherwise keep existing value.
         if($Entities) {
-            $_Entities = Get-LrEntities -Name $Entities
+            $_entities = Get-LrEntities -Name $Entities
         } else {
-            $_Entities = 1
+            $_entities = $Pb.entities.number
         }
 
-        $RequestUri = $BaseUrl + "/playbooks/"
+        # New new value set, apply new value.  Otherwise keep existing value.
+        if ($Description) {
+            $_description = $Description
+        } else {
+            $_description = $Pb.description
+        }
+
+        # New new value set, apply new value.  Otherwise keep existing value.
+        if ($Name) {
+            $_name = $Name
+        } else {
+            $_name = $Pb.Name
+        }
+
+        # New new value set, apply new value.  Otherwise keep existing value.
+        if ($ReadPermission) {
+            $_readPermission = $ReadPermission
+        } else {
+            $_readPermission = $Pb.permissions.read
+        }
+
+        # New new value set, apply new value.  Otherwise keep existing value.
+        if ($WritePermission) {
+            $_writePermission = $WritePermission
+        } else {
+            $_writePermission = $Pb.permissions.write
+        }
+
+        $RequestUri = $BaseUrl + "/playbooks/$($Pb.id)/"
         Write-Verbose "[$Me]: RequestUri: $RequestUri"
 
         # Request Body
         $Body = [PSCustomObject]@{
-            name = $Name
-            description = $Description
+            name = $_name
+            description = $_description
             permissions = [PSCustomObject]@{
-                read = "privateOwnerOnly"
-                write = "privateOwnerOnly"
+                read = $_readPermission
+                write = $_writePermission
             }
             entities = @(
-                $_Entities
+                $_entities
         
             )
             tags = @(
