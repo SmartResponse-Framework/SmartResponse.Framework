@@ -85,14 +85,14 @@ Function Update-LrNetwork {
     .NOTES
         LogRhythm-API        
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
         
         [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 1)]
         [string]$Id,
@@ -140,7 +140,7 @@ Function Update-LrNetwork {
 
     Begin {
         # Request Setup
-        $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers

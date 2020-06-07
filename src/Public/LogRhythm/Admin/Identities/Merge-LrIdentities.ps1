@@ -39,12 +39,15 @@ Function Merge-LrIdentities {
     .EXAMPLE
         .\Merge-TrueIdentities.ps1 -PrimaryIdentityId 3208 -SecondaryIdentityId 3222
         Move all the Identifiers from Identity 3222 to Identity 3208
-    #>    
+    .LINK
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
+    #>  
+    
     [CmdletBinding()]
     param( 
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 1)]
         [long]$EntityId = 1,

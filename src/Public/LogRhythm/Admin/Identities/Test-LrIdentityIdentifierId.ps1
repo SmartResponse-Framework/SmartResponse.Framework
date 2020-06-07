@@ -27,8 +27,9 @@ Function Test-LrIdentityIdentifierId {
             ListName  : srfIP
             ListGuid  : 81059751-823E-4F5B-87BE-FEFFF1708E5E
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
+    
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position=0)]
