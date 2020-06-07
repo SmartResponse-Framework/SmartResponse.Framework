@@ -21,6 +21,8 @@ Function Get-LrCases {
         Note: You can bypass the need to provide a Credential by setting
         the preference variable $SrfPreferences.LrDeployment.LrApiToken
         with a valid Api Token.
+    .PARAMETER Name
+        Filter results that contain a string value.  Exact match available via -exact switch.
     .PARAMETER DueBefore
         Filter results that have a due date before the specified date.
     .PARAMETER Priority
@@ -78,6 +80,8 @@ Function Get-LrCases {
         Sort the results in ascending (asc) or descending (desc) order.
     .PARAMETER Count
         Maximum number of results to be returned (default 500)
+    .PARAMETER Exact
+        Forces the name parameter to be exact matches only for returned results.
     .INPUTS
         None
     .OUTPUTS
@@ -121,6 +125,12 @@ Function Get-LrCases {
 
         [Parameter(Mandatory = $false, Position = 16)]
         [switch] $Summary,
+
+        [Parameter(Mandatory = $false, Position = 17)]
+        [switch] $Exact,
+
+        [Parameter(Mandatory = $false, Position = 18)]
+        [string] $Name,
 
         #region: Query Parameters ___________________________________________________________
         [Parameter(Mandatory = $false, Position = 1)]
@@ -405,6 +415,51 @@ Function Get-LrCases {
     }
     #endregion
 
-    return $Response
-
+    if ($Exact) {
+        if ($FilteredResult) {
+            $Pattern = "^$Name$"
+            $FilteredResult | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
+                }
+            }
+        } else {
+            $Pattern = "^$Name$"
+            $Response | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
+                }
+            }
+        }
+    } elseif ($Name) {
+        if ($FilteredResult) {
+            $Pattern = ".*$Name.*"
+            $FilteredResult | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
+                }
+            }
+        } else {
+            $Pattern = ".*$Name.*"
+            $Response | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
+                }
+            }
+        }
+    } else {
+        if ($FilteredResult) {
+            return $FilteredResult
+        } else {
+            return $Response
+        }
+    }
 }
