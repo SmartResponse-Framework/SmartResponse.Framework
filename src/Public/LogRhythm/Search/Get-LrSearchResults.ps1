@@ -10,6 +10,9 @@ Function Get-LrSearchResults {
         Create-LrNetwork returns a full LogRhythm Host object, including details and list items.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+        Note: You can bypass the need to provide a Credential by setting
+        the preference variable $LrtConfig.LogRhythm.ApiKey
+        with a valid Api Token.
     .PARAMETER Entity
         Parameter for specifying the existing LogRhythm Entity for the new Network record to be set to.  
         This parameter can be provided either Entity Name or Entity Id but not both.
@@ -49,14 +52,14 @@ Function Get-LrSearchResults {
     .NOTES
         LogRhythm-API        
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
         
         [Parameter(Mandatory = $false, Position = 1)]
         [string]$SearchGuid,
@@ -79,7 +82,7 @@ Function Get-LrSearchResults {
 
     Begin {
         # Request Setup
-        $BaseUrl = $SrfPreferences.LRDeployment.SearchApiUrl
+        $BaseUrl = $LrtConfig.LogRhythm.SearchBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
