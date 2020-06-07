@@ -1,6 +1,6 @@
-# Contributing to SmartResponse.Framework
+# Contributing to LogRhythm.Tools
 
-SmartResponse.Framework has a `master` branch for stable releases and a `develop` branch for daily development. New features and fixes are always submitted to the `develop` branch.
+LogRhythm.Tools has a `master` branch for stable releases and a `develop` branch for daily development. New features and fixes are always submitted to the `develop` branch.
 
 This project follows standard [GitHub flow](https://guides.github.com/introduction/flow/index.html). Please learn and be familiar with how to use Git, how to create a fork of the repository, and how to submit a Pull Request. Contributors are likely willing to help you with using Git if you [ask questions in our slack](https://logrhythmcommunity.slack.com) channel `#srf-community`.
 
@@ -8,11 +8,11 @@ After you submit a PR, Project maintainers and contributors will review and disc
 
 ## Coding Conventions
 
-For detailed information on code style and conventions, please review the [CODESTYLE.txt](https://github.com/SmartResponse-Framework/SmartResponse.Framework/issues) file.
+For detailed information on code style and conventions, please review the [CODESTYLE.txt](https://github.com/LogRhythm-Tools/LogRhythm.Tools/issues) file.
 
 ## Quick Guidelines
 
-Here are a few simple rules and suggestions to remember when contributing to SmartResponse.Framework.
+Here are a few simple rules and suggestions to remember when contributing to LogRhythm.Tools.
 
 :no_entry: Do not commit code that you didn't personally write.
 
@@ -52,6 +52,6 @@ PS> Write-Host "Somebody said today that I’m lazy. I nearly answered him." 6> 
 
 ## Licensing
 
-The SmartResponse.Framework project is under the Microsoft Public License unless a portion of code is explicitly stated elsewhere. See the [LICENSE.txt](LICENSE.txt) file for more details.
+The LogRhythm.Tools project is under the Microsoft Public License unless a portion of code is explicitly stated elsewhere. See the [LICENSE.txt](LICENSE.txt) file for more details.
 
 The project accepts contributions in "good faith" that they are not bound to a conflicting license. By submitting a PR you agree to distribute your work under the Project's license and copyright.

@@ -10,7 +10,7 @@ PowerShell_transcript*
 
 build/out/*
 !build/out/readme.md
-
+release/*
 
 
 ## Ignore Visual Studio temporary files, build results, and
@@ -365,6 +365,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
-packages/ApiHelper/ApiHelper/obj/Debug/ApiHelper.csproj.CoreCompileInputs.cache
-packages/ApiHelper/ApiHelper/obj/Debug/ApiHelper.csprojAssemblyReference.cache
 build/BuildInfo.json
+Publish-Test.ps1

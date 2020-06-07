@@ -3,14 +3,39 @@ using namespace System.IO
 
 <#
 .SYNOPSIS
-    Build+Import or only Import or the most recent build in your current PowerShell session.
-.DESCRIPTION
-    New-TestBuild.ps1 script was created as an easy way to build and/or import
-    the latest local build of SmartResponse.Framework for the current
+    Build and Import the most recent LogRhythm.Tools build in your current
     PowerShell session.
-    Generally this is used to aid in the testing and development process.
+.DESCRIPTION
+    New-TestBuild.ps1 script was created as an easy way to build and/or import the
+    latest local build of LogRhythm.Tools for the current PowerShell session.
 
-    The SrfBuilder module, included in SmartResponse.Framework, is used for
+    Generally this is used to aid in the development process, where installing the 
+    module under a PSModulePath is cumbersome for continuous testing.
+
+    ----------------------------------------------------------------------------------
+    Microsoft Graph Token
+    ----------------------------------------------------------------------------------
+    (Not Migrated Yet)
+    ----------------------------------------------------------------------------------
+    Microsoft Defender ATP Token
+    ----------------------------------------------------------------------------------
+    (Not migrated yet)
+
+.PARAMETER RemoveOld
+    Remove previous builds from the build\out directory.
+.PARAMETER ApiTokenPath
+    The ApiTokenPath parameter may be used to specify an alternative path to a LogRhythm
+    credential.
+.INPUTS
+    N/A
+.OUTPUTS
+    If the PassThru switch is set, an object representing the latest build information
+    is returned. For more, see the Get-SrfBuild cmdlet from the SrfBuilder module 
+    '.\build'
+.EXAMPLE
+    PS C:\> .\New-TestBuild.ps1 -RemoveOld
+.NOTES
+    The SrfBuilder module, included in LogRhythm.Tools, is used for
     creating a new module build.  You can also manually build the module
     by importing SrfBuilder and using its functions.
 
@@ -19,26 +44,8 @@ using namespace System.IO
     PS > Import-Module .\build\SrfBuilder.psm1
     PS > Get-Help New-SrfBuild
     PS > Get-Help Install-SrfBuild
-.PARAMETER RemoveOld
-    Remove previous builds from the build\out directory.
-.PARAMETER ApiTokenPath
-    Path to serlialized PSCredential of a LogRhythm API Token (saved with Export-CliXml command).
-    By default, "$PSScriptRoot\tests\cred_LrApiToken.xml" is used.
-
-    Specifying a valid ApiToken Path removes the need to pass a token credential every time
-    a LogRhythm Api command is used at the command line, and serves no purpose within the module itself
-    or in SmartResponse Plugins, which are expected to pass the necessary credential at run time.
-
-    The token credential will be imported and set in $SrfPreferences.LrDeployment.LrApiToken,
-    and will remain until the current PowerShell scope is exited.
-.INPUTS
-    N/A
-.OUTPUTS
-    N/A
-.EXAMPLE
-    PS C:\> New-TestBuild.ps1 -RemoveOld
 .LINK
-    https://github.com/SmartResponse-Framework/SmartResponse.Framework
+    https://github.com/LogRhythm-Tools/LogRhythm.Tools
 #>
 
 [CmdletBinding()]
@@ -46,23 +53,16 @@ Param(
     [Parameter(Mandatory=$false, Position=0)]
     [switch] $RemoveOld,
 
-    [Parameter(Mandatory = $false, Position = 1)]
-    [string] $ApiTokenPath = "$PSScriptRoot\tests\cred_LrApiToken.xml",
-
     [Parameter(Mandatory = $false, Position = 2)]
     [switch] $PassThru,
 
     [Parameter(Mandatory = $false, Position = 3)]
-    [switch] $Dev,
-
-    [Parameter(Mandatory = $false, Position = 4)]
-    [string] $RfApiToken = "$PSScriptRoot\tests\cred_RFApiToken.xml"
+    [switch] $Dev
 )
 
 $StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 # Unload current build
-Get-Module SmartResponse.Framework | Remove-Module -Force
-
+Get-Module LogRhythm.Tools | Remove-Module -Force
 
 #region: Remove Old Builds                                                               
 if ($RemoveOld) {
@@ -104,7 +104,7 @@ if (Test-Path $NewBuildPath) {
     Write-Host "[Success]" -ForegroundColor Green
 } else {
     Write-Host "[Failure]" -ForegroundColor Red
-    throw [Exception] "Failed to build SmartResponse.Framework module. Review errors / call stack."
+    throw [Exception] "Failed to build LogRhythm.Tools module. Review errors / call stack."
 }
 
 
@@ -120,52 +120,6 @@ catch {
 Write-Host "[Success]" -ForegroundColor Green
 #endregion
 
-
-
-#region: LrApi Token Preference                                                          
-Write-Host "Import LrApi Token: " -NoNewline
-try { 
-    $Token = Import-Clixml -Path $ApiTokenPath
-    $SrfPreferences.LrDeployment.LrApiCredential = $Token
-    Write-Host "[Success]" -ForegroundColor Green
-}
-catch [CryptographicException] { 
-    Write-Host "[Access Denied]" -ForegroundColor Red
-    $PSCmdlet.ThrowTerminatingError($PSItem)
-}
-catch [FileNotFoundException] {
-    # this is normal for anyone not intending to use this feature
-    Write-Host "[Not Found]" -ForegroundColor Gray
-}
-catch [Exception] {
-    Write-Host "[Failed]" -ForegroundColor Red
-    $PSCmdlet.ThrowTerminatingError($PSItem)
-}
-Write-Host "===========================================" -ForegroundColor Gray
-#endregion
-
-
-#region: Recorded Future Api Token Preference                                                          
-Write-Host "Import Recorded Future Api Token: " -NoNewline
-try { 
-    $Token = Import-Clixml -Path $RfApiToken
-    $SrfPreferences.RecordedFuture.ApiKey = $Token
-    Write-Host "[Success]" -ForegroundColor Green
-}
-catch [CryptographicException] { 
-    Write-Host "[Access Denied]" -ForegroundColor Red
-    $PSCmdlet.ThrowTerminatingError($PSItem)
-}
-catch [FileNotFoundException] {
-    # this is normal for anyone not intending to use this feature
-    Write-Host "[Not Found]" -ForegroundColor Gray
-}
-catch [Exception] {
-    Write-Host "[Failed]" -ForegroundColor Red
-    $PSCmdlet.ThrowTerminatingError($PSItem)
-}
-Write-Host "===========================================" -ForegroundColor Gray
-#endregion
 
 # Build Info
 $StopWatch.Stop()

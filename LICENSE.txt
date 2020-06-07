@@ -1,5 +1,5 @@
 Microsoft Public License (Ms-PL)
-SmartResponse.Framework - Copyright © 2018-2019 Gene Cupstid
+LogRhythm.Tools - Copyright © 2018-2019 Gene Cupstid
 
 All rights reserved.
 

@@ -1,13 +1,20 @@
 <!-- markdownlint-disable MD026 -->
-# :dizzy: SmartResponse.Framework :dizzy:
+# :dizzy: LogRhythm.Tools :dizzy:
 
-SmartResponse.Framework is a powershell module containing commands (cmdlets) intended primarily for use in LogRhythm SmartResponse Plugin development, but can also be used interactively.  
+LogRhythm.Tools is a powershell module containing commands (cmdlets) intended primarily for use in LogRhythm SmartResponse Plugin development, but can also be used interactively.  
 
-This is an open source, community-driven project. Pull requests, are welcome and encouraged - please review the contribution guidelines below. Feel free to [submit an issue](https://github.com/SmartResponse-Framework/SmartResponse.Framework/issues) to discuss enhancements, design, bugs, questions or other feedback.
+This is an open source, community-driven project. Pull requests, are welcome and encouraged - please review the contribution guidelines below. Feel free to [submit an issue](https://github.com/LogRhythm-Tools/LogRhythm.Tools/issues) to discuss enhancements, design, bugs, questions or other feedback.
 
-:fire: **Everyone is encouraged to read and contribute to [open design issues](https://github.com/SmartResponse-Framework/SmartResponse.Framework/issues).**
+:fire: **Everyone is encouraged to read and contribute to [open design issues](https://github.com/LogRhythm-Tools/LogRhythm.Tools/issues).**
 
-## News: December, 2019
+## News: February, 2020
+
+I am working on a new major release which will streamline storing your LogRhythm bearer token, and generally make setup much easier and user friendly.
+
+I am targeting this release for 3/15/2020!
+
+## December, 2020
+
 
 I've released the full set of LogRhythm Automation commands that I've created to date.  This gives you the building blocks to fully implement case creation automation, in addition to things like case metrics. Since results are returned as PowerShell objects, there are many ways you can use the data retrieved.
 
@@ -71,20 +78,20 @@ Getting started is easy, if you have some familiarity with Git and PowerShell.
 ### Get and build the module
 
 ```powershell
-PS> git clone https://github.com/SmartResponse-Framework/SmartResponse.Framework
-PS> cd SmartResponse.Framework
+PS> git clone https://github.com/LogRhythm-Tools/LogRhythm.Tools
+PS> cd LogRhythm.Tools
 ```
 
 Edit the preferences file (replace code with editor of your choice)
 
 ```powershell
-PS> code .\src\include\SrfPreferences.json
+PS> >>removed<<
 ```
 
 There are a couple of ways to go about this, but the easiest by far is to save a copy of your LR API Token in an encrypted credentials file:
 
 ```powershell
-PS> Get-Credential | Export-CliXml -Path .\tests\cred_LrApiToken.xml
+PS> Get-Credential | Export-CliXml -Path <removed>
 ```
 
 Now back to your terminal, build the module:
@@ -112,16 +119,16 @@ PS> Get-LrTags
 
 ### Configuration
 
-Currently there is a little configuration required for some cmdlets to function properly. This design is [open to discussion here](https://github.com/SmartResponse-Framework/SmartResponse.Framework/issues/1).
+Currently there is a little configuration required for some cmdlets to function properly. This design is [open to discussion here](https://github.com/LogRhythm-Tools/LogRhythm.Tools/issues/1).
 
-The configuration file is located in the repository under `~/src/include/SrfPreferences.json`.
+The configuration file is located in the repository under >>removed<<.
 
 In order for the LogRhythm API commands to work, you will need to fill out the following section, save the file, and rebuild the module with the `New-TestBuild.ps1` script.
 
 ```json
-"LRDeployment": {
-    "AdminApiBaseUrl": "https://server.domain.com:8501/lr-admin-api",
-    "CaseApiBaseUrl": "https://server.domain.com:8501/lr-case-api",
+"LogRhythm": {
+    "AdminBaseUrl": "https://server.domain.com:8501/lr-admin-api",
+    "CaseBaseUrl": "https://server.domain.com:8501/lr-case-api",
     "ApiVaultId": "121212",
     "PlatformManager": "server.domain.com",
     "WebConsole": "logrhythm.domain.com",

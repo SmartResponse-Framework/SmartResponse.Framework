@@ -11,7 +11,7 @@ Function Set-YourFunctionName {
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $SrfPreferences.LrDeployment.LrApiToken
+        the preference variable $LrtConfig.LogRhythm.ApiKey
         with a valid Api Token.
     .PARAMETER XXXX
         xxxxxx
@@ -24,14 +24,14 @@ Function Set-YourFunctionName {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiToken,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
         [Parameter(
@@ -46,8 +46,8 @@ Function Set-YourFunctionName {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
     
-        # $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
-        # $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
+        # $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        # $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
 
         $Token = $Credential.GetNetworkCredential().Password
         # Enable self-signed certificates and Tls1.2

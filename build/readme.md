@@ -6,7 +6,7 @@ The `New-TestBuild` script found in the root directory of this repository will s
 
 ## SrfBuilder Overview
 
-The `New-TestBuild` script utilizes a small helper module called `SrfBuilder` created specifically for SmartResponse.Framework.   `SrfBuilder` can also be used to manage builds directly, or to install / uninstall them from the local computer.
+The `New-TestBuild` script utilizes a small helper module called `SrfBuilder` created specifically for LogRhythm.Tools.   `SrfBuilder` can also be used to manage builds directly, or to install / uninstall them from the local computer.
 
 The purpose of the `SrfBuilder` module is to facilitate testing, installation and release efforts by providing a consistent and reliable build process. This decouples the repository structure from the module structure, provides automated packaging / manifest creation, and gives developers a "point-in-time" verison of their builds which can be compared during the development process.
 
@@ -23,7 +23,7 @@ What does `SrfBuilder` do?
 Before running any SrfBuilder commands, you will need to import the `psm1` file located in the repository's `build` directory.
 
 ```PowerShell
-PS C:\SmartResponse.Framework> Import-Module .\build\SrfBuilder.psm1
+PS C:\LogRhythm.Tools> Import-Module .\build\SrfBuilder.psm1
 ```
 
 ## `New-SrfBuild`
@@ -33,17 +33,17 @@ Creates a new build for this repository's module source (/src).
 **Parameters:**
 
 * `-Version` (x.y.z) Leaving out the version parameter uses the version in `ModuleInfo.json`
-* `-ReleaseNotes` Adds a release note to the module's manifest file.
+* `-ReleaseTag` Adds a release note to the module's manifest file.
 
 **Example:**
 
 ```PowerShell
-PS C:\> New-SrfBuild -Version 1.0.6 -ReleaseNotes "Solved Collatz Conjecture"
+PS C:\> New-SrfBuild -Version 1.0.6 -ReleaseTag "Solved Collatz Conjecture"
 ```
 
 ## `Install-SrfBuild`
 
-Installs the SmartResponse.Framework module for all users in the system's PowerShell Modules directory: `c:\Program Files\WindowsPowerShell\Modules`.
+Installs the LogRhythm.Tools module for all users in the system's PowerShell Modules directory: `c:\Program Files\WindowsPowerShell\Modules`.
 
 * This cmdlet requires administrator privileges, and will throw an exception if the caller is not in the local Administrators group.
 * If parameters are omitted, the most recent build is selected for installation, as determined by `build\BuildInfo.json`
@@ -70,7 +70,7 @@ SRF installs should be completed using the account that will be leveraged to use
 
 ## `Uninstall-SrfBuild`
 
-The `UnInstall-SrfBuild` cmdlet removes the SmartResponse.Framework module from `C:\Program Files\WindowsPowerShell\Modules`, and takes no parameters.
+The `UnInstall-SrfBuild` cmdlet removes the LogRhythm.Tools module from `C:\Program Files\WindowsPowerShell\Modules`, and takes no parameters.
 Generally you won't need to run this cmdlet directly, as it is used by `Install-SrfBuild` to remove previous versions.
 
 :fire: **Warning**: Due to the way assemblies are handled in Application Domains, an exception will occur when attempting to uninstall / delete the module after it has been imported into a *still-active* application domain.
