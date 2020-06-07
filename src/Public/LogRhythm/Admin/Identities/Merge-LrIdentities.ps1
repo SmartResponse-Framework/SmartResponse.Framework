@@ -44,7 +44,7 @@ Function Merge-LrIdentities {
     param( 
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 1)]
         [long]$EntityId = 1,

@@ -56,7 +56,7 @@ Function New-LrSearch {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
         
         [Parameter(Mandatory = $false, Position = 1)]
         [int32]$MaxMsgsToQuery = 100,
@@ -75,7 +75,7 @@ Function New-LrSearch {
         [string]$SearchMode = "pagedSortedDateAsc",
 
         [Parameter(Mandatory = $false,  Position = 6)]
-        [string]$SearchServerIPAddress = $SrfPreferences.LrDeployment.DataIndexerIP,
+        [string]$SearchServerIPAddress = $LrtConfig.LogRhythm.DataIndexerIP,
 
         [Parameter(Mandatory = $false, Position = 7)]
         [string]$DateCriteria,
@@ -185,7 +185,7 @@ Function New-LrSearch {
 
     Begin {
         # Request Setup
-        $BaseUrl = $SrfPreferences.LRDeployment.SearchApiUrl
+        $BaseUrl = $LrtConfig.LogRhythm.SearchBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers

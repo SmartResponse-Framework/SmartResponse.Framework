@@ -35,7 +35,7 @@ Function Start-EchoUseCase {
     Begin {
         # Request Setup
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $SrfPreferences.LrEcho.EchoApiBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythmEcho.BaseUrl
 
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()

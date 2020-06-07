@@ -1,0 +1,17 @@
+
+$LrtConfigigInput = Get-Content -Path $PSScriptRoot\Lrt.Config.Input.json | ConvertFrom-Json
+$LrtConfig = Get-Content -Path "C:\repos\_community\SmartResponse.Framework\src\Include\LogRhythm.Tools.json" -raw | ConvertFrom-Json
+
+
+foreach($ConfigCategory in $LrtConfigigInput.PSObject.Properties) {
+    # $ConfigCategory is a handle to the actual object
+    # $ConfigCategory.Name is the name
+    # $ConfigCategory.Value is a handle to the object(s) within the category
+    Write-Host "==================================================`n[Category: $($ConfigCategory.Name)]"
+    foreach($ConfigField in $ConfigCategory.Value.Fields.PSObject.Properties) {
+        # $ConfigField is the object that represents a field to be configured
+        Write-Host "ConfigField: $($ConfigField.Value.Prompt)"
+    }
+}
+
+return $LrtConfig

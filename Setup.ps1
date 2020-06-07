@@ -6,25 +6,37 @@ using namespace System.Collections.Generic
 <#
 .SYNOPSIS
     Install and configure the LogRhythm.Tools PowerShell module.
-.PARAMETER Dev
-    The Dev flag only changes where the Setup script looks for the installation archive.
-    Releases will have the install archive in the root directory, dev installs will have the install
-    in .\build\output\BuildId\
+.DESCRIPTION
+    Setup is intended to be run from a published release of LogRhythm.Tools See NOTES
+    for details on the expected directory structure.
+
+    There are two main loops of this script:
+    1. Prompts for the fields found in Lrt.Config.Input.json
+    2. Prompts for credentials found in Lrt.Config.Creds.json
 .INPUTS
     None
 .OUTPUTS
     None
+.NOTES
+    Setup expects following file structure:
+
+    LogRhythm.Tools.zip:
+    ├── install\
+    │   ├── input\
+    │   │   └── (Get-Input commands)
+    │   ├── include\
+    │   │   └── (Install commands)
+    │   ├── LogRhythm.Tools.zip
+    │   ├── LogRhythm.Tools.json
+    │   └── Lrt.Installer.psm1
+    ├── Setup.ps1
+    └── ModuleInfo.json
 .LINK
     https://github.com/LogRhythm-Tools/LogRhythm.Tools
 #>
 
 [CmdletBinding()]
-#TODO: Add a "config only" option to update the config.
-Param(
-    [Parameter(Mandatory = $false, Position = 0)]
-    [switch] $ConfigOnly
-)
-
+Param( )
 
 
 #region: Import Commands                                                                           
@@ -37,9 +49,19 @@ Import-Module (Join-Path -Path $LrtInstallerPath -ChildPath "Lrt.Installer.psm1"
 $_moduleInfo = Get-ModuleInfo
 $ModuleInfo = $_moduleInfo.Module
 
-# Import LogRhythm.Tools.conf
-$LrtConf = Get-Content -Path (Join-Path -Path $LrtInstallerPath -ChildPath "LogRhythm.Tools.conf")
+# Create / Get Configuration Directory
+# NOTE: If a configuration file already exists in AppData and there are significant changes in the latest build,
+# the installed version should be overwritten.
+#RESEARCH: [Setup.ps1] Create user workflow for this?
+$ConfigInfo = New-LrtConfig
+
+# Import LogRhythm.Tools.json
+$LrtConfig = Get-Content -Path $ConfigInfo.File.FullName -Raw | ConvertFrom-Json
+
+# Import Setup input configuration
+$LrtConfigInput = Get-Content -Path (Join-Path $LrtInstallerPath "Lrt.Config.Input.json") -Raw | ConvertFrom-Json
 #endregion
+
 
 
 #region: STOP - Banner Time.                                                                       
@@ -61,34 +83,99 @@ Write-Host "                 Y8b d88P        " -NoNewline
 Write-Host "v $($ModuleInfo.Version)      " -NoNewline -ForegroundColor Cyan
 Write-Host "Y8b d88P        " -NoNewline
 Write-Host "$($ModuleInfo.ReleaseTag)" -ForegroundColor Magenta
-Write-Host "                  `"Y88P`"                       `"Y88P`"`n`n`n"
+Write-Host "                  `"Y88P`"                       `"Y88P`"`n"
 #endregion
 
 
 
-#region: Variables                                                                                 
-# Input sanitization regexs
-$VersionRegex = "^[0-9]\.[0-9]\.[0-9]$"
-$InstallScope_Regex = "^([Uu]ser|[Ss]ystem|[Ss]kip)$"
-$YesNo_Regex = "^[Yy]([Ee][Ss])?|[Nn][Oo]?$"
-$Yes_Regex = "^[Yy]([Ee][sS])?$"
-$No_Regex = "^[Nn]([Oo])?$"
+#region: Setup Walkthrough                                                                         
+# FallThruValue is the updated value of the previous field, so a value can be re-used without requiring a prompt.
+# This satisfies the use case of not having to prompt the user 4 times to set the LogRhythm API URLs.
+$FallThruValue = ""
 
 
-# Needed Information
-$Setup = [PSCustomObject]@{
-    LrVersion = ""
-    LrDataIndexerIp = ""
-    LrPmHostName = ""
-    LrTokenSecureString = ""
+# $ConfigCategory -> Process each top-level config category (General, LogRhythm, etc.)
+foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
+    Write-Host "`n[ $($ConfigCategory.Value.Name) ]`n=========================================" -ForegroundColor Cyan
+    $ConfigOpt = $true
 
-    InstallScope = ""
-    SecretServerHostname = ""
+    #region: Category::Skip Category If Optional                                                               
+    # If category is optional, ask user if they want to set it up.
+    if ($ConfigCategory.Value.Optional) {
+        $ConfigOpt = Confirm-YesNo -Message "Would you like to setup $($ConfigCategory.Value.Name)?"
+    }
+    # Skip if user chose to skip category
+    if (! $ConfigOpt) {
+        continue
+    }
+    #endregion
+
+
+    #region: Category:: Process Fields Input                                                                
+    foreach($ConfigField in $ConfigCategory.Value.Fields.PSObject.Properties) {
+
+        # Input Loop ------------------------------------------------------------------------------
+        while (! $ResponseOk) {
+
+            # Use last field's response if this field is marked as FallThru
+            if ($ConfigField.Value.FallThru) {
+                $Response = $FallThruValue
+            # Get user input
+            } else {
+                $Response = Read-Host -Prompt "  > $($ConfigField.Value.Prompt)"
+                $Response = $Response.Trim()
+            }
+
+            # > Process Input
+            $OldValue = $LrtConfig.($ConfigCategory.Name).($ConfigField.Name)
+            Write-Verbose "LrtConfig.$($ConfigCategory.Name).$($ConfigField.Name)"
+            $cmd = $ConfigField.Value.InputCmd +`
+                " -Value " + $Response + `
+                " -OldValue $OldValue"
+            Write-Verbose "Command: $cmd"
+                
+            $Result = Invoke-Expression $cmd
+
+            # Input OK - Update configuration object
+            if ($Result.Valid) {
+                Write-Verbose "Previous Value: $($LrtConfig.($ConfigCategory.Name).($ConfigField.Name))"
+                Write-Verbose "New Value: $($Result.Value)"
+                $ResponseOk = $true
+                $LrtConfig.($ConfigCategory.Name).($ConfigField.Name) = $Result.Value
+            # Input BAD - provide hint
+            } else {
+                Write-Host "    hint: [$($ConfigField.Value.Hint)]" -ForegroundColor Magenta
+            }
+        }
+        # End Input Loop --------------------------------------------------------------------------
+
+
+        # Reset response for next field prompt, set FallThruValue
+        $ResponseOk = $false
+        $FallThruValue = $Response
+    }
+    #endregion
+
+
+    # Credential Prompts
+    if ($ConfigCategory.Value.HasKey) {
+        $Result = Get-InputCredential -AppName $ConfigCategory.Name -AppDescr $ConfigCategory.Value.Name
+    }
+
+
+    # Write Config
+    Write-Verbose "Writing Config to $($ConfigInfo.File.FullName)"
+    $LrtConfig | ConvertTo-Json | Set-Content -Path $ConfigInfo.File.FullName
+
 }
+#endregion
 
 
+return $LrtConfig
 
 
+#TODO: INSTALL
+#region: Install Options                                                                           
 # Location of install archive - in .\install\LogRhythm.Tools.zip
 $ArchivePath = Join-Path -Path $PSScriptRoot -ChildPath "install" | 
     Join-Path -ChildPath $ModuleInfo.ArchiveFileName
@@ -97,97 +184,7 @@ if (! (Test-Path $ArchivePath)) {
     $Err += "Alternatively, you can install manually using Install-Lrt -Path <path to archive>"
     throw [FileNotFoundException] $Err
 }
-#endregion
 
-
-
-#region: LogRhythm Configuration                                                                   
-
-#region: LogRhythm Version                                                                         
-Write-Host "[ LogRhythm Configuration ] =================" -ForegroundColor Cyan
-# LogRhythm Version
-while ([string]::IsNullOrEmpty($Setup.LrVersion)) {
-    $Response = Read-Host -Prompt "  LogRhythm Version"
-    $Response = $Response.Trim()
-    # sanity check
-    if ($Response -match $VersionRegex) {
-        $Setup.LrVersion = $Response
-        Write-Verbose "LogRhythm version set to: $($Setup.LrVersion)"
-    }
-}
-#endregion
-
-
-
-#region: LogRhythm Hostnames                                                                       
-# Data Indexer IP
-while ([string]::IsNullOrEmpty($Setup.LrDataIndexerIp)) {
-    $Response = Read-Host -Prompt "  Data Indexer IP"
-    $Response = $Response.Trim()
-    # sanity check
-    if (Test-IsIpAddress -IpAddress $Response) {
-        $Setup.LrDataIndexerIp = $Response
-        Write-Verbose "Data Indexer IP set to: $($Setup.LrDataIndexerIp)"
-    }
-}
-
-# Platform Manager
-while ([string]::IsNullOrEmpty($LrPmHostName)) {
-    $Response = Read-Host -Prompt "  Platform Manager Hostname"
-    $Response = $Response.Trim()
-    # sanity check
-    if (Test-IsHostname -Hostname $Response) {
-        $LrPmHostName = $Response
-        Write-Verbose "Platform Manager set to: $LrPmHostName"
-    }
-}
-#endregion
-
-
-
-#region: LrToken                                                                                   
-# Ask user if they want to set the Lr API Token
-$SetApiToken = $null
-#BUG: Issue with "n" response
-$Response = ""
-while ([string]::IsNullOrEmpty($Response)) {
-    $Response = Read-Host -Prompt "  Set LogRhythm API Key (y/n)"
-    $Response = $Response.Trim()
-    if (! ($Response -match $YesNo_Regex)) {
-        $Response = ""
-        continue
-    }
-    if ($Response -match $Yes_Regex) {
-        $SetApiToken = $true
-        break
-    }
-    if ($Response -match $No_Regex) {
-        $SetApiToken = $false
-        break
-    }
-}
-
-# Get token if $SetApiToken = true
-if ($SetApiToken) {
-    while ([string]::IsNullOrEmpty($LrTokenSecureString)) {
-        # $Response in this case is a SecureString
-        # Empty responses will have a Length of 0 but won't be [string]::NullOrEmpty
-        $Response = Read-Host -Prompt "  Paste API token here" -AsSecureString
-        if ($Response.Length -gt 50) {
-            $LrTokenSecureString = $Response
-        }
-    }
-}
-#endregion
-#endregion
-
-
-#region: $SecretServerHostname                                                                     
-#TODO: Finish SecretServer Integration
-#endregion
-
-
-#region: Install Options                                                                           
 Write-Host "`n[ Install Options ] ============================" -ForegroundColor Cyan
 while ([string]::IsNullOrEmpty($InstallScope)) {
     $Response = Read-Host -Prompt "  Install Scope (User|System|Skip)"
@@ -197,55 +194,7 @@ while ([string]::IsNullOrEmpty($InstallScope)) {
         $InstallScope = $Response
     }
 }
-#endregion
 
-
-
-#region: Summary Report                                                                            
-# Some verbiage vars
-$apiAns = "<skipped>"
-if ($SetApiToken) {
-    $apiAns = "<set>"
-}
-$InstallPath = Get-LrtInstallPath -Scope $InstallScope
-Write-Host "`n[ Summary ] ============================" -ForegroundColor Cyan
-Write-Host "  + LogRhythm Configuration"
-Write-Host "    - Data Indexer: $LrDataIndexerIp"
-Write-Host "    - PM  Hostname: $LrPmHostName"
-Write-Host "    - API Token:    $apiAns"
-Write-Host "    - Installing:   $($InstallPath.FullName)`n"
-#endregion
-
-
-
-#region: Write Config                                                                              
-$Response = Read-Host -Prompt "  >> Write Config? (y/n)"
-if (! ($Response -match $Yes_Regex)) {
-    Write-Host "`n <skipped config>" -ForegroundColor Yellow
-} else {
-    try {
-        if ($SetApiToken) {
-            # Create Config - With API Key
-            New-LrtConfig -LrVersion $LrVersion -PlatformManager $LrPmHostName -DataIndexerIP $LrDataIndexerIp -SecretServerHostname $SecretServerHostname -LrApiKey $LrTokenSecureString -Verbose
-        } else {
-            # Create Config - No API Key
-            New-LrtConfig -PlatformManager $LrPmHostName -Verbose
-        }
-    } catch {
-        $PSCmdlet.ThrowTerminatingError($PSItem)
-    }
-
-    # Display the location of configuration to inform / remind users.
-    $ConfigDirPath = Join-Path `
-        -Path ([Environment]::GetFolderPath("LocalApplicationData"))`
-        -ChildPath $ModuleInfo.Name
-    Write-Host "    - LogRhythm.Tools config created in: $ConfigDirPath" -ForegroundColor Green
-}
-#endregion
-
-
-
-#region: Install Module                                                                            
 $Response = Read-Host -Prompt "  >> Install Module? (y/n)"
 if (! ($Response -match $Yes_Regex)) {
     Write-Host "`n <skipped install>" -ForegroundColor Yellow

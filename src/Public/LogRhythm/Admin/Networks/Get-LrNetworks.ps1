@@ -42,7 +42,7 @@ Function Get-LrNetworks {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
         [Parameter(Mandatory = $false, Position = 1)]
         [int]$PageValuesCount = 1000,
@@ -80,7 +80,7 @@ Function Get-LrNetworks {
 
     Begin {
         # Request Setup
-        $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -91,7 +91,7 @@ Function Get-LrNetworks {
         $Method = $HttpMethod.Get
 
         # Define LogRhythm Version
-        $LrVersion = $SrfPreferences.LRDeployment.Version
+        $LrVersion = $LrtConfig.LogRhythm.Version
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy        

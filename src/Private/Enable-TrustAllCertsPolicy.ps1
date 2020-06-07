@@ -22,7 +22,7 @@ add-type @"
     }
 }
 "@
-    if ($SrfPreferences.CertPolicyRequired) {
+    if ($LrtConfig.General.CertPolicyRequired) {
         Write-Verbose "[Enable-TrustAllCertsPolicy]: Cert Policy is not enabled. Enabling."
         try {
             [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy

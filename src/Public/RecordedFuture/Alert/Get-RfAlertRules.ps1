@@ -24,14 +24,14 @@ Function Get-RfAlertRules {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.RecordedFuture.APIKey,
+        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey,
 
         [string] $Freetext,
         [int] $Limit = 100
     )
 
     Begin {
-        $BaseUrl = $SrfPreferences.RecordedFuture.BaseUrl
+        $BaseUrl = $LrtConfig.RecordedFuture.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers

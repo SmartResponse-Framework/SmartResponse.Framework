@@ -73,7 +73,7 @@ Function Create-LrNetwork {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
         
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 1)]
         [string]$Entity,
@@ -118,7 +118,7 @@ Function Create-LrNetwork {
 
     Begin {
         # Request Setup
-        $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers

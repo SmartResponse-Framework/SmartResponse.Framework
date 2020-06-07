@@ -56,7 +56,7 @@ Function Get-LrSearchResults {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
         
         [Parameter(Mandatory = $false, Position = 1)]
         [string]$SearchGuid,
@@ -79,7 +79,7 @@ Function Get-LrSearchResults {
 
     Begin {
         # Request Setup
-        $BaseUrl = $SrfPreferences.LRDeployment.SearchApiUrl
+        $BaseUrl = $LrtConfig.LogRhythm.SearchBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers

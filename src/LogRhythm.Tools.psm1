@@ -3,19 +3,14 @@
 # Module Name: To make it easier to change the name of the module.
 # NOTE: These two variables should be set exactly the same as they appear in setup\New-LrtConfig!
 #       The name of the file may be $ModuleName.config.json, but the object is still called
-#       [SrfPreferences] - too many things reference that currently to be changed without extra testing.
 $ModuleName = "LogRhythm.Tools"
-$PreferencesFileName = $ModuleName + ".conf"
-
+$PreferencesFileName = $ModuleName + ".json"
 
 # [Namespaces]: Directories to include in this module
 $Namespaces = @(
     "Public",
     "Private"
 )
-
-# Includes Dir
-$IncludeDirPath = [System.IO.DirectoryInfo]::new((Join-Path -Path $PSScriptRoot -ChildPath "Include"))
 #endregion
 
 
@@ -29,11 +24,9 @@ $ConfigFileInfo = [System.IO.FileInfo]::new((Join-Path -Path $ConfigDirPath -Chi
 
 # Try to load the Config File from Local AppData, fallback to the copy in the install directory.
 if ($ConfigFileInfo.Exists) {
-    $SrfPreferences = Get-Content -Path $ConfigFileInfo.FullName -Raw | ConvertFrom-Json
+    $LrtConfig = Get-Content -Path $ConfigFileInfo.FullName -Raw | ConvertFrom-Json
 } else {
-    Write-Host "Warning: Unable to locate preferences directory - module will load copy from installation/include directory."
-    $SrfPreferences = Get-Content -Path `
-        (Join-Path -Path $IncludeDirPath.FullName -ChildPath $PreferencesFileName) -Raw | ConvertFrom-Json
+    Write-Error "Failed to load configuration file.  Run Setup.ps1 from a published release to create one."
 }
 #endregion
 
@@ -99,26 +92,17 @@ foreach ($include in $Includes.GetEnumerator()) {
 
 
 #region: Import API Keys                                                                 
-# LogRhythm API Key
-
-$KeyPath = Join-Path -Path $ConfigDirPath -ChildPath "LrApiToken.xml"
-
-try {
-    $SrfPreferences.LrDeployment.LrApiCredential = Import-Clixml -Path $KeyPath
-}
-catch [System.IO.FileNotFoundException] {
-    Write-Host "Warning: LrApiToken.xml not found in $ConfigDirPath" -ForegroundColor Yellow
-    Write-Host "LogRhythm cmdlets will need to specify the '-Credential' option in order to function." `
-    -ForegroundColor Yellow
-}
-catch [System.Security.Cryptography.CryptographicException] {
-    Write-Host "Unable to load key, insufficient permissions. Run the Setup script again to create a new credential file." `
-    -ForegroundColor Yellow
-}
-catch [System.Exception] {
-    Write-Host "Unexpected error while attempting to load LogRhythm API Credential." -ForegroundColor Yellow
-    Write-Host "LogRhythm cmdlets will need to specify the '-Credential' option in order to function." `
-    -ForegroundColor Yellow
+# Load API Keys from LrtConfig
+foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
+    if ($ConfigCategory.Value.HasKey) {
+        $KeyFileName = $ConfigCategory.Name + "ApiKey.xml"
+        $KeyFile = [FileInfo]::new($KeyFileName)
+        if ($KeyFile.Exists) {
+            $ConfigCategory.Value.ApiKey = Import-Clixml -Path $KeyFile.FullName
+        } else {
+            Write-Warning "Unable to load key: $KeyFileName from $($KeyFileName.Directory.FullName)"
+        }
+    }
 }
 #endregion
 
@@ -126,7 +110,7 @@ catch [System.Exception] {
 
 #region: Export Module Members                                                           
 Export-ModuleMember -Variable ModuleName
-Export-ModuleMember -Variable SrfPreferences
+Export-ModuleMember -Variable LrtConfig
 Export-ModuleMember -Variable LrCaseStatus
 Export-ModuleMember -Variable AssemblyList
 Export-ModuleMember -Variable HttpMethod

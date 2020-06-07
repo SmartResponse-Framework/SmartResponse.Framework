@@ -33,7 +33,7 @@ Function Get-LrAieDrilldown {
         **Note**
         The Credential parameter can be omitted if a [PSCredential]
         containing the LogRhythm Bearer Token is set to the preference
-        variable $SrfPreferences.LrDeployment.LrApiCredential.
+        variable $LrtConfig.LogRhythm.ApiKey.
     .PARAMETER AlarmId
         The Id of the LogRhythm Alarm.
     .PARAMETER RetryAttempts
@@ -72,7 +72,7 @@ Function Get-LrAieDrilldown {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
         [Parameter(
@@ -98,7 +98,7 @@ Function Get-LrAieDrilldown {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $SrfPreferences.LRDeployment.AieApiUrl
+        $BaseUrl = $LrtConfig.LogRhythm.AieBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2

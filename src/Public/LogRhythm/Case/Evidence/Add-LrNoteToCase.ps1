@@ -11,7 +11,7 @@ Function Add-LrNoteToCase {
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $SrfPreferences.LrDeployment.LrApiCredential
+        the preference variable $LrtConfig.LogRhythm.ApiKey
         with a valid Api Token.
     .PARAMETER Id
         The Id of the case for which to add a note.
@@ -33,7 +33,7 @@ Function Add-LrNoteToCase {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
         [Parameter(
@@ -56,7 +56,7 @@ Function Add-LrNoteToCase {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2

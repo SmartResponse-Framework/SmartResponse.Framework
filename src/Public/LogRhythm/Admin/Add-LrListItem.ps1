@@ -78,7 +78,7 @@ Function Add-LrListItem {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
         [Parameter(Mandatory=$true, Position=1)]
         [ValidateNotNull()]
@@ -97,7 +97,7 @@ Function Add-LrListItem {
     #region: BEGIN                                                                       
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $SrfPreferences.LRDeployment.AdminApiBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         Enable-TrustAllCertsPolicy

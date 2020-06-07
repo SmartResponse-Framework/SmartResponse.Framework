@@ -11,22 +11,7 @@ using namespace System.IO
 
     Generally this is used to aid in the development process, where installing the 
     module under a PSModulePath is cumbersome for continuous testing.
-    ----------------------------------------------------------------------------------
-    LogRhythm API Token
-    ----------------------------------------------------------------------------------
-    Save an encrypted form of your LogRhythm token under the .\tests directory by issuing
-    the following command.
 
-    PS> Get-Credential | Export-CliXml -Path .\tests\cred_LrApiToken.xml
-
-    If found, the New-TestBuild script will deserialize this file as a PSCredential 
-    object and use it to set the preference variable:
-
-    $SrfPreferences.LrDeployment.LrApiCredential
-    
-    The token is unloaded from memory once the PowerShell session under which it was 
-    imported has exited. The stored credential is encrypted and can only be loaded by
-    the user account that created it.
     ----------------------------------------------------------------------------------
     Microsoft Graph Token
     ----------------------------------------------------------------------------------
@@ -68,17 +53,11 @@ Param(
     [Parameter(Mandatory=$false, Position=0)]
     [switch] $RemoveOld,
 
-    [Parameter(Mandatory = $false, Position = 1)]
-    [string] $ApiTokenPath = "$PSScriptRoot\tests\cred_LrApiToken.xml",
-
     [Parameter(Mandatory = $false, Position = 2)]
     [switch] $PassThru,
 
     [Parameter(Mandatory = $false, Position = 3)]
-    [switch] $Dev,
-
-    [Parameter(Mandatory = $false, Position = 4)]
-    [string] $RfApiToken = "$PSScriptRoot\tests\cred_RFApiToken.xml"
+    [switch] $Dev
 )
 
 $StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -141,52 +120,6 @@ catch {
 Write-Host "[Success]" -ForegroundColor Green
 #endregion
 
-
-
-#region: LrApi Token Preference                                                          
-Write-Host "Import LrApi Token: " -NoNewline
-try { 
-    $Token = Import-Clixml -Path $ApiTokenPath
-    $SrfPreferences.LrDeployment.LrApiCredential = $Token
-    Write-Host "[Success]" -ForegroundColor Green
-}
-catch [CryptographicException] { 
-    Write-Host "[Access Denied]" -ForegroundColor Red
-    $PSCmdlet.ThrowTerminatingError($PSItem)
-}
-catch [FileNotFoundException] {
-    # this is normal for anyone not intending to use this feature
-    Write-Host "[Not Found]" -ForegroundColor Gray
-}
-catch [Exception] {
-    Write-Host "[Failed]" -ForegroundColor Red
-    $PSCmdlet.ThrowTerminatingError($PSItem)
-}
-Write-Host "===========================================" -ForegroundColor Gray
-#endregion
-
-
-#region: Recorded Future Api Token Preference                                                          
-Write-Host "Import Recorded Future Api Token: " -NoNewline
-try { 
-    $Token = Import-Clixml -Path $RfApiToken
-    $SrfPreferences.RecordedFuture.ApiKey = $Token
-    Write-Host "[Success]" -ForegroundColor Green
-}
-catch [CryptographicException] { 
-    Write-Host "[Access Denied]" -ForegroundColor Red
-    $PSCmdlet.ThrowTerminatingError($PSItem)
-}
-catch [FileNotFoundException] {
-    # this is normal for anyone not intending to use this feature
-    Write-Host "[Not Found]" -ForegroundColor Gray
-}
-catch [Exception] {
-    Write-Host "[Failed]" -ForegroundColor Red
-    $PSCmdlet.ThrowTerminatingError($PSItem)
-}
-Write-Host "===========================================" -ForegroundColor Gray
-#endregion
 
 # Build Info
 $StopWatch.Stop()

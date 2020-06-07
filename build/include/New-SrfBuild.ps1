@@ -66,7 +66,7 @@ function New-SrfBuild {
         [string] $Version = "0.0.0",
 
         [Parameter(Mandatory=$false,Position=1)]
-        [string] $ReleaseTag = "None",
+        [string] $ReleaseTag = "",
 
         [Parameter(Mandatory=$false, Position=2)]
         [switch] $ReturnPsm1Path
@@ -157,6 +157,11 @@ function New-SrfBuild {
 
 
     #region: Create Manifest                                                         
+    # If no release tag is specified, use the existing one
+    if ([string]::IsNullOrEmpty($ReleaseTag)) {
+        $ReleaseTag = $ModuleInfo.Module.ReleaseTag
+    }
+    
     # Create Manifest
     New-ModuleManifest -Path $BuildPsd1Path `
         -RootModule $ModuleInfo.Module.Psm1 `

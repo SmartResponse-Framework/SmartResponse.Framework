@@ -64,7 +64,7 @@ Function Publish-Lrt {
 
         - Copy to ReleaseBuild/install/
             ~/build/out/BuildId/LogRhythm.Tools.zip
-            ~/src/include/LogRhythm.Tools.conf
+            ~/src/include/LogRhythm.Tools.json
 
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
@@ -187,8 +187,8 @@ Function Publish-Lrt {
     Write-Verbose "Move build archive to ReleaseDir/install/"
     Copy-Item -Path $Build.Archive -Destination $ReleaseInstallDir.FullName
 
-    # LogRhythm.Tools.Conf
-    Write-Verbose "Move LogRhythm.Tools.conf to ReleaseDir/install/"
+    # LogRhythm.Tools.json
+    Write-Verbose "Move LogRhythm.Tools.json to ReleaseDir/install/"
     Copy-Item -Path $DefaultConfigPath -Destination $ReleaseInstallDir.FullName
     #endregion
 

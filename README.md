@@ -85,13 +85,13 @@ PS> cd LogRhythm.Tools
 Edit the preferences file (replace code with editor of your choice)
 
 ```powershell
-PS> code .\src\include\SrfPreferences.json
+PS> >>removed<<
 ```
 
 There are a couple of ways to go about this, but the easiest by far is to save a copy of your LR API Token in an encrypted credentials file:
 
 ```powershell
-PS> Get-Credential | Export-CliXml -Path .\tests\cred_LrApiToken.xml
+PS> Get-Credential | Export-CliXml -Path <removed>
 ```
 
 Now back to your terminal, build the module:
@@ -121,14 +121,14 @@ PS> Get-LrTags
 
 Currently there is a little configuration required for some cmdlets to function properly. This design is [open to discussion here](https://github.com/LogRhythm-Tools/LogRhythm.Tools/issues/1).
 
-The configuration file is located in the repository under `~/src/include/SrfPreferences.json`.
+The configuration file is located in the repository under >>removed<<.
 
 In order for the LogRhythm API commands to work, you will need to fill out the following section, save the file, and rebuild the module with the `New-TestBuild.ps1` script.
 
 ```json
-"LRDeployment": {
-    "AdminApiBaseUrl": "https://server.domain.com:8501/lr-admin-api",
-    "CaseApiBaseUrl": "https://server.domain.com:8501/lr-case-api",
+"LogRhythm": {
+    "AdminBaseUrl": "https://server.domain.com:8501/lr-admin-api",
+    "CaseBaseUrl": "https://server.domain.com:8501/lr-case-api",
     "ApiVaultId": "121212",
     "PlatformManager": "server.domain.com",
     "WebConsole": "logrhythm.domain.com",

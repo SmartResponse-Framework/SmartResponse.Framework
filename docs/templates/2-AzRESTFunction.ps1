@@ -28,7 +28,7 @@ Function Get-SrfAzRiskDetections {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNullOrEmpty()]
-        [object] $Token = $SrfPreferences.Resources.Graph.Token
+        [object] $Token = $LrtConfig.Resources.Graph.Token
     )
 
     Begin {

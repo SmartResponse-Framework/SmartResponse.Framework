@@ -11,7 +11,7 @@ Function Get-RfHashRiskList {
         PSCredential containing an API Token in the Password field.
         
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $SrfPreferences.VirusTotal.VtApiToken
+        the preference variable $LrtConfig.VirusTotal.VtApiToken
         with a valid Api Token.
     .PARAMETER List
         Name of the RecordedFuture Hash ThreatList
@@ -91,7 +91,7 @@ Function Get-RfHashRiskList {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.RecordedFuture.APIKey,
+        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey,
 
         [string] $List = "Large",
         [string] $Format = "csv/splunk",
@@ -105,7 +105,7 @@ Function Get-RfHashRiskList {
     )
 
     Begin {
-        $BaseUrl = $SrfPreferences.RecordedFuture.BaseUrl
+        $BaseUrl = $LrtConfig.RecordedFuture.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers

@@ -11,7 +11,7 @@ Function Add-LrPlaybookToCase {
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $SrfPreferences.LrDeployment.LrApiCredential
+        the preference variable $LrtConfig.LogRhythm.ApiKey
         with a valid Api Token.
     .PARAMETER Id
         Unique identifier for the case, either as an RFC 4122 formatted string,
@@ -35,7 +35,7 @@ Function Add-LrPlaybookToCase {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
         [Parameter(
@@ -61,7 +61,7 @@ Function Add-LrPlaybookToCase {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers

@@ -73,7 +73,7 @@ Function Get-Secret {
         [string] $AuthFilePath,
 
         [Parameter(Mandatory=$false, Position=3)]
-        [string] $SecretServerUrl = $SrfPreferences.SecretServerUrl
+        [string] $SecretServerUrl = $LrtConfig.SecretServer.BaseUrl
     )
     # Verbose Parameter
     $Verbose = $false
