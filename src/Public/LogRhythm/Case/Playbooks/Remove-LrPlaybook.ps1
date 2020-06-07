@@ -13,8 +13,8 @@ Function Remove-LrPlaybook {
         Note: You can bypass the need to provide a Credential by setting
         the preference variable $SrfPreferences.LrDeployment.LrApiToken
         with a valid Api Token.
-    .PARAMETER Name
-        Name or ID of an existing Playbook.
+    .PARAMETER Id
+        ID or Name of an existing Playbook.
     .OUTPUTS
         PSCustomObject representing the deleted playbook.
     .EXAMPLE
@@ -43,8 +43,8 @@ Function Remove-LrPlaybook {
         [ValidateNotNull()]
         [pscredential] $Credential = $SrfPreferences.LrDeployment.LrApiCredential,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
-        [string] $Name
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
+        [string] $Id
     )
 
 
@@ -74,19 +74,19 @@ Function Remove-LrPlaybook {
             Type                  =   $null
             Note                  =   $null
             ResponseUri           =   $null
-            Value              =   $Name
+            Value                 =   $Id
         }
 
         # Validate Playbook Ref
-        $Guid = Test-Guid -Guid $Name
+        $Guid = Test-Guid -Guid $Id
         if ($Guid -eq $true) {
-            $Pb = Get-LrPlaybookById -Id $Name
+            $Pb = Get-LrPlaybookById -Id $Id
             if ($Pb.Error -eq $true) {
                 return $Pb
             }
         } else {
-            $Pb = Get-LrPlaybooks -Name $Name -Credential $Credential -Exact
-            if (!$Pb.Name -eq $Name) {
+            $Pb = Get-LrPlaybooks -Name $Id -Credential $Credential -Exact
+            if (!$Pb.Name -eq $Id) {
                 $ErrorObject.Code = "404"
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "Null"
