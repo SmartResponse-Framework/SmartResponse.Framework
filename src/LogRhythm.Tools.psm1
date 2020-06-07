@@ -106,7 +106,7 @@ foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
             } else {
                 Write-Warning "Unable to load key: $KeyFileName from $($ConfigDirPath)"
             }
-            break
+            continue
         }
     }
 }
