@@ -166,7 +166,6 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
     # Write Config
     Write-Verbose "Writing Config to $($ConfigInfo.File.FullName)"
     $LrtConfig | ConvertTo-Json | Set-Content -Path $ConfigInfo.File.FullName
-
 }
 #endregion
 
@@ -177,8 +176,9 @@ return $LrtConfig
 #TODO: INSTALL
 #region: Install Options                                                                           
 # Location of install archive - in .\install\LogRhythm.Tools.zip
-$ArchivePath = Join-Path -Path $PSScriptRoot -ChildPath "install" | 
-    Join-Path -ChildPath $ModuleInfo.ArchiveFileName
+$ArchiveFileName = $ModuleInfo.Module.Name + "-" + $ModuleInfo.Module.Version + ".zip"
+$ArchivePath = "$PSScriptRoot\$ArchiveFileName"
+
 if (! (Test-Path $ArchivePath)) {
     $Err = "Could not locate install archive LogRhythm.Tools.zip. Replace the archive or re-download this release."
     $Err += "Alternatively, you can install manually using Install-Lrt -Path <path to archive>"

@@ -34,7 +34,7 @@ Function Get-InputCredential {
 
 
     # Determine the filename and save location for this key
-    $KeyFileName = $AppName + "ApiKey.xml"
+    $KeyFileName = $AppName + ".ApiKey.xml"
     $KeyPath = Join-Path -Path $ConfigDirPath -ChildPath $KeyFileName
     
     # Prompt to Overwrite existing key
