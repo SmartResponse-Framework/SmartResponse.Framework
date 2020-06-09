@@ -9,6 +9,7 @@
 PowerShell_transcript*
 
 build/out/*
+build/BuildInfo.json
 !build/out/readme.md
 release/*
 
