@@ -56,7 +56,7 @@ foreach ($Network in $Networks) {
         } Catch {
             Write-Host "$(Get-Timestamp) - Unable to update network for entry: $Network"
         }
-        start-sleep -seconds 1
     }
+    start-sleep -seconds .4
     Write-Host "----- End Csv Entry -----"
 }
