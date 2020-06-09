@@ -242,27 +242,33 @@ Function Get-LrNetworks {
                         $EIPMatch = $_
                     }
                 }
-                if ($EIP -and $BIP -and $Name) {
-                    if (($NameMatch -eq $EIPMatch) -and ($NameMatch -eq $BIPMatch)) {
-                        Write-Verbose "[$Me]: All matched criteria are identical.  Returning result."
-                        return $NameMatch
-                    }
-                } elseif ( $EIP -and $BIP) {
-                    if ($EIPMatch -eq $BIPMatch) {
-                        Write-Verbose "[$Me]: All matched criteria are identical.  Returning result."
-                        return $EIPMatch
-                    }
-                } elseif ( $EIP -and $Name) {
-                    if ($NameMatch -eq $EIPMatch) {
-                        Write-Verbose "[$Me]: All matched criteria are identical.  Returning result."
-                        return $NameMatch
-                    }
-                } elseif ( $BIP -and $Name) {
-                    if ($NameMatch -eq $BIPMatch) {
-                        Write-Verbose "[$Me]: All the individuals match are identical.  Returning result."
-                        return $NameMatch
-                    }
+            }
+            if ($EIP -and $BIP -and $Name) {
+                if (($NameMatch -eq $EIPMatch) -and ($NameMatch -eq $BIPMatch)) {
+                    Write-Verbose "[$Me]: All matched criteria are identical.  Returning result."
+                    return $NameMatch
                 }
+            } elseif ( $EIP -and $BIP) {
+                if ($EIPMatch -eq $BIPMatch) {
+                    Write-Verbose "[$Me]: All matched criteria are identical.  Returning result."
+                    return $EIPMatch
+                }
+            } elseif ( $EIP -and $Name) {
+                if ($NameMatch -eq $EIPMatch) {
+                    Write-Verbose "[$Me]: All matched criteria are identical.  Returning result."
+                    return $NameMatch
+                }
+            } elseif ( $BIP -and $Name) {
+                if ($NameMatch -eq $BIPMatch) {
+                    Write-Verbose "[$Me]: All the individuals match are identical.  Returning result."
+                    return $NameMatch
+                }
+            } elseif ($BIP) {
+                return $BIPMatch
+            } elseif ($EIP) {
+                return $EIPMatch
+            } elseif ($Name) {
+                return $NameMatch
             }
         } else {
             return $Response
