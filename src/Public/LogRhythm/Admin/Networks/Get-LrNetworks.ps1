@@ -220,12 +220,48 @@ Function Get-LrNetworks {
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
         if ($Exact) {
-            $Pattern = "^$Name$"
+            $Pattern1 = "^$Name$"
+            $Pattern2 = "^$BIP$"
+            $Pattern3 = "^$EIP$"
             $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
+                if ($Name) {
+                    if(($_.name -match $Pattern1) -or ($_.name -eq $Name)) {
+                        Write-Verbose "[$Me]: Exact list name match found."
+                        $NameMatch = $_
+                    }
+                }
+                if ($BIP) {
+                    if(($_.name -match $Pattern2) -or ($_.BIP -eq $BIP)) {
+                        Write-Verbose "[$Me]: Exact list Beginning IP match found."
+                        $BIPMatch = $_
+                    }
+                }
+                if ($EIP) {
+                    if(($_.name -match $Pattern3) -or ($_.EIP -eq $EIP)) {
+                        Write-Verbose "[$Me]: Exact list Ending IP match found."
+                        $EIPMatch = $_
+                    }
+                }
+                if ($EIP -and $BIP -and $Name) {
+                    if (($NameMatch -eq $EIPMatch) -and ($NameMatch -eq $BIPMatch)) {
+                        Write-Verbose "[$Me]: All matched criteria are identical.  Returning result."
+                        return $NameMatch
+                    }
+                } elseif ( $EIP -and $BIP) {
+                    if ($EIPMatch -eq $BIPMatch) {
+                        Write-Verbose "[$Me]: All matched criteria are identical.  Returning result."
+                        return $EIPMatch
+                    }
+                } elseif ( $EIP -and $Name) {
+                    if ($NameMatch -eq $EIPMatch) {
+                        Write-Verbose "[$Me]: All matched criteria are identical.  Returning result."
+                        return $NameMatch
+                    }
+                } elseif ( $BIP -and $Name) {
+                    if ($NameMatch -eq $BIPMatch) {
+                        Write-Verbose "[$Me]: All the individuals match are identical.  Returning result."
+                        return $NameMatch
+                    }
                 }
             }
         } else {
