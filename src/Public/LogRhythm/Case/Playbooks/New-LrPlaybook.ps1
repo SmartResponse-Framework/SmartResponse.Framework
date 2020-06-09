@@ -5,7 +5,7 @@ using namespace System.Collections.Generic
 Function New-LrPlaybook {
     <#
     .SYNOPSIS
-        Create a new playbook to a LogRhythm playbook.
+        Create a new playbook for LogRhythm case use.
     .DESCRIPTION
         The New-LrPlaybookToCase cmdlet adds a playbook to LogRhythm.
     .PARAMETER Credential
