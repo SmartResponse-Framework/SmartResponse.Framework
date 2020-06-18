@@ -120,10 +120,11 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
             # Use last field's response if this field is marked as FallThru
             if ($ConfigField.Value.FallThru) {
                 $Response = $FallThruValue
-            # Get user input
+            # Get / Clean User Input
             } else {
                 $Response = Read-Host -Prompt "  > $($ConfigField.Value.Prompt)"
                 $Response = $Response.Trim()
+                $Response = Remove-SpecialChars -Value $Response -Allow @("-",".")
             }
 
             # > Process Input
@@ -159,7 +160,7 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
 
     # Credential Prompts
     if ($ConfigCategory.Value.HasKey) {
-        $Result = Get-InputCredential -AppName $ConfigCategory.Name -AppDescr $ConfigCategory.Value.Name
+        $Result = Get-InputCredential -AppId $ConfigCategory.Name -AppName $ConfigCategory.Value.Name
     }
 
 
@@ -171,49 +172,42 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
 
 
 
-
-#TODO: INSTALL
 #region: Install Options                                                                           
-# Location of install archive - in .\install\LogRhythm.Tools.zip
-$ArchiveFileName = $ModuleInfo.Module.Name + "-" + $ModuleInfo.Module.Version + ".zip"
-$ArchivePath = "$PSScriptRoot\$ArchiveFileName"
-
+# Find Install Archive
+$ArchiveFileName = $ModuleInfo.Name + ".zip"
+$ArchivePath = "$PSScriptRoot\install\$ArchiveFileName"
 if (! (Test-Path $ArchivePath)) {
-    $Err = "Could not locate install archive LogRhythm.Tools.zip. Replace the archive or re-download this release."
-    $Err += "Alternatively, you can install manually using Install-Lrt -Path <path to archive>"
+    $Err = "Could not locate install archive $ArchivePath. Replace the archive or re-download this release. "
+    $Err += "Alternatively, you can install manually using: Install-Lrt -Path <path to archive>"
     throw [FileNotFoundException] $Err
 }
 
+
+# Start Install Options
 Write-Host "`n[ Install Options ]`n=========================================" -ForegroundColor Cyan
-
-$Scopes = @("User","System")
-
-$InstallScope = Confirm-YesNo -Message "Would you like to install the module now?"
-if ($In) {
-    
-}
-while ([string]::IsNullOrEmpty($InstallScope)) {
-    $Response = Read-Host -Prompt "  Install Scope (User|System|Skip)"
-    $Response = $Response.Trim()
-    # find matches
-    if ($Response -match $InstallScope_Regex) {
-        $InstallScope = $Response
-    }
-}
-
-$Response = Read-Host -Prompt "  >> Install Module? (y/n)"
-if (! ($Response -match $Yes_Regex)) {
-    Write-Host "`n <skipped install>" -ForegroundColor Yellow
+$ConfirmInstall = Confirm-YesNo -Message "Would you like to install the module now?"
+if (! $ConfirmInstall) {
+    Write-Host "Not installing. Finished."
     return
 }
 
 
+# Install Scope
+$Scopes = @("User","System")
+Write-Host "  > You can install this module for the current user (profile) or system-wide (program files)."
+$InstallScope = Confirm-Selection -Message "  > Install for user or system?" -Values $Scopes
+
+
 try {
-  Install-Lrt -Scope $InstallScope
+  $Installed = Install-Lrt -Scope $InstallScope.Value
 } catch {
     $PSCmdlet.ThrowTerminatingError($PSItem)
 }
-Write-Host "    - LogRhythm.Tools module successfully installed for scope $InstallScope." -ForegroundColor Green
 
-Write-Host "`n`nTo get started: `n> Import-Module LogRhythm.Tools"
+if ($Installed) {
+    Write-Host "<LogRhythm.Tools module successfully installed for scope $InstallScope.>" -ForegroundColor Green
+    Write-Host "`nTo get started: `n> Import-Module LogRhythm.Tools"
+} else {
+    Write-Host "  <Install-Lrt returned a failed status for LogRhythm.Tools installation." -ForegroundColor Red
+}
 #endregion

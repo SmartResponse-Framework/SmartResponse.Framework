@@ -37,16 +37,10 @@ Function Confirm-YesNo {
         [string] $ForegroundColor = 'White'
     )
 
-    # Setup Result object
-    $Result = [PSCustomObject]@{
-        Value = $null
-        Valid = $false
-        Changed = $false
-    }
 
     $Message = $Message + " : "
     # Set Hint + Padding
-    $Hint = "Hint: (yes|no)"
+    $Hint = "  Hint: (yes|no)"
 
 
     while (! $Result.Valid) {

@@ -69,13 +69,13 @@ function Install-Lrt {
         # Check admin privileges
         $CurrentUser = [WindowsIdentity]::GetCurrent()
         if (! ($CurrentUser.IsInRole([WindowsBuiltInRole]::Administrator))) {
-            Write-Host "Install script needs to be run as Administrator to install for system scope." -ForegroundColor Red
+            Write-Host "`nInstall script needs to be run as Administrator to install for system scope." -ForegroundColor Red
             return
         }
 
         # Ensure path exists - we won't attempt to create it!
         if (! $SystemScopePath.Exists) {
-            Write-Host "Failed to locate system module directory $SystemScopePath." -ForegroundColor Red
+            Write-Host "System module directory $SystemScopePath is missing, cannot proceed." -ForegroundColor Red
         }
 
         # Add to PSModulePath if needed (weird if its missing though!)
@@ -117,13 +117,31 @@ function Install-Lrt {
 
 
 
-    #region: Action: Uninstall / Install                                                 
     # If we didn't end up with an InstallPath for some reason, fail
     if ([string]::IsNullOrEmpty($InstallPath)) {
         Write-Host "Unable to determine module install location for $Scope." -ForegroundColor Red
         return
     }
 
+
+
+    #region: Action: Uninstall / Install                                                 
+    # Get current install state
+    $InstallInfo = Get-LrtInstallInfo
+    if ($InstallInfo.($Scope).Installed) {
+        $InstallerVersion = $ModuleInfo.Module.Version
+        $InstalledVersion = $InstallInfo.($Scope).HighestVer
+        if ($InstalledVersion -gt $InstallerVersion) {
+            Write-Host "`n    Currently installed version ($($InstalledVersion)) is greater than version to be installed ($($InstallerVersion))" `
+                -ForegroundColor Red
+            $Continue = Confirm-YesNo -Message "    Proceed?" -ForegroundColor Yellow
+
+            if (! $Continue) {
+                Write-Host "Aborting installation."
+                return
+            }
+        }
+    }
 
     # Remove Old Module if present
     if (Test-Path $InstallPath) {
@@ -136,11 +154,12 @@ function Install-Lrt {
             $PSCmdlet.ThrowTerminatingError($PSItem)
         }
     }
-    
+
 
     Write-Verbose "Installing to $InstallPath"
     try { Expand-Archive -Path $Path.FullName -DestinationPath $InstallPath }
     catch { $PSCmdlet.ThrowTerminatingError($PSItem) }
 
+    return $true
     #endregion
 }
