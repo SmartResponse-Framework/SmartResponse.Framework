@@ -39,7 +39,7 @@ Function Get-InputYesNo {
     )
 
     # Validation Regexes
-    $YesNo_Regex = [regex]::new("^[Yy]([Ee][Ss])?|[Nn][Oo]?$")
+    $YesNo_Regex = [regex]::new("^(([Yy]([Ee][Ss])?)|([Nn][Oo]?))$")
     $Yes_Regex = "^[Yy]([Ee][sS])?$"
     $No_Regex = "^[Nn]([Oo])?$"
 
@@ -49,6 +49,8 @@ Function Get-InputYesNo {
         Value = $null
         Valid = $false
         Changed = $false
+        Yes = $null
+        No = $null
     }
 
 

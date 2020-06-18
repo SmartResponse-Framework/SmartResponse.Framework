@@ -3,7 +3,7 @@ Function Get-InputApiUrl {
     .SYNOPSIS 
         Determine if a user entered a valid IP Address
     .PARAMETER Value
-        String to evaluate as an IP Address
+        String to evaluate as an IP Address or hostname.
     .EXAMPLE
         PS C:\> Get-InputIpAddress -Value 1.2.3.4
 

@@ -30,8 +30,8 @@
     
             "DataIndexerIP": {
                 "Prompt": "Data Indexer IP Address",
-                "Hint": "IP (x.x.x.x)",
-                "InputCmd": "Get-InputIpAddress",
+                "Hint": "Hostname or IP (x.x.x.x)",
+                "InputCmd": "Get-InputApiUrl",
                 "FallThru": false
             },
     

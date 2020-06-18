@@ -1,5 +1,5 @@
 using namespace System
-Function Confirm-Selection {
+Function Confirm-Input {
     <#
     .SYNOPSIS 
         Prompt the user to make a selection from values within a list.
@@ -11,16 +11,24 @@ Function Confirm-Selection {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, Position=0)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
         [string] $Message,
 
+
         [Parameter(Mandatory = $true, Position = 1)]
         [ValidateNotNull()]
-        [string[]] $Values
-    )
+        [regex] $Pattern,
 
-    #TODO: [Confirm-Selection]: Modify so that regeular expressions are used with case-insensitive options.
+
+        [Parameter(Mandatory = $true, Position = 2)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Hint,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [string] $OldValue
+    )
 
     # Setup Result object
     $Result = [PSCustomObject]@{
@@ -29,28 +37,18 @@ Function Confirm-Selection {
         Changed = $false
     }
 
-
-
-    # Build Hint for Options
-    $Hint = "Hint: ("
-    $x = 0
-    foreach ($item in $Values) {
-        if ($x -gt 0) { $Hint += "|" }
-        $Hint += $item
-        $x++
-    }
-    $Hint += ")"
-
-
-    
     while (! $Result.Valid) {
         $Response = Read-Host -Prompt $Message
         $Response = $Response.Trim()
         
-        if ($Values.Contains($Response)) {
-            $Result.Value = $Response
+        if($Response -match $Pattern) {
             $Result.Valid = $true
+            $Result.Value = $Value
+            if ($Response -ne $OldValue) {
+                $Result.Changed = $true
+            }
         }
+
         Write-Host $Hint -ForegroundColor Magenta
     }
 

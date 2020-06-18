@@ -1,10 +1,14 @@
 using namespace System
 Function Get-InputCredential {
     <#
-    .SYNOPSIS 
-        Prompt the user to enter a credential and save it to AppDataLocal\LogRhythm.Tools
-    .PARAMETER Value
-        String to evaluate as an IP Address
+    .SYNOPSIS
+        Gets the necessary information to save an API Credential to the configuration directory of
+        LogRhythm.Tools.
+        Prompts to overwrite if the credential exists.
+    .PARAMETER AppId
+        The object identifier for an application from Lrt.Config.Input (example: "LogRhythmEcho")
+    .PARAMETER AppDescr
+        The value of the "Name" field of an application from Lrt.Config.Input (example: "LogRhythm Echo")
     .EXAMPLE
         PS C:\> 
     #>
@@ -13,12 +17,12 @@ Function Get-InputCredential {
     Param(
         [Parameter(Mandatory=$true,Position=0)]
         [ValidateNotNullOrEmpty()]
-        [string] $AppName,
+        [string] $AppId,
 
 
         [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNullOrEmpty()]
-        [string] $AppDescr
+        [string] $AppName
     )
 
     # LogRhythm.ApiKey.key
@@ -34,7 +38,7 @@ Function Get-InputCredential {
 
 
     # Determine the filename and save location for this key
-    $KeyFileName = $AppName + ".ApiKey.xml"
+    $KeyFileName = $AppId + ".ApiKey.xml"
     $KeyPath = Join-Path -Path $ConfigDirPath -ChildPath $KeyFileName
     
     # Prompt to Overwrite existing key
@@ -44,18 +48,18 @@ Function Get-InputCredential {
             return $null
         }
     }
-    
+
 
     # Prompt for Key
     $Key = ""
     while ($Key.Length -lt 10) {
-        $Key = Read-Host -AsSecureString -Prompt "  > API Key for $AppDescr"
+        $Key = Read-Host -AsSecureString -Prompt "  > API Key for $AppName"
         if ($Key.Length -lt 10) {
             # Hint
             Write-Host "    Key less than 10 characters." -ForegroundColor Magenta
         }
     }
 
-    $_cred = [PSCredential]::new($AppName, $Key)
+    $_cred = [PSCredential]::new($AppId, $Key)
     Export-Clixml -Path $ConfigDirPath\$KeyFileName -InputObject $_cred
 }

@@ -2,9 +2,9 @@ using namespace System
 Function Confirm-YesNo {
     <#
     .SYNOPSIS 
-        Prompt the user to enter a credential and save it to AppDataLocal\LogRhythm.Tools
-    .PARAMETER Value
-        String to evaluate as an IP Address
+        Prompt the user for a yes/no answer.
+    .PARAMETER Message
+        Displayed to the user as
     .EXAMPLE
         PS C:\> 
     #>
@@ -37,10 +37,16 @@ Function Confirm-YesNo {
         [string] $ForegroundColor = 'White'
     )
 
+    # Setup Result object
+    $Result = [PSCustomObject]@{
+        Value = $null
+        Valid = $false
+        Changed = $false
+    }
 
     $Message = $Message + " : "
     # Set Hint + Padding
-    $Hint = "Hint: yes or no"
+    $Hint = "Hint: (yes|no)"
 
 
     while (! $Result.Valid) {

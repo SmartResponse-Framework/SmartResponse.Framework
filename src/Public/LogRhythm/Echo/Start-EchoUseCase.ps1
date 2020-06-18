@@ -16,7 +16,7 @@ Function Start-EchoUseCase {
     .EXAMPLE
         PS C:\> Get-LrList -Identity "edea82e3-8d0b-4370-86f0-d96bcd4b6c19" -Credential $MyKey
     .NOTES
-        LogRhythm-API        
+        LogRhythm-API
     .LINK
         https://github.com/SmartResponse-Framework/SmartResponse.Framework
     #>
@@ -31,7 +31,7 @@ Function Start-EchoUseCase {
         [ValidateNotNull()]
         [int] $Id
     )
-                                                                    
+
     Begin {
         # Request Setup
         $Me = $MyInvocation.MyCommand.Name
@@ -49,7 +49,6 @@ Function Start-EchoUseCase {
     }
 
     Process {      
-
         if ((!$Id) -and ($Title)) {
             $Id = $(Get-EchoUseCases -Title $Title -ExactName | Select-Object -ExpandProperty Id)
         } elseif((!$Id) -and (!$Title)) {

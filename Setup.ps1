@@ -130,10 +130,10 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
             $OldValue = $LrtConfig.($ConfigCategory.Name).($ConfigField.Name)
             Write-Verbose "LrtConfig.$($ConfigCategory.Name).$($ConfigField.Name)"
             $cmd = $ConfigField.Value.InputCmd +`
-                " -Value " + $Response + `
-                " -OldValue $OldValue"
+                " -Value `"" + $Response + "`"" + `
+                " -OldValue `"" + $OldValue + "`""
             Write-Verbose "Command: $cmd"
-                
+
             $Result = Invoke-Expression $cmd
 
             # Input OK - Update configuration object
@@ -170,7 +170,6 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
 #endregion
 
 
-return $LrtConfig
 
 
 #TODO: INSTALL
@@ -185,7 +184,14 @@ if (! (Test-Path $ArchivePath)) {
     throw [FileNotFoundException] $Err
 }
 
-Write-Host "`n[ Install Options ] ============================" -ForegroundColor Cyan
+Write-Host "`n[ Install Options ]`n=========================================" -ForegroundColor Cyan
+
+$Scopes = @("User","System")
+
+$InstallScope = Confirm-YesNo -Message "Would you like to install the module now?"
+if ($In) {
+    
+}
 while ([string]::IsNullOrEmpty($InstallScope)) {
     $Response = Read-Host -Prompt "  Install Scope (User|System|Skip)"
     $Response = $Response.Trim()
