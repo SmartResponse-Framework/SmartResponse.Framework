@@ -1,10 +1,10 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Show-RfUrlRiskLists {
+Function Get-RfHashRiskLists {
     <#
     .SYNOPSIS
-        Show the available RecordedFuture Url threat lists.
+        Retrieve the available RecordedFuture Hash threat lists.
     .DESCRIPTION
         
     .PARAMETER Token
@@ -63,8 +63,8 @@ Function Show-RfUrlRiskLists {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "url/riskrules"
-        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+        $RequestUrl = $BaseUrl + "hash/riskrules"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers

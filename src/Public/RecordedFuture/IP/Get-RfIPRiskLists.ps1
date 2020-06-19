@@ -1,10 +1,10 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Show-RfIPRiskLists {
+Function Get-RfIPRiskLists {
     <#
     .SYNOPSIS
-        Show the available RecordedFuture IP threat lists.
+        Retrieve the available RecordedFuture IP threat lists.
     .DESCRIPTION
         
     .PARAMETER Token
@@ -64,7 +64,7 @@ Function Show-RfIPRiskLists {
 
         # Define Search URL
         $RequestUrl = $BaseUrl + "ip/riskrules"
-        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers

@@ -1,10 +1,10 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Show-RfVulnerabilityRiskLists {
+Function Get-RfUrlRiskLists {
     <#
     .SYNOPSIS
-        Show the available RecordedFuture Vulnerability threat lists.
+        Show the available RecordedFuture Url threat lists.
     .DESCRIPTION
         
     .PARAMETER Token
@@ -46,6 +46,9 @@ Function Show-RfVulnerabilityRiskLists {
 
         # Request Setup
         $Method = $HttpMethod.Get
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
     }
 
     Process {
@@ -60,8 +63,8 @@ Function Show-RfVulnerabilityRiskLists {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "vulnerability/riskrules"
-        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+        $RequestUrl = $BaseUrl + "url/riskrules"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers

@@ -89,10 +89,10 @@ Function Invoke-RfSync {
 
     # Sync Items
     Try {
-        $RfHashRiskLists = Show-RfHashRiskLists
+        $RfHashRiskLists = Get-RfHashRiskLists
         $RfHashRiskDescriptions = $RfHashRiskLists | Select-Object -ExpandProperty description
     } Catch {
-        Write-Host "$(Get-TimeStamp) - Unable to retrieve Recorded Future Hash Threat Lists.  See Show-RfHashRiskLists"
+        Write-Host "$(Get-TimeStamp) - Unable to retrieve Recorded Future Hash Threat Lists.  See Get-RfHashRiskLists"
     }
     Sync-LrListItems -name $RfHashConfThreatList -ItemType "generalvalue" -UseContext "message" -Value $RfHashRiskDescriptions
 
@@ -136,10 +136,10 @@ Function Invoke-RfSync {
 
     # Sync Items
     Try {
-        $RfUrlRiskLists = Show-RfUrlRiskLists
+        $RfUrlRiskLists = Get-RfUrlRiskLists
         $RfUrlRiskDescriptions = $RfUrlRiskLists | Select-Object -ExpandProperty description
     } Catch {
-        Write-Host "$(Get-TimeStamp) - Unable to retrieve Recorded Future Url Threat Lists.  See Show-RfUrlRiskLists"
+        Write-Host "$(Get-TimeStamp) - Unable to retrieve Recorded Future Url Threat Lists.  See Get-RfUrlRiskLists"
     }
     Sync-LrListItems -name $RfUrlConfThreatList -ItemType "generalvalue" -UseContext "message" -Value $RfUrlRiskDescriptions
 
@@ -183,10 +183,10 @@ Function Invoke-RfSync {
 
     # Sync Items
     Try {
-        $RfDomainRiskLists = Show-RfDomainRiskLists
+        $RfDomainRiskLists = Get-RfDomainRiskLists
         $RfDomainRiskDescriptions = $RfDomainRiskLists | Select-Object -ExpandProperty description
     } Catch {
-        Write-Host "$(Get-TimeStamp) - Unable to retrieve Recorded Future Domain Threat Lists.  See Show-RfDomainRiskLists"
+        Write-Host "$(Get-TimeStamp) - Unable to retrieve Recorded Future Domain Threat Lists.  See Get-RfDomainRiskLists"
     }
     Sync-LrListItems -name $RfDomainConfThreatList -ItemType "generalvalue" -UseContext "message" -Value $RfDomainRiskDescriptions
 
@@ -230,10 +230,10 @@ Function Invoke-RfSync {
 
     # Sync Items
     Try {
-        $RfIPRiskLists = Show-RfIPRiskLists
+        $RfIPRiskLists = Get-RfIPRiskLists
         $RfIPRiskDescriptions = $RfIPRiskLists | Select-Object -ExpandProperty description
     } Catch {
-        Write-Host "$(Get-TimeStamp) - Unable to retrieve Recorded Future IP Threat Lists.  See Show-RfIPRiskLists"
+        Write-Host "$(Get-TimeStamp) - Unable to retrieve Recorded Future IP Threat Lists.  See Get-RfIPRiskLists"
     }
     Sync-LrListItems -name $RfIPConfThreatList -ItemType "generalvalue" -UseContext "message" -Value $RfIPRiskDescriptions
 
@@ -276,10 +276,10 @@ Function Invoke-RfSync {
 
     # Sync Items
     Try {
-        $RfVulnerabilityRiskLists = Show-RfVulnerabilityRiskLists
+        $RfVulnerabilityRiskLists = Get-RfVulnerabilityRiskLists
         $RfVulnerabilityRiskDescriptions = $RfVulnerabilityRiskLists | Select-Object -ExpandProperty description
     } Catch {
-        Write-Host "$(Get-TimeStamp) - Unable to retrieve Recorded Future Vulnerability Threat Lists.  See Show-RfVulnerabilityRiskLists"
+        Write-Host "$(Get-TimeStamp) - Unable to retrieve Recorded Future Vulnerability Threat Lists.  See Get-RfVulnerabilityRiskLists"
     }
     Sync-LrListItems -name $RfVulnerabilityConfThreatList -ItemType "generalvalue" -UseContext "message" -Value $RfVulnerabilityRiskDescriptions
 
