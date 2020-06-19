@@ -1,7 +1,9 @@
 using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
+using namespace System.Security.Principal
 
+# Maybe place a copy of this in the configuration directory? Create cmdlets for managing the config??
 
 <#
 .SYNOPSIS
@@ -38,6 +40,7 @@ using namespace System.Collections.Generic
 [CmdletBinding()]
 Param( )
 
+#TODO: [Setup] Need a convenient way to call setup again once the module is already installed.
 
 #region: Import Commands                                                                           
 # Import Lrt.Installer
@@ -205,9 +208,9 @@ try {
 }
 
 if ($Installed) {
-    Write-Host "<LogRhythm.Tools module successfully installed for scope $InstallScope.>" -ForegroundColor Green
-    Write-Host "`nTo get started: `n> Import-Module LogRhythm.Tools"
+    Write-Host "`n<LogRhythm.Tools module successfully installed for scope $($InstallScope.Value).>" -ForegroundColor Green
+    Write-Host "`n-----------------------`nTo get started: `n> Import-Module LogRhythm.Tools"
 } else {
-    Write-Host "  <Install-Lrt returned a failed status for LogRhythm.Tools installation." -ForegroundColor Red
+    Write-Host "  <Setup failed to install LogRhythm.Tools>" -ForegroundColor Red
 }
 #endregion

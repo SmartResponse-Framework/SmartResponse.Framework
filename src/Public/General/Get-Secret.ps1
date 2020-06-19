@@ -1,6 +1,6 @@
 using namespace System
 using namespace System.Net
-using namespace System.Collections.Generic
+
 Function Get-Secret {
     <#
     .SYNOPSIS
@@ -8,15 +8,10 @@ Function Get-Secret {
     .DESCRIPTION
         Uses Thycotic Secret Server SOAP Api to obtain the requested Secret, by its ID
         and returns them to the user as a PSCredential.
-
-        This module has an exported list variable called $SecretList, which contains a 
-        mapping of Service account names to SecretIds for convenience.  You can view 
-        this list by typing $SecretList in a terminal that has LogRhythm.Tools 
-        imported.
     .PARAMETER SecretId
         ID correcsponding to a stored credential in Secret Server. 
         You can find this by examining the URL of a SecretView page. Example:
-        https://secretserver.domain.com/SecretView.aspx?secretid=79884
+        https://secretserver.domain.com/SecretView.aspx?secretid=12345
     .PARAMETER Credential
         (Optional) [PSCredential] object to authenticate to Secret Server. By default, 
         the caller's account (DefaultCredential) will be used for authentication.
@@ -27,7 +22,7 @@ Function Get-Secret {
 
             PS C:\> Get-Credential | Export-CliXml -Path \path\to\credfile.xml
     .INPUTS
-        A [PSCredential] object can be provided to Get-Secret through the pipeline.
+        [int] => SecretId
     .OUTPUTS
         A [PSCredential] object for the requested secret.
     .NOTES
@@ -37,36 +32,25 @@ Function Get-Secret {
         be thrown, some of which may be non-terminating for upstream scripts. Try/Catch
         will ensure you know if there was any issue or not.
     .EXAMPLE
-        Get-Secret -SecretId 81823
+        PS C:\> $SvcAccount = Get-Secret -SecretId 12345
         ---
-        Description: Gets [PSCredential] for Secret Id 81823 with your default crednetials.
+        Description: Gets [PSCredential] for Secret Id 12345 with your default crednetials.
     .EXAMPLE
-        PS C:\> $SvcAccount = Get-Secret -SecretId $SecretList.SvcSecCAMgmt
+        PS C:\> $MyCred = 56335 | Get-Secret -Credential $SvcAccount
         ---
-        Description: Retrieves the secret for AD account SvcSecADMgmt from Secret 
-        Server and stores it in variable $Credential. The user's own credentials are 
-        used for authentication to SecretServer.
-    .EXAMPLE
-        PS C:\> $MyCred = ($SvcAccount | Get-Secret -SecretId 12345)
-        ---
-        Description: Authenticate to SecretServer using credentials saved in $SvcAccount to
-        retrieve the Secret Id 12345 into $MyCred
-    .EXAMPLE
-        PS C:\> $Token = $Get-Secret -SecretId $SecretList.WDATPAuthKey -AuthFilePath c:\tmp\mycred.xml
-        ---
-        Description: Credentials for SecretServer are deserialized from mycred.xml file and
-        used to authenticate to Secret Server. The WDATPAuthKey credential is stored in $Token.
+        Description: Authenticate to SecretServer using credentials in $SvcAccount to
+        retrieve the Secret Id 56335 into $MyCred
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
-    #region: Parameters
+    #region: Parameters                                                                  
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true,Position=0)]
+        [Parameter( Mandatory = $true, ValueFromPipeline = $true, Position=0)]
         [ValidateNotNullOrEmpty()]
-        [string] $SecretId,
+        [int] $SecretId,
 
-        [Parameter(Mandatory=$false,Position=1, ValueFromPipeline=$true)]
+        [Parameter(Mandatory=$false,Position=1)]
         [pscredential] $Credential,
 
         [Parameter(Mandatory=$false, Position=2)]
@@ -75,71 +59,63 @@ Function Get-Secret {
         [Parameter(Mandatory=$false, Position=3)]
         [string] $SecretServerUrl = $LrtConfig.SecretServer.BaseUrl
     )
-    # Verbose Parameter
-    $Verbose = $false
-    if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-        $Verbose = $true
-    }
-    # Trust all certs, use Tls1.2
-    Enable-TrustAllCertsPolicy
-    # Set Return Object
-    $ReturnCredential = $null
     #endregion
 
 
+    Begin {
+        # Enable self-signed certificates and Tls1.2
+        Enable-TrustAllCertsPolicy
 
-    #region: SecretServer Credentials
-    # Load Credential File if provided.
-    if ($AuthFilePath) {
-        if (Test-Path $AuthFilePath) {
-            Write-Verbose "Loading SecretServer credential from: $AuthFilePath"
-            try {
-                $Credential = Import-CliXml -Path $AuthFilePath
+
+        # Load Credential File if provided.
+        if ($AuthFilePath) {
+            if (Test-Path $AuthFilePath) {
+                Write-Verbose "[$Me] Loading SecretServer credential from: $AuthFilePath"
+                try {
+                    $Credential = Import-CliXml -Path $AuthFilePath
+                } catch { $PSCmdlet.ThrowTerminatingError($PSItem) }
+            } else {
+                throw [exception] "Unable to find credential file at: $AuthFilePath"
             }
-            catch {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
+        }
+
+
+        # Create WebServiceProxy for SecretServer Soap API
+        try {
+            if ($Credential) {
+                Write-Verbose "[$Me] SecretServer authenticating with credential $($Credential.UserName)"
+                $SecretServerService = New-WebServiceProxy -uri $SecretServerUrl -Credential $Credential -ErrorAction Stop
+            } else {
+                $SecretServerService = New-WebServiceProxy -uri $SecretServerUrl -UseDefaultCredential -ErrorAction Stop
             }
-        } else {
-            throw [exception] "Unable to find credential file at: $AuthFilePath"
+        }
+        catch [Exception] {
+            $PSCmdlet.ThrowTerminatingError($PSItem)
         }
     }
-    #endregion
 
 
 
-    #region: Authenticate to Secret Server
-    try {
-        if ($Credential) {
-            Write-Verbose "SecretServer authentication $($Credential.UserName)"
-            $SecretServerService = New-WebServiceProxy -uri $SecretServerUrl -Credential $Credential -ErrorAction Stop
-        } else {
-            $SecretServerService = New-WebServiceProxy -uri $SecretServerUrl -UseDefaultCredential -ErrorAction Stop
+    Process {
+        # Get Secret
+        try {
+            $RequestResult = $SecretServerService.GetSecret($SecretId, $false, $null)
+        } catch [Exception] {
+            $PSCmdlet.ThrowTerminatingError($PSItem)
         }
+        
+        # Convert to PSCredential object.
+        if ($RequestResult.Errors.length -gt 0) {
+            throw [WebException]::new($RequestResult.Errors)
+        } else {
+            $SecurePass = ConvertTo-SecureString -String  $RequestResult.Secret.Items[2].Value -AsPlainText -Force
+            $ReturnCredential = [pscredential]::new($RequestResult.Secret.Items[1].Value, $SecurePass)
+        }
+
+        return $ReturnCredential
     }
-    catch [Exception] {
-        $PSCmdlet.ThrowTerminatingError($PSItem)
-    }
-    #endregion
 
 
 
-    #region: Secret API Request
-    try {
-        $RequestResult = $SecretServerService.GetSecret($SecretId, $false, $null)
-    }
-    catch [Exception] {
-        $PSCmdlet.ThrowTerminatingError($PSItem)
-    }
-    
-    if ($RequestResult.Errors.length -gt 0) {
-        throw [WebException]::new($RequestResult.Errors)
-    } else {
-        $ReturnCredential = New-Object System.Management.Automation.PSCredential `
-        -ArgumentList @(`
-            $RequestResult.Secret.Items[1].Value, `
-            (ConvertTo-SecureString -String  $RequestResult.Secret.Items[2].Value -AsPlainText -Force))
-    }
-    #endregion
-
-    return $ReturnCredential
+    End { }
 }

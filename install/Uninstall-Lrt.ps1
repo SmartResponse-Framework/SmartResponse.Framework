@@ -46,23 +46,22 @@ function UnInstall-Lrt {
         [string] $Scope
     )
 
-    #TODO: [Uninstall-Lrt] Testing Required
-    # Simply the current design
-    # For each found, prompt the user if they want to remove it.
-    # Check for user first, and complete that.
-    # If there is a system scope and they want it removed, check for admin 
-
     #region: Path Setup                                                                  
     $ModuleInfo = Get-ModuleInfo
-
-    $SystemDir = Get-LrtInstallPath -Scope System
-    $SystemInstallPath = Join-Path -Path $SystemDir -ChildPath $ModuleInfo.Module.Name
-    $SystemInstallDir = [DirectoryInfo]::new($SystemInstallPath)
-
-
+    # USER SCOPE
+    # C:\Users\USERNAME\Documents\WindowsPowerShell\Modules
     $UserDir = Get-LrtInstallPath -Scope User
+    # C:\Users\USERNAME\Documents\WindowsPowerShell\Modules\LogRhythm.Tools
     $UserInstallPath = Join-Path -Path $UserDir -ChildPath $ModuleInfo.Module.Name
     $UserInstallDir = [DirectoryInfo]::new($UserInstallPath)    
+
+
+    # SYSTEM SCOPE
+    # C:\Program Files\WindowsPowerShell\Modules
+    $SystemDir = Get-LrtInstallPath -Scope System
+    # C:\Program Files\WindowsPowerShell\Modules\LogRhythm.Tools
+    $SystemInstallPath = Join-Path -Path $SystemDir -ChildPath $ModuleInfo.Module.Name
+    $SystemInstallDir = [DirectoryInfo]::new($SystemInstallPath)
     #endregion
 
 

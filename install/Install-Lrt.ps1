@@ -1,7 +1,7 @@
 using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
-using namespace Security.Principal
+using namespace System.Security.Principal
 
 function Install-Lrt {
     <#
@@ -67,10 +67,9 @@ function Install-Lrt {
         $SystemScopePath = Get-LrtInstallPath -Scope $Scope
         
         # Check admin privileges
-        $CurrentUser = [WindowsIdentity]::GetCurrent()
-        if (! ($CurrentUser.IsInRole([WindowsBuiltInRole]::Administrator))) {
-            Write-Host "`nInstall script needs to be run as Administrator to install for system scope." -ForegroundColor Red
-            return
+        if (! (([WindowsPrincipal][WindowsIdentity]::GetCurrent()).IsInRole([WindowsBuiltInRole]::Administrator))) {
+            Write-Host "`n  ERROR: Seutp needs to be run with Administrator privileges to install in system scope." -ForegroundColor Red
+            return $false            
         }
 
         # Ensure path exists - we won't attempt to create it!
@@ -120,45 +119,59 @@ function Install-Lrt {
     # If we didn't end up with an InstallPath for some reason, fail
     if ([string]::IsNullOrEmpty($InstallPath)) {
         Write-Host "Unable to determine module install location for $Scope." -ForegroundColor Red
-        return
+        return $false
     }
 
 
 
     #region: Action: Uninstall / Install                                                 
     # Get current install state
-    $InstallInfo = Get-LrtInstallInfo
-    if ($InstallInfo.($Scope).Installed) {
-        $InstallerVersion = $ModuleInfo.Module.Version
-        $InstalledVersion = $InstallInfo.($Scope).HighestVer
-        if ($InstalledVersion -gt $InstallerVersion) {
-            Write-Host "`n    Currently installed version ($($InstalledVersion)) is greater than version to be installed ($($InstallerVersion))" `
-                -ForegroundColor Red
-            $Continue = Confirm-YesNo -Message "    Proceed?" -ForegroundColor Yellow
+    $InstallInfo = (Get-LrtInstallInfo).($Scope)
 
+    # Various sanity checks in case the module is already installed.
+    if ($InstallInfo.Installed) {
+        $InstallerVersion = $ModuleInfo.Module.Version
+        $InstalledVersion = $InstallInfo.HighestVer
+
+        # Higher version detected
+        if ($InstalledVersion -gt $InstallerVersion) {
+            Write-Host "`n    Warning: Currently installed version ($($InstalledVersion)) " -NoNewline -ForegroundColor Yellow
+            Write-Host "is greater than this one ($($InstallerVersion))" -ForegroundColor Yellow
+            $Continue = Confirm-YesNo -Message "    Proceed?" -ForegroundColor Yellow
             if (! $Continue) {
                 Write-Host "Aborting installation."
-                return
+                return $false
             }
         }
+
+
+        # If there is an installed version that matches this version, remove it.
+        if ($InstallInfo.Versions.Contains($InstallerVersion)) {
+            $_remove = Join-Path -Path $InstallInfo.Path -ChildPath $InstallerVersion
+            Remove-Item -Path $_remove -Recurse -Force
+        }
+
+        
+        # Retain previously installed versions by moving them to Temp
+        $MoveDirs = Get-ChildItem -Path $InstallInfo.Path -Directory
+        $ReturnDirs = $MoveDirs | ForEach-Object { Move-Item -Path $_.FullName -Destination $env:temp -PassThru }
+        # Remove the base module folder
+        Remove-Item -Path $InstallInfo.Path -Recurse -Force
     }
 
-    # Remove Old Module if present
-    if (Test-Path $InstallPath) {
-        Write-Verbose "An installation already exists at $InstallPath"
-        Write-Verbose "Attempting to remove."
-        try {
-            $InstallPath | UnInstall-Lrt
-        }
-        catch {
-            $PSCmdlet.ThrowTerminatingError($PSItem)
-        }
-    }
 
-
+    # Perform install
     Write-Verbose "Installing to $InstallPath"
     try { Expand-Archive -Path $Path.FullName -DestinationPath $InstallPath }
     catch { $PSCmdlet.ThrowTerminatingError($PSItem) }
+
+    
+    # Move dirs back if we have any
+    if ($ReturnDirs) {
+        $ReturnDirs | ForEach-Object { Move-Item -Path $_.FullName -Destination $InstallInfo.Path }    
+    }
+    
+    
 
     return $true
     #endregion

@@ -40,12 +40,18 @@ Function Get-LrtInstallInfo {
         User = [PSCustomObject]@{
             Path = ""
             Installed = $false
+            Installs = $null
+            Versions = [List[string]]::new()
+            Count = 0
             HighestVer = 0
         }
         
         System = [PSCustomObject]@{
             Path = ""
             Installed = $false
+            Installs = $null
+            Versions = [List[string]]::new()
+            Count = 0
             HighestVer = 0
         }
     }
@@ -60,10 +66,13 @@ Function Get-LrtInstallInfo {
     # Check to see if there are any User Installs
     if (Test-Path $UserInstallPath) {
         $UserInstalls = Get-ChildItem -Path $UserInstallPath -Directory
-        
+
         # If any installed versions are found, set UserScope to True
         if ($UserInstalls.Count -gt 0) {
             $Result.User.Installed = $true
+            $Result.User.Installs = $UserInstalls
+            $Result.User.Count = $UserInstalls.Count
+            $UserInstalls | ForEach-Object { $Result.User.Versions.Add($_.Name) }
 
             # Get the highest version
             if ($UserInstalls.Count -gt 1) {
@@ -92,6 +101,9 @@ Function Get-LrtInstallInfo {
         # If any installed versions are found, set SystemScope to True
         if ($SystemInstalls.Count -gt 0) {
             $Result.System.Installed = $true
+            $Result.System.Installs = $SystemInstalls
+            $Result.System.Count = $SystemInstalls.Count
+            $SystemInstalls | ForEach-Object { $Result.System.Versions.Add($_.Name) }
 
             # Get the highest version
             if ($SystemInstalls.Count -gt 1) {
