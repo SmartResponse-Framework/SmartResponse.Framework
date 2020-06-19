@@ -114,7 +114,7 @@ Function Get-RfAlertSearch {
 
         # Define Search URL
         $RequestUrl = $BaseUrl + "alert/search" + $QueryString
-        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers
