@@ -89,21 +89,35 @@ Function Get-LrNetworkDetails {
         }
 
         
-        $RequestUri = $BaseUrl + "/networks/" + $Guid + "/"
+        $RequestUrl = $BaseUrl + "/networks/" + $Guid + "/"
         # Error Output - Used to support Pipeline Paramater ID
         Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
         if ($ErrorObject.Error -eq $false) {
             # Send Request
-            try {
-                $Response = Invoke-RestMethod $RequestUri -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
+            if ($PSEdition -eq 'Core'){
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+                }
+                catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
+            } else {
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                }
+                catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
             }
         } else {
             return $ErrorObject

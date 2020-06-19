@@ -490,24 +490,48 @@ Function Remove-LrListItem {
         } elseif ($Value -is [array]) {
             # No Duplicate checking for array of items
             # Send Request
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            if ($PSEdition -eq 'Core'){
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
+                }
+                catch {
+                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                    Write-Verbose "Exception Message: $ExceptionMessage"
+                    return $ExceptionMessage
+                }
+            } else {
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                }
+                catch [System.Net.WebException] {
+                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                    Write-Verbose "Exception Message: $ExceptionMessage"
+                    return $ExceptionMessage
+                }
             }
         } else {
             # Check for Duplicates for single items
             $ExistingValue = Test-LrListValue -Name $Guid -Value $Value
             if (($ExistingValue.IsPresent -eq $false) -and ($ExistingValue.ListValid -eq $true)) {
                 # Send Request
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-                }
-                catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                if ($PSEdition -eq 'Core'){
+                    try {
+                        $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
+                    }
+                    catch {
+                        $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                        Write-Verbose "Exception Message: $ExceptionMessage"
+                        return $ExceptionMessage
+                    }
+                } else {
+                    try {
+                        $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                    }
+                    catch [System.Net.WebException] {
+                        $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                        Write-Verbose "Exception Message: $ExceptionMessage"
+                        return $ExceptionMessage
+                    }
                 }
             } else {
                 $ErrorObject.Error = $true

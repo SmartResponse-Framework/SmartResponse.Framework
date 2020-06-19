@@ -104,7 +104,7 @@ Function Get-LrSearchResults {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUri           =   $null
+            ResponseUrl           =   $null
             Value                 =   $Name
         }
 
@@ -140,23 +140,37 @@ Function Get-LrSearchResults {
 
 
         # Define Query URL
-        $RequestUri = $BaseUrl + "/actions/search-result"
+        $RequestUrl = $BaseUrl + "/actions/search-result"
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUri -Headers $Headers -Method $Method -Body $BodyContents -MaximumRedirection 10
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
+            }
+            catch {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
         }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            Write-Host "Error"
-            return $Err
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.Exception.Response.StatusCode.value__)
-            $ErrorObject.Note = $($Err.Exception.Response.StatusDescription)
-            $ErrorObject.ResponseUri = $($Err.Exception.Response.ResponseUri)
-            return $ErrorObject
-        }
+
         #>
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"

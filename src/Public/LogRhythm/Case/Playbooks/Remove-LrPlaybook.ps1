@@ -73,7 +73,7 @@ Function Remove-LrPlaybook {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUri           =   $null
+            ResponseUrl           =   $null
             Value                 =   $Id
         }
 
@@ -91,14 +91,14 @@ Function Remove-LrPlaybook {
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "Null"
                 $ErrorObject.Note = "Playbook does not exist."
-                $ErrorObject.ResponseUri = "$BaseUrl/playbooks/$($Pb.id)/"
+                $ErrorObject.ResponseUrl = "$BaseUrl/playbooks/$($Pb.id)/"
                 return $ErrorObject
             }
         }
 
 
-        $RequestUri = $BaseUrl + "/playbooks/$($Pb.id)/"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/playbooks/$($Pb.id)/"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body
         $Body = [PSCustomObject]@{
@@ -109,22 +109,34 @@ Function Remove-LrPlaybook {
 
 
         # Request
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method `
-                -Body $Body
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
         }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err
-            $ErrorObject.ResponseUri = $RequestUri
-            $ErrorObject.Error = $true
-            return $ErrorObject
-        }
+        
 
         return $Response
     }

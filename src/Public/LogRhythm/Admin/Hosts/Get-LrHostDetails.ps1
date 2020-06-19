@@ -79,6 +79,8 @@ Function Get-LrHostDetails {
         $ErrorObject = [PSCustomObject]@{
             Error                 =   $false
             Value                 =   $Id
+            Code                  =   $Null
+            Type                  =   $null
             Note                  =   $null
         }
         
@@ -97,18 +99,37 @@ Function Get-LrHostDetails {
         }
 
         
-        $RequestUri = $BaseUrl + "/hosts/" + $Guid + "/"
+        $RequestUrl = $BaseUrl + "/hosts/" + $Guid + "/"
         # Error Output - Used to support Pipeline Paramater ID
         Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
         if ($ErrorObject.Error -eq $false) {
             # Send Request
-            try {
-                $Response = Invoke-RestMethod $RequestUri -Headers $Headers -Method $Method
+            if ($PSEdition -eq 'Core'){
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck 
+                }
+                catch {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
+            } else {
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                }
+                catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
             }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-            }
+
         } else {
             return $ErrorObject
         }

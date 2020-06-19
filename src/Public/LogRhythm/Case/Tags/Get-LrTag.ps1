@@ -72,28 +72,40 @@ Function Get-LrTag {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUri           =   $null
+            ResponseUrl           =   $null
             Tag                   =   $Number
         }
 
-        $RequestUri = $BaseUrl + "/tags/$Number"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/tags/$Number"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Make Request
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method `
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUri = $RequestUri
-            $ErrorObject.Error = $true
-            return $ErrorObject
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            }
+            catch {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
         }
         
         return $Response

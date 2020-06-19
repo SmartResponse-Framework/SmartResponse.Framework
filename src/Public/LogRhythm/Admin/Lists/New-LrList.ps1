@@ -249,13 +249,28 @@ Function New-LrList {
         $Body = $BodyContents | ConvertTo-Json -Depth 5 -Compress
         Write-Verbose "[$Me] Request Body:`n$Body"
 
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+
+        # Send Request
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
+            }
+            catch {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            }
+            catch [System.Net.WebException] {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
+            }
         }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-        }
+        
         return $Response
     }
     

@@ -92,7 +92,7 @@ Function Get-LrLists {
         # Define HTTP URI
         $RequestUrl = $BaseUrl + "/lists/"
 
-        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2
         Enable-TrustAllCertsPolicy
     }
 
@@ -102,14 +102,26 @@ Function Get-LrLists {
         }
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            }
+            catch {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
+            }
         }
-        catch [System.Net.WebException] {
-            $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-            Write-Verbose "Exception Message: $ExceptionMessage"
-            return $ExceptionMessage
-        }
+        
 
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"

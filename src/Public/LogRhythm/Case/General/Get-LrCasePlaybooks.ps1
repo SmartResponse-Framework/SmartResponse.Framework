@@ -14,7 +14,7 @@ Function Get-LrCasePlaybooks {
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $LrtConfig.LogRhythm.ApiKey
+        the preference variable $SrfPreferences.LrDeployment.LrApiToken
         with a valid Api Token.
     .PARAMETER Id
         Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
@@ -68,7 +68,7 @@ Function Get-LrCasePlaybooks {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/LogRhythm-Tools/LogRhythm.Tools
+        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
     #>
 
     [CmdletBinding()]
@@ -78,7 +78,11 @@ Function Get-LrCasePlaybooks {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            Position = 1
+        )]
         [ValidateNotNullOrEmpty()]
         [object] $Id
     )
@@ -135,30 +139,50 @@ Function Get-LrCasePlaybooks {
         }
 
         
-        $RequestUri = $BaseUrl + "/cases/$CaseNumber/playbooks/"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # REQUEST
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
 
-            switch ($Err.statusCode) {
-                "404" {
-                    throw [KeyNotFoundException] `
-                        "[404]: Playbook Id $Id not found, or you do not have permission to view it."
-                 }
-                 "401" {
-                     throw [UnauthorizedAccessException] `
-                        "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                 }
-                Default {
-                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                switch ($Err.statusCode) {
+                    "404" {
+                        throw [KeyNotFoundException] `
+                            "[404]: Playbook Id $Id not found, or you do not have permission to view it."
+                     }
+                     "401" {
+                         throw [UnauthorizedAccessException] `
+                            "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                     }
+                    Default {
+                        throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                    }
+                }
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+
+                switch ($Err.statusCode) {
+                    "404" {
+                        throw [KeyNotFoundException] `
+                            "[404]: Playbook Id $Id not found, or you do not have permission to view it."
+                     }
+                     "401" {
+                         throw [UnauthorizedAccessException] `
+                            "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                     }
+                    Default {
+                        throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                    }
                 }
             }
         }

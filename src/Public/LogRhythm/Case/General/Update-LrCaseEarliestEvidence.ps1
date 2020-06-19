@@ -132,7 +132,7 @@ Function Update-LrCaseEarliestEvidence {
 
         # Request URI
         $Method = $HttpMethod.Put
-        $RequestUri = $BaseUrl + "/cases/$Id/metrics/"
+        $RequestUrl = $BaseUrl + "/cases/$Id/metrics/"
 
 
         # Request Body
@@ -147,16 +147,22 @@ Function Update-LrCaseEarliestEvidence {
         # Send Request
         Write-Verbose "[$Me]: request body is:`n$Body"
         if ($UpdateEvidence -eq $true) {
-            try {
-                $Response = Invoke-RestMethod `
-                    -Uri $RequestUri `
-                    -Headers $Headers `
-                    -Method $Method `
-                    -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            if ($PSEdition -eq 'Core'){
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
+                }
+                catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                }
+            } else {
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                }
+                catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                }
             }
         } else {
             Write-Verbose "[$Me]: UpdateEvidence = $UpdateEvidence"

@@ -213,7 +213,7 @@ Function New-LrSearch {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUri           =   $null
+            ResponseUrl           =   $null
             Value                 =   $Name
         }
 
@@ -488,15 +488,43 @@ FIRST FILTER ITEM GOES HERE:
             }
         } | ConvertTo-Json -Depth 7
 
-        Write-Host $BodyContents
+        Write-Verbose $BodyContents
 
 
         # Define Query URL
-        $RequestUri = $BaseUrl + "/actions/search-task"
+        $RequestUrl = $BaseUrl + "/actions/search-task"
 
         # Send Request
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
+            }
+            catch {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
+        }
+        
         try {
-            $Response = Invoke-RestMethod $RequestUri -Headers $Headers -Method $Method -Body $BodyContents
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
         } catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
             return $Err
@@ -504,7 +532,7 @@ FIRST FILTER ITEM GOES HERE:
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.Exception.Response.StatusCode.value__)
             $ErrorObject.Note = $($Err.Exception.Response.StatusDescription)
-            $ErrorObject.ResponseUri = $($Err.Exception.Response.ResponseUri)
+            $ErrorObject.ResponseUrl = $($Err.Exception.Response.ResponseUrl)
             return $ErrorObject
         }
         #>

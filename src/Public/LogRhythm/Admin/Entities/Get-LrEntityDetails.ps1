@@ -18,7 +18,7 @@ Function Get-LrEntityDetails {
 
         Can be passed as ValueFromPipeline but does not support Arrays.
     .OUTPUTS
-        PSCustomObject representing LogRhythm Entity Network record and its contents.
+        PSCustomObject representing LogRhythm Entity record and its contents.
     .EXAMPLE
         PS C:\> Get-LrNetworkDetails -Credential $MyKey -Id "2657"
         ----
@@ -88,21 +88,35 @@ Function Get-LrEntityDetails {
         }
 
         
-        $RequestUri = $BaseUrl + "/entities/" + $Guid + "/"
+        $RequestUrl = $BaseUrl + "/entities/" + $Guid + "/"
         # Error Output - Used to support Pipeline Paramater ID
         Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
         if ($ErrorObject.Error -eq $false) {
             # Send Request
-            try {
-                $Response = Invoke-RestMethod $RequestUri -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
+            if ($PSEdition -eq 'Core'){
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+                }
+                catch {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
+            } else {
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                }
+                catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
             }
         } else {
             return $ErrorObject

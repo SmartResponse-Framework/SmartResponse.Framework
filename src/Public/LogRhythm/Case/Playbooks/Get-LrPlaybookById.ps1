@@ -85,7 +85,7 @@ Function Get-LrPlaybookById {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUri           =   $null
+            ResponseUrl           =   $null
             Value              =   $Name
         }
         # Validate Playbook Id
@@ -98,38 +98,64 @@ Function Get-LrPlaybookById {
         }
 
         
-        $RequestUri = $BaseUrl + "/playbooks/$Id/"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/playbooks/$Id/"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # REQUEST
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method `
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "TypeMismatch"
-            $ErrorObject.ResponseUri = $RequestUri
-            switch ($Err.statusCode) {
-                "404" {
-                    $ErrorObject.Type = "KeyNotFoundException"
-                    $ErrorObject.Note = "Playbook ID $Id not found, or you do not have permission to view it."
-                 }
-                 "401" {
-                    $ErrorObject.Type = "UnauthorizedAccessException"
-                    $ErrorObject.Note = "Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                 }
-                Default {
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Note = $Err.message
-                }
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
             }
-            $ErrorObject.Value = $Id
-            return $ErrorObject
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "TypeMismatch"
+                $ErrorObject.ResponseUrl = $RequestUrl
+                switch ($Err.statusCode) {
+                    "404" {
+                        $ErrorObject.Type = "KeyNotFoundException"
+                        $ErrorObject.Note = "Playbook ID $Id not found, or you do not have permission to view it."
+                     }
+                     "401" {
+                        $ErrorObject.Type = "UnauthorizedAccessException"
+                        $ErrorObject.Note = "Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                     }
+                    Default {
+                        $ErrorObject.Type = "System.Net.WebException"
+                        $ErrorObject.Note = $Err.message
+                    }
+                }
+                $ErrorObject.Value = $Id
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "TypeMismatch"
+                $ErrorObject.ResponseUrl = $RequestUrl
+                switch ($Err.statusCode) {
+                    "404" {
+                        $ErrorObject.Type = "KeyNotFoundException"
+                        $ErrorObject.Note = "Playbook ID $Id not found, or you do not have permission to view it."
+                     }
+                     "401" {
+                        $ErrorObject.Type = "UnauthorizedAccessException"
+                        $ErrorObject.Note = "Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                     }
+                    Default {
+                        $ErrorObject.Type = "System.Net.WebException"
+                        $ErrorObject.Note = $Err.message
+                    }
+                }
+                $ErrorObject.Value = $Id
+                return $ErrorObject
+            }
         }
 
         # Return all responses.

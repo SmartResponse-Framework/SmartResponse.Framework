@@ -10,8 +10,24 @@ Function Get-LrEntities {
         Get-LrEntities returns a full LogRhythm Entity object, including it's details and list items.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+    .PARAMETER PageCount
+        Integer representing number of pages to return.  Default is maximum, 1000.
+    .PARAMETER OrderBy
+        Sorts records by name or Id.
+    .PARAMETER Direction
+        Sorts records by ascending or descending.
+
+        Valid values: "asc" "desc"
+    .PARAMETER Name
+        String used to search records by Name.
+    .PARAMETER ParentEntityId
+        Filter results by ParentEntityId value.
+
+        Int32
+    .PARAMETER Exact
+        Filter name results with explicit match.
     .OUTPUTS
-        PSCustomObject representing LogRhythm Entity its contents.
+        PSCustomObject representing LogRhythm Entity objects and their contents.
     .EXAMPLE
         PS C:\> Get-LrEntities
         ----
@@ -67,7 +83,7 @@ Function Get-LrEntities {
 
         [Parameter(Mandatory = $false, Position = 11)]
         [ValidateSet('asc','desc', ignorecase=$true)]
-        [string]$Direction = "ASC",
+        [string]$Direction = "asc",
 
         [Parameter(Mandatory = $false, Position = 12)]
         [switch]$Exact
@@ -165,17 +181,33 @@ Function Get-LrEntities {
         $RequestUrl = $BaseUrl + "/entities/" + $QueryString
 
 
+
+
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            return $ErrorObject
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            }
+            catch {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                return $ErrorObject
+            }
         }
     }
 
@@ -197,6 +229,14 @@ Function Get-LrEntities {
                     $List = $_
                     return $List
                 }
+            }
+            if (!$List) {
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "NoRecordFound"
+                $ErrorObject.Code = 404
+                $ErrorObject.Note = "Unable to locate exact Entity: $Name"
+                $ErrorObject.Value = $Name
+                return $ErrorObject
             }
         } else {
             return $Response

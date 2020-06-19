@@ -1,7 +1,6 @@
 using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
-
 Function Update-LrCasePlaybookProcedure {
     <#
     .SYNOPSIS
@@ -49,7 +48,6 @@ Function Update-LrCasePlaybookProcedure {
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
-
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
@@ -196,8 +194,8 @@ Function Update-LrCasePlaybookProcedure {
         }
         
         # Request URI
-        $RequestUri = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookGuid/procedures/$ProcedureGuid/"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookGuid/procedures/$ProcedureGuid/"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Inspect Note for Procedure Limitation
         if ($Notes) {
@@ -289,27 +287,46 @@ Function Update-LrCasePlaybookProcedure {
         
         # REQUEST
         Write-Verbose "[$Me]: request body is:`n$Body"
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method `
-                -Body $Body
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
 
-            switch ($Err.statusCode) {
-                "404" {
-                    throw [KeyNotFoundException] `
-                        "[404]: Case ID $CaseId or Playbook ID $PlaybookId not found, or you do not have permission to view it."
-                 }
-                 "401" {
-                     throw [UnauthorizedAccessException] `
-                        "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                 }
-                Default {
-                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
+                switch ($Err.statusCode) {
+                    "404" {
+                        throw [KeyNotFoundException] `
+                            "[404]: Case ID $CaseId or Playbook ID $PlaybookId not found, or you do not have permission to view it."
+                     }
+                     "401" {
+                         throw [UnauthorizedAccessException] `
+                            "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                     }
+                    Default {
+                        throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
+                    }
+                }
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+
+                switch ($Err.statusCode) {
+                    "404" {
+                        throw [KeyNotFoundException] `
+                            "[404]: Case ID $CaseId or Playbook ID $PlaybookId not found, or you do not have permission to view it."
+                     }
+                     "401" {
+                         throw [UnauthorizedAccessException] `
+                            "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                     }
+                    Default {
+                        throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
+                    }
                 }
             }
         }

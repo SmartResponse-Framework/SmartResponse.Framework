@@ -367,21 +367,27 @@ Function Get-LrCases {
     #region: Send RequestHeaders_________________________________________________________
     # Request URI
     $Method = $HttpMethod.Get
-    $RequestUri = $BaseUrl + "/cases/" + $QueryString
+    $RequestUrl = $BaseUrl + "/cases/" + $QueryString
 
 
     # REQUEST
-    try {
-        $Response = Invoke-RestMethod `
-            -Uri $RequestUri `
-            -Headers $Headers `
-            -Method $Method
+    if ($PSEdition -eq 'Core'){
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+        }
+        catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+        }
+    } else {
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        }
+        catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+        }
     }
-    catch [System.Net.WebException] {
-        $Err = Get-RestErrorMessage $_
-        throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-    }
-
 
     # For Summary, return a formatted report
     if ($Summary) {

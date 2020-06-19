@@ -70,7 +70,7 @@ Function Remove-LrCasePlaybook {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUri           =   $null
+            ResponseUrl           =   $null
             Value                 =   $Id
         }
 
@@ -149,24 +149,35 @@ Function Remove-LrCasePlaybook {
             return $ErrorObject
         }
 
-        $RequestUri = $BaseUrl + "/cases/$CaseNumber/playbooks/$PlaybookId/"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/$PlaybookId/"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
 
         # Request
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            if ($Err.statusCode -eq "409") {
-                # we know we can use $Pb.name because a 409 wouldn't throw unless the playbook existed.
-                throw [InvalidOperationException] "[409]: Playbook '$($Pb.name)' has already been added to case '$Id'"
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
             }
-            $PSCmdlet.ThrowTerminatingError($PSItem)
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                if ($Err.statusCode -eq "409") {
+                    # we know we can use $Pb.name because a 409 wouldn't throw unless the playbook existed.
+                    throw [InvalidOperationException] "[409]: Playbook '$($Pb.name)' has already been added to case '$Id'"
+                }
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                if ($Err.statusCode -eq "409") {
+                    # we know we can use $Pb.name because a 409 wouldn't throw unless the playbook existed.
+                    throw [InvalidOperationException] "[409]: Playbook '$($Pb.name)' has already been added to case '$Id'"
+                }
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
         }
 
         return $Response

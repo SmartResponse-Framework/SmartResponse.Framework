@@ -7,7 +7,7 @@ Function Disable-LrIdentity {
     .SYNOPSIS
         Retire an Identity from TrueIdentity based on TrueID #.
     .DESCRIPTION
-        Retire-LrIdentity returns an object containing the detailed results of the retired Identity.
+        Disable-LrIdentity returns an object containing the detailed results of the retired Identity.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .PARAMETER IdentityId
@@ -15,7 +15,7 @@ Function Disable-LrIdentity {
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its retirement status.
     .EXAMPLE
-        PS C:\> Retire-LrIdentity -IdentityId 11
+        PS C:\> Disable-LrIdentity -IdentityId 11
         ----
         identityID        : 11
         nameFirst         : Marcus
@@ -78,14 +78,24 @@ Function Disable-LrIdentity {
         $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/status"
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-            $PSCmdlet.ThrowTerminatingError($PSItem)
-            return $false
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
+            }
+            catch {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $false
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+            }
+            catch [System.Net.WebException] {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $false
+            }
         }
 
         return $Response

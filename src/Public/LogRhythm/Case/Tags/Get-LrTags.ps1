@@ -117,28 +117,40 @@ Function Get-LrTags {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUri           =   $null
+            ResponseUrl           =   $null
             Tag                   =   $Name
         }
 
         # Request URI
-        $RequestUri = $BaseUrl + "/tags/?tag=$Name"
+        $RequestUrl = $BaseUrl + "/tags/?tag=$Name"
 
-        # REQUEST
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method `
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUri = $RequestUri
-            $ErrorObject.Error = $true
-            return $ErrorObject
+        # Make Request
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            }
+            catch {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
         }
 
         # [Exact] Parameter

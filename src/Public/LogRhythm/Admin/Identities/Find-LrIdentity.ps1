@@ -5,14 +5,30 @@ using namespace System.Collections.Generic
 Function Find-LrIdentity {
     <#
     .SYNOPSIS
-        Retrieve a list of Identities from TrueIdentity.
+        Retrieve a list of Identities from TrueIdentity based TrueIdentity ID.
     .DESCRIPTION
-        Get-LrIdentities returns a full LogRhythm List object, including it's details and list items.
+        Find-LrIdentity returns a full LogRhythm List object, including it's details and list items.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+    .PARAMETER Id
+        Int32 value that represents a TrueIdentity ID record.
+
+        Supports an array of TrueIdentity ID values.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
     .EXAMPLE
+        Find-LrIdentity -Id 7
+        ---
+        id          : 7
+        nameFirst   : Eric
+        nameMiddle  :
+        nameLast    : Hart
+        login1      : Eric.Hart
+        title       :
+        addressCity : 
+        department  : Customer Success
+        company     : LogRhythm Inc.
+        manager     :
     .NOTES
         LogRhythm-API        
     .LINK
@@ -25,14 +41,8 @@ Function Find-LrIdentity {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 1)]
-        [string]$Name,
-
-        [Parameter(Mandatory = $false, Position = 2)]
-        [string]$Id,
-
-        [Parameter(Mandatory = $false, Position = 3)]
-        [switch]$Exact = $false
+        [Parameter(Mandatory = $false, Position = 1)]
+        [int32[]]$Id
     )
 
     Begin {
@@ -49,7 +59,7 @@ Function Find-LrIdentity {
         $Method = $HttpMethod.Post
 
         # Define HTTP Destination URI
-        $RequestUrl = $BaseUrl + "/identities/summaries/query/"
+        $RequestUrl = $BaseUrl + "/identities/query/"
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
@@ -58,37 +68,34 @@ Function Find-LrIdentity {
     Process {
         # Define HTTP Body
         $BodyContents = [PSCustomObject]@{
-            logins = @($Name)
+            ids = @($Id)
         }
 
         $Body = $BodyContents | ConvertTo-Json
         Write-Verbose "[$Me] Request Body:`n$Body"
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-            $PSCmdlet.ThrowTerminatingError($PSItem)
-        }
-
-        # [Exact] Parameter
-        # Search "Malware" normally returns both "Malware" and "Malware Options"
-        # This would only return "Malware"
-        if ($Exact) {
-            $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
-                }
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
+            }
+            catch {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
             }
         } else {
-            return $Response
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            }
+            catch [System.Net.WebException] {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
+            }
         }
+        
+        return $Response
     }
 
     End { }

@@ -2,10 +2,10 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Get-LrPlaybooks {
+Function Get-LrPlaybookProcedures {
     <#
     .SYNOPSIS
-        Return a list of playbooks.
+        Return a list of playbook procedures.
     .DESCRIPTION
         The Get-LrPlaybooks cmdlet returns a list of playbooks, optionally filtered by 
         Playbook name. Resulted can be sorted by Creation Date, Updated Date, or Name, 
@@ -110,7 +110,7 @@ Function Get-LrPlaybooks {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $SrfPreferences.LRDeployment.CaseApiBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -136,31 +136,63 @@ Function Get-LrPlaybooks {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUri           =   $null
+            ResponseUrl           =   $null
             Playbook              =   $Name
         }
 
+
+        # Validate Playbook Id
+        # Validate Playbook Ref
+        $Guid = Test-Guid -Guid $Name
+        if ($Guid -eq $true) {
+            $Pb = Get-LrPlaybookById -Id $Name
+            if ($Pb.Error -eq $true) {
+                return $Pb
+            }
+        } else {
+            $Pb = Get-LrPlaybooks -Name $Name -Exact
+            if (!$Pb.Name -eq $Id) {
+                $ErrorObject.Code = "404"
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "Null"
+                $ErrorObject.Note = "Playbook does not exist."
+                $ErrorObject.ResponseUrl = "$BaseUrl/playbooks/$($Pb.id)/"
+                return $ErrorObject
+            }
+        }
+
         # Request URI
-        $RequestUri = $BaseUrl + "/playbooks/?playbook=$Name"
+        $RequestUrl = $BaseUrl + "/playbooks/$($Pb.id)/procedures/"
 
 
         # REQUEST
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method `
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
         }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUri = $RequestUri
-            $ErrorObject.Error = $true
-            return $ErrorObject
-        }
-
         
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
@@ -183,7 +215,7 @@ Function Get-LrPlaybooks {
             $ErrorObject.Code = 404
             $ErrorObject.Type = "Object not found"
             $ErrorObject.Note = "Playbook not found"
-            $ErrorObject.ResponseUri = $RequestUri
+            $ErrorObject.ResponseUrl = $RequestUrl
             $ErrorObject.Error = $true
             return $ErrorObject
         }

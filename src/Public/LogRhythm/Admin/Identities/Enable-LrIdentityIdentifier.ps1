@@ -116,14 +116,24 @@ Function Enable-LrIdentityIdentifier {
         # Send Request and proceed if Identifier is Present
         if ($IdentifierStatus.IsPresent -eq $True -and $IdentifierStatus.RecordStatus -eq "Retired") {
             # Send Request
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-                return $false
+            if ($PSEdition -eq 'Core'){
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
+                }
+                catch {
+                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                    Write-Verbose "Exception Message: $ExceptionMessage"
+                    return $false
+                }
+            } else {
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+                }
+                catch [System.Net.WebException] {
+                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                    Write-Verbose "Exception Message: $ExceptionMessage"
+                    return $false
+                }
             }
         } else {
             return $IdentifierStatus

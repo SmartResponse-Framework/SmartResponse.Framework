@@ -79,7 +79,7 @@ Function Remove-LrTagsFromCase {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUri           =   $null
+            ResponseUrl           =   $null
             Tags                  =   $Tags
             Case                  =   $Id
         }
@@ -91,8 +91,8 @@ Function Remove-LrTagsFromCase {
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         }                                                        
 
-        $RequestUri = $BaseUrl + "/cases/$Id/actions/removeTags/"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/cases/$Id/actions/removeTags/"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
         #endregion
 
 
@@ -123,21 +123,32 @@ Function Remove-LrTagsFromCase {
         Write-Verbose "[$Me]: request body is:`n$Body"
 
         # Make Request
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method `
-                -Body $Body
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUri = $RequestUri
-            $ErrorObject.Error = $true
-            return $ErrorObject
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
         }
         
         return $Response

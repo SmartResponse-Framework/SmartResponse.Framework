@@ -14,7 +14,7 @@ Function Get-LrCasePlaybookProcedures {
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
-        the preference variable $LrtConfig.LogRhythm.ApiKey
+        the preference variable $SrfPreferences.LrDeployment.LrApiToken
         with a valid Api Token.
     .PARAMETER CaseId
         Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
@@ -52,7 +52,7 @@ Function Get-LrCasePlaybookProcedures {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/LogRhythm-Tools/LogRhythm.Tools
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools       
     #>
 
     [CmdletBinding()]
@@ -62,11 +62,17 @@ Function Get-LrCasePlaybookProcedures {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(Mandatory = $true, Position = 1)]
+        [Parameter(
+            Mandatory = $true,
+            Position = 1
+        )]
         [ValidateNotNullOrEmpty()]
         [object] $CaseId,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 2
+        [Parameter(
+            Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true,
+            Position = 2
         )]
         [ValidateNotNullOrEmpty()]
         [Object] $Id
@@ -144,30 +150,50 @@ Function Get-LrCasePlaybookProcedures {
 
         # Request URI
         $Method = $HttpMethod.Get
-        $RequestUri = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookGuid/procedures/"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookGuid/procedures/"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # REQUEST
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
 
-            switch ($Err.statusCode) {
-                "404" {
-                    throw [KeyNotFoundException] `
-                        "[404]: Case ID $CaseId or Playbook ID $Id not found, or you do not have permission to view it."
-                 }
-                 "401" {
-                     throw [UnauthorizedAccessException] `
-                        "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                 }
-                Default {
-                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
+                switch ($Err.statusCode) {
+                    "404" {
+                        throw [KeyNotFoundException] `
+                            "[404]: Case ID $CaseId or Playbook ID $Id not found, or you do not have permission to view it."
+                     }
+                     "401" {
+                         throw [UnauthorizedAccessException] `
+                            "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                     }
+                    Default {
+                        throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
+                    }
+                }
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+
+                switch ($Err.statusCode) {
+                    "404" {
+                        throw [KeyNotFoundException] `
+                            "[404]: Case ID $CaseId or Playbook ID $Id not found, or you do not have permission to view it."
+                     }
+                     "401" {
+                         throw [UnauthorizedAccessException] `
+                            "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                     }
+                    Default {
+                        throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
+                    }
                 }
             }
         }
