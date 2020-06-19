@@ -2,12 +2,12 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Create-LrNetwork {
+Function New-LrNetwork {
     <#
     .SYNOPSIS
-        Create a Network entry for the LogRhythm Entity structure.
+        Create a new Network entry for the LogRhythm Entity structure.
     .DESCRIPTION
-        Create-LrNetwork returns a full LogRhythm Host object, including details and list items.
+        New-LrNetwork returns a full LogRhythm Host object, including details and list items.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .PARAMETER Entity
@@ -59,9 +59,9 @@ Function Create-LrNetwork {
         [System.String] -> Entity
         [System.String] -> RecordStatus
     .OUTPUTS
-        PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
+        PSCustomObject representing LogRhythm Network and its contents.
     .EXAMPLE
-        PS C:\> Get-LrNetworks -Credential $MyKey
+        PS C:\> New-LrNetwork
         ----
     .NOTES
         LogRhythm-API        
@@ -242,20 +242,35 @@ Function Create-LrNetwork {
         Write-Verbose "$Body"
 
         # Define Query URL
-        $RequestUri = $BaseUrl + "/networks/"
+        $RequestUrl = $BaseUrl + "/networks/"
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUri -Headers $Headers -Method $Method -Body $Body
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                return $ErrorObject
+            }
         }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            return $ErrorObject
-        }
+        
         #>
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
