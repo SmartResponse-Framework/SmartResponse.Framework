@@ -48,8 +48,8 @@ Function Get-UrlScanScreenshot {
     Process {
         # Request URI   
 
-        $RequestUri = $BaseUrl + $Uuid + ".png"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + $Uuid + ".png"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         if (!$Path) {
             $Path = "./"
@@ -67,7 +67,7 @@ Function Get-UrlScanScreenshot {
 
 
         Try {
-            $Response = Invoke-WebRequest $RequestUri -Method $Method -OutFile $FullPath
+            $Response = Invoke-WebRequest $RequestUrl -Method $Method -OutFile $FullPath
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_

@@ -93,7 +93,7 @@ Function Get-RfDomainRiskList {
 
         # Define Search URL
         $RequestUrl = $BaseUrl + "domain/risklist" + $QueryString
-        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers | ConvertFrom-Csv

@@ -131,11 +131,11 @@ Function Get-VTIPReport {
     Process {
         # Request URI   
         $Method = $HttpMethod.Get
-        $RequestUri = $BaseUrl + "/ip-address/report?apikey=$Token&ip=$IpAddr"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/ip-address/report?apikey=$Token&ip=$IpAddr"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
-            $vtResponse = Invoke-RestMethod $RequestUri -Method $Method 
+            $vtResponse = Invoke-RestMethod $RequestUrl -Method $Method 
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_

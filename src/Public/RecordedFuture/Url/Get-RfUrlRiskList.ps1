@@ -101,7 +101,7 @@ Function Get-RfUrlRiskList {
 
         # Define Search URL
         $RequestUrl = $BaseUrl + "url/risklist" + $QueryString
-        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         if ($Compressed -eq $false) {
             Try {

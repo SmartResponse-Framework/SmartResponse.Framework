@@ -73,11 +73,11 @@ Function Get-UrlScanResults {
 
         # Request URI   
         $Method = $HttpMethod.Get
-        $RequestUri = $BaseUrl + "/result/$Uuid"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/result/$Uuid"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
-            $Response = Invoke-RestMethod $RequestUri -Method $Method -Headers $Headers -Body $Body
+            $Response = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_

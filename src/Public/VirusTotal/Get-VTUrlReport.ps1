@@ -66,11 +66,11 @@ Function Get-VTUrlReport {
     Process {
         # Request URI   
         $Method = $HttpMethod.Get
-        $RequestUri = $BaseUrl + "/url/report?apikey=$Token&resource=$Url"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/url/report?apikey=$Token&resource=$Url"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
-            $vtResponse = Invoke-RestMethod $RequestUri -Method $Method 
+            $vtResponse = Invoke-RestMethod $RequestUrl -Method $Method 
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_

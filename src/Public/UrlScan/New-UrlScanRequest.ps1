@@ -66,8 +66,8 @@ Function Add-UrlScanRequest {
 
         # Request URI   
         $Method = $HttpMethod.Post
-        $RequestUri = $BaseUrl + "/scan/"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/scan/"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body
         $Body = [PSCustomObject]@{ 
@@ -77,7 +77,7 @@ Function Add-UrlScanRequest {
         Write-Verbose "[$Me]: request body is:`n$Body"
 
         Try {
-            $Response = Invoke-RestMethod $RequestUri -Method $Method -Headers $Headers -Body $Body
+            $Response = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
