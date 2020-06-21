@@ -1,26 +1,59 @@
-Function New-LRTCredXml {
+using namespace System.IO
+
+Function New-LrtCredXml {
     <#
     .SYNOPSIS
         Create PSCredential stored in XML file format
     .DESCRIPTION
         Allows the storing of PSCredential witthout requiring a user prompt.
+
+        If saving the credxml fails for any reason, the New-LrtCredXml cmdlet
+        will still return the created credential in its output object.
     .PARAMETER Username
         Name that will be stored in the Username field of the PSCredential.
-    .PARAMETER Password
-        Secret or API Token that will be stored in the Password field of the PSCredential.
+    .PARAMETER Secret
+        There are two methods of supplying the password for the PSCredential:
+
+        1. Providing a plaintext value the Secret parameter.
+
+        2. Not providing the Secret parameter - the New-LrtCredXml cmdlet will prompt
+        for a password to be entered, which will be masked and processed as a secure string.
     .PARAMETER Path
-        The path where the file will be stored.  If not sppecified, path will default to current directory.
+        The path to a directory where the file will be stored.  If not specified, path will default to current directory.
     .PARAMETER FileName
         The name of the target credential file.
     .INPUTS
-        String -> Username
-        String -> Password
-        String -> Path
-        String -> FileName
+        None
     .OUTPUTS
-        PSObject providing status and summary of file created.
+        ---------------------------------------------------
+        [PSCustomObject]  Summary of new credential creation
+        ---------------------------------------------------
+        Successful = [bool]
+        Username   = [string]
+        Path       = [DirectoryInfo]
+        FileName   = [string]
+        Credential = [pscredential]
     .EXAMPLE
-        PS C:\> Create-SRFCredXml -Username "Bob" -Password "Rules5!" -FileName "BosSecret.xml"
+        Supplying a plain text password:
+
+        PS C:\> New-LRTCredXml -Username "Frank" -Secret "abcd1234" -Path c:\tmp\ -FileName MyCred
+
+        Successful : True
+        Username   : Frank
+        Path       : c:\tmp\
+        FileName   : MyCred
+        Credential : System.Management.Automation.PSCredential
+    .EXAMPLE
+        Prompt for a password:
+
+        PS C:\> New-LRTCredXml -Username "Bob" -Path c:\tmp
+        Enter Password: ********
+
+        Successful : True
+        Username   : Bob
+        Path       : c:\tmp
+        FileName   : Bob.xml
+        Credential : System.Management.Automation.PSCredential
     .NOTES
         SmartResponse.Framework
     .LINK
@@ -34,47 +67,68 @@ Function New-LRTCredXml {
         [string] $Username,
 
 
-        [Parameter(Mandatory = $true, Position = 1)]
-        [ValidateNotNull()]
-        [string] $Password,
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Secret,
 
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [ValidateScript({Test-Path $_ -PathType 'leaf'})]
-        [string] $Path,
+        [ValidateNotNull()]
+        [DirectoryInfo] $Path,
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
         [string] $FileName
     )
 
 
-    #region: BEGIN                                                                       
-    Begin {
-        $Me = $MyInvocation.MyCommand.Name
-    }
-    #endregion
-
-    Process {
-        
-        [securestring]$password = ConvertTo-SecureString $Password -AsPlainText -Force #| ConvertFrom-SecureString
-        [pscredential]$Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Username, $Password
-        Try {
-            $Cred | Export-CliXml $Path$FileName
-            $Status = "Success"
-        } Catch {
-            $Status = "Failed"
-        }
-
-        $Response = [PSCustomObject]@{
-            Status = $Status
-            Username = $Username
-            Path = $Path
-            FileName = $FileName
-        }
+    #[securestring]$password = ConvertTo-SecureString $Password -AsPlainText -Force
+    #[pscredential]$Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Username, $Password
+    $Response = [PSCustomObject]@{
+        Successful = $false
+        Username   = $Username
+        Path       = $null
+        FileName   = ""
+        Credential = $null
     }
 
-    End {
-        Return $Response
-     }
+
+    # Validate Path
+    if (! $Path.Exists) {
+        Write-Warning "Path not specified as a directory. Using current directory: ($PSScriptRoot)"
+        $Path = [DirectoryInfo]::new($PSScriptRoot)
+    }
+    $Response.Path = $Path
+
+
+    # Validate FileName
+    if ([string]::IsNullOrEmpty($FileName)) {
+        $FileName = $Username + ".xml"
+    }
+    $Response.FileName = $FileName
+
+
+    # Prompt for secret if not specified
+    if ([string]::IsNullOrEmpty($Secret)) {
+        $Password = Read-Host -AsSecureString -Prompt "Enter Password"
+    } else {
+        $Password = $Secret | ConvertTo-SecureString -AsPlainText -Force
+    }
+
+
+    # Create Credential
+    $cred = [pscredential]::new($Username, $Password)
+    $Response.Credential = $cred
+
+
+    # Save Credential
+    try {
+        $cred | Export-CliXml (Join-Path -Path $Path.FullName -ChildPath $FileName)
+        $Response.Successful = $true
+    } catch {
+        Write-Warning $PSItem.Exception.Message
+    }
+
+
+    return $Response
 }

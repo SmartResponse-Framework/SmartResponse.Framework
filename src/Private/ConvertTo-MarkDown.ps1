@@ -5,11 +5,12 @@ function ConvertTo-MarkDown {
         .PARAMETER Command
             Specifies the name of a cmdlet that with comment-based help.
         .EXAMPLE
-            ConvertTo-MarkDown Get-SrfADUserInfo > .\Get-SrfADUserInfo.md
+            ConvertTo-MarkDown Select-Object > .\SelectObject.md
             
             DESCRIPTION
             -----------
-            This example gets comment-based help of `Select-Object` command, and converts GitHub Flavored Markdown format, then saves it to `Select-Object.md` in current directory.
+            This example gets comment-based help of `Select-Object` command, and converts GitHub Flavored Markdown format, 
+            then saves it to `SelectObject.md` in the current directory.
         .INPUTS
             This cmdlet does not accept pipeline input.
         .OUTPUTS
