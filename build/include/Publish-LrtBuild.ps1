@@ -146,14 +146,18 @@ Function Publish-LrtBuild {
         try {
             Remove-Item -Path $ReleaseBuildDir.FullName -Recurse
             Write-Verbose "Release $BuildId : Removed OK"
-        }
-        catch {
+        } catch {
             Write-Host "[Publish]: Could not remove existing release dir." -ForegroundColor Yellow
             $PSCmdlet.ThrowTerminatingError($PSItem)
         }
     }
     # Create release directory for build
-    $ReleaseBuildDir = New-Item -Path $ReleasesDir.FullName -Name $Build.Guid -ItemType "directory"
+    try {
+        $ReleaseBuildDir = New-Item -Path $ReleasesDir.FullName -Name $Build.Guid -ItemType "directory"
+    }
+    catch {
+        $PSCmdlet.ThrowTerminatingError($PSItem)
+    }
     Write-Verbose "Release directory created:  $($ReleaseBuildDir.FullName)"
     #endregion
 

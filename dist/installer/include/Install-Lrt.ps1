@@ -39,139 +39,130 @@ function Install-Lrt {
         [string] $Scope = "User"
     )
 
-    $InstallerInfo = Get-LrtInstallerInfo
-    $ModuleInfo = $InstallerInfo.ModuleInfo
-
-    #region: Parameter Validation                                                        
-    # Install Archive - Same directory as Install-Lrt.ps1
-    if (! $Path) {
-        Write-Warning "Archive not provided, looking in $PSScriptRoot"
-        $DefaultArchivePath = Join-Path -Path $PSScriptRoot -ChildPath $ModuleInfo.ArchiveFileName
-        $Path = [FileInfo]::new($DefaultArchivePath)
-    }
-
-    if (! $Path.Exists) {
-        throw [ArgumentException] "Failed to locate install archive $($Path.FullName)."
-    }
-
-    # Collection of paths currently in PSModulePath
-    $ModulePaths = $env:PSModulePath.Split(';')
-    #endregion
-
-
-
-    #region Scope: System                                                                    
+    
+    #region Scope: Check for Admin (System Scope)                                                  
     # Possible Cleanup: We do pretty much the same thing twice - unify
     if ($Scope -eq "System") {
         Write-Verbose "Installing with scope: System"
-        # Determine install path for system
-        $SystemScopePath = Get-LrtInstallPath -Scope $Scope
         
         # Check admin privileges
         if (! (([WindowsPrincipal][WindowsIdentity]::GetCurrent()).IsInRole([WindowsBuiltInRole]::Administrator))) {
-            Write-Host "`n  ERROR: Seutp needs to be run with Administrator privileges to install in system scope." -ForegroundColor Red
-            return $false            
+            throw [Exception] "Setup needs to be run with Administrator privileges to install to system."
         }
-
-        # Ensure path exists - we won't attempt to create it!
-        if (! $SystemScopePath.Exists) {
-            Write-Host "System module directory $SystemScopePath is missing, cannot proceed." -ForegroundColor Red
-        }
-
-        # Add to PSModulePath if needed (weird if its missing though!)
-        if (! ($ModulePaths.Contains($SystemScopePath.FullName))) {
-            Write-Verbose "System modules directory not in module path. Adding."
-            $p = [Environment]::GetEnvironmentVariable("PSModulePath")
-            $p += ";$($SystemScopePath.FullName)"
-            [Environment]::SetEnvironmentVariable("PSModulePath",$p)
-        }
-
-        $InstallPath = Join-Path -Path $SystemScopePath.FullName -ChildPath $ModuleInfo.Name
     }
     #endregion
 
 
 
-    #region: Scope: User                                                                     
-    if ($Scope -eq "User") {
-        Write-Verbose "Installing with scope: User"
-        $UserScopePath = Get-LrtInstallPath -Scope $Scope
+    #region: Setup & Validation                                                                    
+    
+    $InstallerInfo = Get-LrtInstallerInfo
+    $ModuleInfo = $InstallerInfo.ModuleInfo
+    # Collection of paths currently in PSModulePath
+    $ModulePaths = $env:PSModulePath.Split(';')
 
-        # Create WindowsPowerShell / Modules directories if needed
-        if (! $UserScopePath.Exists) {
-            New-Item -Path $Env:HOME -Name "WindowsPowerShell\Modules" -ItemType Directory | Out-Null    
-            Write-Verbose "Created directory $($UserScopePath.FullName)"
-        }
+    # By default it should be located in .\installer\packages\
+    if (! $Path) {
+        $BaseDir = (([DirectoryInfo]::new($PSScriptRoot)).Parent).Parent
+        $ArchivePath = Join-Path -Path $BaseDir.FullName -ChildPath "installer\packages" | 
+            Join-Path -ChildPath $ModuleInfo.ArchiveFileName
+        $Path = [FileInfo]::new($ArchivePath)
+    }
 
-        # Add to PSModulePath if necessary
-        if (! ($ModulePaths.Contains($UserScopePath.FullName))) {
-            Write-Verbose "User modules directory not in module path. Adding."
-            $p = [Environment]::GetEnvironmentVariable("PSModulePath")
-            $p += ";$($UserScopePath.FullName)"
-            [Environment]::SetEnvironmentVariable("PSModulePath",$p)
-        }
-
-        $InstallPath = Join-Path -Path $UserScopePath.FullName -ChildPath $ModuleInfo.Name
+    if (! $Path.Exists) {
+        throw [ArgumentException] "[Install-Lrt]: Failed to locate install archive $($Path.FullName)."
     }
     #endregion
 
 
+
+    #region: Validate Module base install directory                                                
+    $ScopeInfo = $InstallerInfo.InstallScopes.($Scope)
+
+    # Validate the Modules installation directory for User/System
+    if (! (Test-Path -Path $ScopeInfo.Path)) {
+        if ($Scope -eq "User") {
+            # Ok to create missing Modules directory for [User] scope
+            $_created = New-Item -Path $Env:HOME -Name "WindowsPowerShell\Modules" `
+                -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
+            Write-Verbose "Created directory [$($_created.FullName)]"
+        }
+        if ($Scope -eq "System") {
+            # Fail for [System Scope]
+            throw [Exception] "[Install-Lrt]: $Scope module directory [$($ScopeInfo.Path)] is missing, cannot proceed."
+        }
+    }
+
+
+    # Add to PSModulePath if needed
+    if (! ($ModulePaths.Contains(($ScopeInfo.Path)))) {
+        Write-Verbose "$Scope modules directory not in module path. Adding."
+        $p = [Environment]::GetEnvironmentVariable("PSModulePath")
+        $p += ";$($ScopeInfo.Path)"
+        [Environment]::SetEnvironmentVariable("PSModulePath",$p)
+    }
+
+    $InstallPath # = Join-Path -Path $ScopeInfo.Path -ChildPath $ModuleInfo.Name
 
     # If we didn't end up with an InstallPath for some reason, fail
-    if ([string]::IsNullOrEmpty($InstallPath)) {
-        Write-Host "Unable to determine module install location for $Scope." -ForegroundColor Red
-        return $false
+    if ([string]::IsNullOrEmpty($ScopeInfo.InstallPath)) {
+        throw [Exception] "[Install-Lrt]: Unable to determine module install location for $Scope."
     }
+    #endregion
 
 
 
     #region: Action: Uninstall / Install                                                 
     # Get current install state
-    $InstallInfo = (Get-LrtInstallInfo).($Scope)
+    
 
     # Various sanity checks in case the module is already installed.
-    if ($InstallInfo.Installed) {
+    if ($ScopeInfo.Installed) {
         $InstallerVersion = $ModuleInfo.Version
-        $InstalledVersion = $InstallInfo.HighestVer
+        $NewestVersion =  ($ScopeInfo.Versions | Sort-Object -Descending)[0]
 
         # Higher version detected
-        if ($InstalledVersion -gt $InstallerVersion) {
-            Write-Host "`n    Warning: Currently installed version ($($InstalledVersion)) " -NoNewline -ForegroundColor Yellow
-            Write-Host "is greater than this one ($($InstallerVersion))" -ForegroundColor Yellow
+        if ($NewestVersion -gt $InstallerVersion) {
+            Write-Host "`n    Warning: Currently installed version is ($($NewestVersion)) " -NoNewline -ForegroundColor Yellow
+            Write-Host "is greater than installer version ($($InstallerVersion))" -ForegroundColor Yellow
             $Continue = Confirm-YesNo -Message "    Proceed?" -ForegroundColor Yellow
             if (! $Continue) {
-                Write-Host "Aborting installation."
+                Write-Host "Aborting installation." -ForegroundColor Red
                 return $false
             }
         }
 
 
         # If there is an installed version that matches this version, remove it.
-        if ($InstallInfo.Versions.Contains($InstallerVersion)) {
-            $_remove = Join-Path -Path $InstallInfo.Path -ChildPath $InstallerVersion
-            Remove-Item -Path $_remove -Recurse -Force
+        if ($ScopeInfo.Versions.Contains($InstallerVersion)) {
+            $_remove = Join-Path -Path $ScopeInfo.InstallPath -ChildPath $InstallerVersion
+            try {
+                Remove-Item -Path $_remove -Recurse -Force
+            }
+            catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
         }
 
         
         # Retain previously installed versions by moving them to Temp
-        $MoveDirs = Get-ChildItem -Path $InstallInfo.Path -Directory
+        $MoveDirs = Get-ChildItem -Path $ScopeInfo.InstallPath -Directory
         $ReturnDirs = $MoveDirs | ForEach-Object { Move-Item -Path $_.FullName -Destination $env:temp -PassThru }
         # Remove the base module folder
-        Remove-Item -Path $InstallInfo.Path -Recurse -Force
+        Remove-Item -Path $ScopeInfo.InstallPAth -Recurse -Force
     }
 
 
     # Perform install
-    Write-Verbose "Installing to $InstallPath"
-    try { Expand-Archive -Path $Path.FullName -DestinationPath $InstallPath }
+    Write-Verbose "Installing to $($ScopeInfo.InstallPath)"
+    try { Expand-Archive -Path $Path.FullName -DestinationPath $ScopeInfo.InstallPath }
     catch { $PSCmdlet.ThrowTerminatingError($PSItem) }
 
     
     # Move dirs back if we have any
     if ($ReturnDirs) {
-        $ReturnDirs | ForEach-Object { Move-Item -Path $_.FullName -Destination $InstallInfo.Path }    
+        $ReturnDirs | ForEach-Object { Move-Item -Path $_.FullName -Destination $ScopeInfo.InstallPath }    
     }
-    
     
 
     return $true

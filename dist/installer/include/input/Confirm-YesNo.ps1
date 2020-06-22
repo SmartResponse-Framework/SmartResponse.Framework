@@ -11,8 +11,7 @@ Function Confirm-YesNo {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true,Position=0)]
-        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory=$false,Position=0)]
         [string] $Message,
 
         [Parameter(Mandatory = $false, Position = 1)]
@@ -34,7 +33,11 @@ Function Confirm-YesNo {
             'Yellow',
             'White'
         )]
-        [string] $ForegroundColor = 'White'
+        [string] $ForegroundColor = 'White',
+
+        [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateSet("Yes","No")]
+        [string] $Default = "No"
     )
 
 
@@ -47,6 +50,9 @@ Function Confirm-YesNo {
         Write-Host $Message -ForegroundColor $ForegroundColor -NoNewline
         $Response = Read-Host
         $Response = $Response.Trim()
+        if ([string]::IsNullOrEmpty($Response)) {
+            $Response = $Default
+        }
         $Result = Get-InputYesNo -Value $Response
 
         if ($Result.Valid) {

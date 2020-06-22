@@ -73,9 +73,6 @@ Get-Module Lrt.Installer | Remove-Module -Force
 $LrtInstallerPath = Join-Path -Path $PSScriptRoot -ChildPath "installer"
 Import-Module (Join-Path -Path $LrtInstallerPath -ChildPath "Lrt.Installer.psm1") -Force
 
-# Import ModuleInfo
-$RepoInfo = Get-LrtRepoInfo
-$ModuleInfo = $RepoInfo.ModuleInfo
 
 # Create / Get Configuration Directory
 # NOTE: If a configuration file already exists in AppData and there are significant changes in the latest build,
@@ -84,10 +81,13 @@ $ModuleInfo = $RepoInfo.ModuleInfo
 $ConfigInfo = New-LrtConfig
 
 # Import LogRhythm.Tools.json
-$LrtConfig = Get-Content -Path $ConfigInfo.File.FullName -Raw | ConvertFrom-Json
+$LrtConfig = $ConfigInfo.Config
 
 # Import Setup input configuration
 $LrtConfigInput = Get-Content -Path (Join-Path $LrtInstallerPath "config\Lrt.Config.Input.json") -Raw | ConvertFrom-Json
+
+# Import ModuleInfo
+$ModuleInfo = Get-Content -Path "$PSScriptRoot\ModuleInfo.json" | ConvertFrom-Json
 #endregion
 
 
@@ -155,6 +155,12 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
                 $Response = Remove-SpecialChars -Value $Response -Allow @("-",".")
             }
 
+            # Break the loop on this field if no input (keep the same value)
+            #TODO: TEST THIS THOROUGHLY + add message that it will stay the same?
+            if ([string]::IsNullOrEmpty($Response)) {
+                break
+            }
+
             # > Process Input
             $OldValue = $LrtConfig.($ConfigCategory.Name).($ConfigField.Name)
             Write-Verbose "LrtConfig.$($ConfigCategory.Name).$($ConfigField.Name)"
@@ -164,6 +170,7 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
             Write-Verbose "Command: $cmd"
 
             $Result = Invoke-Expression $cmd
+            #TODO: Add a mechanism here to handle "blank" answers in which the current value is kept
 
             # Input OK - Update configuration object
             if ($Result.Valid) {
@@ -193,8 +200,8 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
 
 
     # Write Config
-    Write-Verbose "Writing Config to $($ConfigInfo.File.FullName)"
-    $LrtConfig | ConvertTo-Json | Set-Content -Path $ConfigInfo.File.FullName
+    Write-Verbose "Writing Config to $($ConfigInfo.ConfigFilePath)"
+    $LrtConfig | ConvertTo-Json | Set-Content -Path $ConfigInfo.ConfigFilePath
 }
 #endregion
 
@@ -227,15 +234,19 @@ $InstallScope = Confirm-Selection -Message "  > Install for user or system?" -Va
 
 
 try {
-  $Installed = Install-Lrt -Path $ArchivePath -Scope $InstallScope.Value
+  Install-Lrt -Path $ArchivePath -Scope $InstallScope.Value
+  $Installed = $true
 } catch {
-    $PSCmdlet.ThrowTerminatingError($PSItem)
+    $Installed = $false
+    $Err = $PSItem.Exception.Message
+    Write-Host "`n  ** Error occurred during installation **" -ForegroundColor Yellow
+    Write-Host "  Message: $Err" -ForegroundColor Red
 }
 
 if ($Installed) {
     Write-Host "`n<LogRhythm.Tools module successfully installed for scope $($InstallScope.Value).>" -ForegroundColor Green
     Write-Host "`n-----------------------`nTo get started: `n> Import-Module LogRhythm.Tools"
 } else {
-    Write-Host "  <Setup failed to install LogRhythm.Tools>" -ForegroundColor Red
+    Write-Host "  <Setup failed to install LogRhythm.Tools>" -ForegroundColor Yellow
 }
 #endregion

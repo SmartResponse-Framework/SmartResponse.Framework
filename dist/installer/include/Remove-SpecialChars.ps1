@@ -30,10 +30,9 @@ function Remove-SpecialChars {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, 
+        [Parameter(Mandatory = $false, 
             ValueFromPipeline = $true, 
             Position = 0)]
-        [ValidateNotNullOrEmpty()]
         [string[]] $Value,
 
 
@@ -44,6 +43,12 @@ function Remove-SpecialChars {
 
 
     Process {
+        # return empty string
+        if ([string]::IsNullOrEmpty($Value)) {
+            return ""
+        }
+
+
         if ($PSBoundParameters["Allow"]) {
             $Regex = "[^\p{L}\p{Nd}"
             foreach ($Character in $Allow) {
@@ -58,10 +63,12 @@ function Remove-SpecialChars {
             $Regex = "[^\p{L}\p{Nd}]+" 
         }
 
-
+        $ReturnString = ""
         foreach ($char in $Value) {
             Write-Verbose -Message "Original String: $char"
-            $char -replace $regex, ""
+            $ReturnString += $char -replace $regex, ""
         }
+
+        return $ReturnString
     }
 }

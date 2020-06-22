@@ -44,20 +44,28 @@ Function New-LrtConfig {
         Write-Verbose "Created configuration directory at $ConfigDirPath"
     }
 
+    # Get any files contained in the ConfigDir and put their names in a list.
+    # We will add any that are missing.  This allows users to keep their config
+    # if they are doing a new install.
+    $ExistingCommonFiles = [List[string]]::new()
+    Get-ChildItem -Path $ConfigDirPath | ForEach-Object { $ExistingCommonFiles.Add($_.Name) }
 
-    # Config File Destination Path
-    $ConfigFilePath = Join-Path -Path $ConfigDirPath -ChildPath $ModuleInfo.Conf
-    # Copy config template (if it does not exist)
-    if (! (Test-Path -Path $ConfigFilePath)) {
-        $ConfSrc = Join-Path -Path $PSScriptRoot -ChildPath $ModuleInfo.Conf
-        Copy-Item -Path $ConfSrc -Destination $ConfigDirPath
-        Write-Verbose "Copied a new config template to $ConfigDirPath"
+
+    # Copy any missing common files to $ConfigDirPath
+    foreach ($file in $InstallerInfo.CommonFiles) {
+        if (! $ExistingCommonFiles.Contains($file.Name)) {
+            Copy-Item -Path $file.FullName -Destination $ConfigDirPath
+        }
     }
 
+    # Config File Destination Path - for easy loading by other scripts
+    $ConfigFilePath = Join-Path -Path $ConfigDirPath -ChildPath $ModuleInfo.Conf
+    
 
     $Return = [PSCustomObject]@{
-        Dir = [DirectoryInfo]::new($ConfigDirPath)
-        File = [FileInfo]::new($ConfigFilePath)
+        ConfigDir = [DirectoryInfo]::new($ConfigDirPath)
+        ConfigFilePath = [DirectoryInfo]::new($ConfigFilePath)
+        Config = Get-Content -Path $ConfigFilePath -Raw | ConvertFrom-Json
     }
     return $Return
 }

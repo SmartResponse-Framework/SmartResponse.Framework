@@ -33,7 +33,6 @@ function getTargetResource {
 }
 ```
 
-#DOC: [codestyle] Function Name Structure
 #### Function Name Structure
 
 Exported functions should observe the following naming structure.
