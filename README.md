@@ -1,5 +1,5 @@
 <!-- markdownlint-disable MD026 -->
-# It worked!  This should be in branch PSCore on SRF/Jt3kt
+# :dizzy: LogRhythm.Tools :dizzy:
 
 LogRhythm.Tools is a powershell module containing commands (cmdlets) intended primarily for use in LogRhythm SmartResponse Plugin development, but can also be used interactively.  
 

@@ -6,6 +6,24 @@ This project follows standard [GitHub flow](https://guides.github.com/introducti
 
 After you submit a PR, Project maintainers and contributors will review and discuss your changes, and provide constructive feedback. Once reviewed successfully, your PR will be merged into the `development` branch.
 
+## Commits
+
+> Golen Rule: One change, one commit
+
+- Commits should be atmomic.
+- An atomic change is an indivisible change — it can succeed entirely or it can fail entirely, but it cannot partly succeed.  
+- The change should represent a piece of functionality that can be replayed over and over against a specific set of premises.
+- A change should be able to be reverted (git-revert) and not cause any side effects or conflicts in other parts of the system other than the one that is being reverted.
+
+## Pull Requests
+
+> Golden Rule: One pull request, one concern
+
+- A Pull Request represents a way to deliver value to the application in the form of a set of changes that **together form a high-level concern**
+- Pull Requests should address a single concern, should be atomic, changing only that which is required to address the topic.
+- Pull Requests should not change things that are not directly concerned with the functionality that is being addressed. 
+- If changes such as whitespace, typo fixes, variable renaming, and the like are not related to the topic of the PR, they should be done in a different one.
+
 ## Coding Conventions
 
 For detailed information on code style and conventions, please review the [CODESTYLE.txt](https://github.com/LogRhythm-Tools/LogRhythm.Tools/issues) file.

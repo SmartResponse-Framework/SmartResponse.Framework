@@ -6,8 +6,8 @@
 	"settings": 
 	{
 		"workbench.colorCustomizations": { 
-			"titleBar.activeBackground": "#959adb" ,
-			"titleBar.activeForeground": "#000000",
+			"titleBar.activeBackground": "#000000" ,
+			"titleBar.activeForeground": "#ebdbb2",
 			"titleBar.border": "#000000"
 		},
 		"window.title": "(Community) SmartResponse.Framework",
