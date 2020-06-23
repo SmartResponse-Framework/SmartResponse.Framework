@@ -3,7 +3,6 @@ using namespace System.IO
 using namespace System.Collections.Generic
 using namespace System.Security.Principal
 
-# Maybe place a copy of this in the configuration directory? Create cmdlets for managing the config??
 
 <#
 .SYNOPSIS
@@ -93,6 +92,7 @@ $ModuleInfo = Get-Content -Path "$PSScriptRoot\ModuleInfo.json" | ConvertFrom-Js
 
 
 #region: STOP - Banner Time.                                                                       
+<##>
 $ReleaseTagLength = ($ModuleInfo.ReleaseTag).Length
 $s = ""
 for ($i = 0; $i -lt $ReleaseTagLength; $i++) {
@@ -116,6 +116,20 @@ Write-Host "                  `"Y88P`"                       `"Y88P`"`n"
 
 
 
+
+#region: Blurb                                                                                     
+Write-Host "`nWelcome to LogRhythm.Tools!" -ForegroundColor Green
+
+Write-Host "`nIn the questions that follow, you will be prompted for some basic information about your LogRhythm deployment."
+Write-Host "There are also several optional integrations you can enable if you have the necessary licenses or API Keys."
+Write-Host "`n* Note *`nThe [Enter] key will accept the value shown in brackets for that property."
+#endregion
+
+
+
+
+
+
 #region: Setup Walkthrough                                                                         
 # FallThruValue is the updated value of the previous field, so a value can be re-used without requiring a prompt.
 # This satisfies the use case of not having to prompt the user 4 times to set the LogRhythm API URLs.
@@ -124,7 +138,7 @@ $FallThruValue = ""
 
 # $ConfigCategory -> Process each top-level config category (General, LogRhythm, etc.)
 foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
-    Write-Host "`n[ $($ConfigCategory.Value.Name) ]`n=========================================" -ForegroundColor Cyan
+    Write-Host "`n[ $($ConfigCategory.Value.Name) ]`n=========================================" -ForegroundColor Green
     $ConfigOpt = $true
 
     #region: Category::Skip Category If Optional                                                               
@@ -145,11 +159,15 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
         # Input Loop ------------------------------------------------------------------------------
         while (! $ResponseOk) {
 
-            # Use last field's response if this field is marked as FallThru
+            # Exiting Value for this field
+            $OldValue = $LrtConfig.($ConfigCategory.Name).($ConfigField.Name)
+
+            # Use previous field's response if this field is marked as FallThru
             if ($ConfigField.Value.FallThru) {
                 $Response = $FallThruValue
             # Get / Clean User Input
             } else {
+                # $Response = Read-Host -Prompt "  > $($ConfigField.Value.Prompt) [$OldValue]"   #<-- Old value displayed.  Holding off on this.
                 $Response = Read-Host -Prompt "  > $($ConfigField.Value.Prompt)"
                 $Response = $Response.Trim()
                 $Response = Remove-SpecialChars -Value $Response -Allow @("-",".")
@@ -162,7 +180,7 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
             }
 
             # > Process Input
-            $OldValue = $LrtConfig.($ConfigCategory.Name).($ConfigField.Name)
+            
             Write-Verbose "LrtConfig.$($ConfigCategory.Name).$($ConfigField.Name)"
             $cmd = $ConfigField.Value.InputCmd +`
                 " -Value `"" + $Response + "`"" + `
