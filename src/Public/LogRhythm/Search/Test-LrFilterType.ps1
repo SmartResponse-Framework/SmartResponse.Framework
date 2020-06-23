@@ -8,13 +8,12 @@ Function Test-LrFilterType {
     .DESCRIPTION
         The Test-LrListType cmdlet displays information about a given LogRhythm Unique 
         Case Identifier.
-    .PARAMETER IdentifierValue
-        The 
-    .PARAMETER IdentifierType
-        The LogRhythm IdentifierType to be tested.
-    .INPUTS
-        [System.String] -> IdentifierValue
-        [System.String] -> IdentifierType
+    .PARAMETER Id
+        Test if List Type is valid based on ID property.
+    .PARAMETER DisplayName
+        Test if List Type is valid based on Display Name property.
+    .PARAMETER EnumName
+        Test if List Type is valid based on EnumName property.
     .OUTPUTS
         System.Object with IsValid, IdentifierValue, IdentifierType
     .EXAMPLE
@@ -23,7 +22,7 @@ Function Test-LrFilterType {
         -------    ---------------    --------------
         True       tstr@example.com   Email
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]

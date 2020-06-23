@@ -11,7 +11,7 @@ Function Enable-TrustAllCertsPolicy {
     [CmdletBinding()]
     Param()
     # Establish Certification Policy Exception
-add-type @"
+    $PSDesktopException = @"
     using System.Net;
     using System.Security.Cryptography.X509Certificates;
     public class TrustAllCertsPolicy : ICertificatePolicy {
@@ -22,19 +22,25 @@ add-type @"
     }
 }
 "@
+
+    # Set PowerShell to TLS1.2
+    [ServicePointManager]::SecurityProtocol = [SecurityProtocolType]::Tls12
+
     if ($LrtConfig.General.CertPolicyRequired) {
-        Write-Verbose "[Enable-TrustAllCertsPolicy]: Cert Policy is not enabled. Enabling."
-        try {
-            [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-        }
-        catch {
-            throw [Exception] `
-                "[Enable-TrustAllCertsPolicy]: Failed to update System.Net.ServicePointManager::CertificatePolicy to new TrustAllCertsPolicy"
+        if ($PSEdition -ne 'Core'){
+            Write-Verbose "[Enable-TrustAllCertsPolicy]: Cert Policy is not enabled. Enabling."
+            Add-Type $PSDesktopException
+            try {
+                [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+            }
+            catch {
+                throw [Exception] `
+                    "[Enable-TrustAllCertsPolicy]: Failed to update System.Net.ServicePointManager::CertificatePolicy to new TrustAllCertsPolicy"
+            }
+        } else {
+            Write-Verbose "[Enable-TrustAllCertsPolicy]: No centralized mechanism for certificate verification bypass for PSCore.  Utilizing local -SkipCertificateCheck"
         }
     } else {
         Write-Verbose "[Enable-TrustAllCertsPolicy]: Cert Policy set as Not Required."
     }
-
-    # Set PowerShell to TLS1.2
-    [ServicePointManager]::SecurityProtocol = [SecurityProtocolType]::Tls12
 }

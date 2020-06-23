@@ -33,8 +33,9 @@ Function Test-LrIdentityIdentifierValue {
         IdentityStatus      : Active
         IdentityDisplayName : marcus.burnett@fabrikam.com
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
+    
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position=0)]

@@ -1,10 +1,10 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Show-RfHashRiskLists {
+Function Get-RfUrlRiskLists {
     <#
     .SYNOPSIS
-        Show the available RecordedFuture Hash threat lists.
+        Show the available RecordedFuture Url threat lists.
     .DESCRIPTION
         
     .PARAMETER Token
@@ -22,7 +22,7 @@ Function Show-RfHashRiskLists {
     .NOTES
         RecordedFuture-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -63,8 +63,8 @@ Function Show-RfHashRiskLists {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "hash/riskrules"
-        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+        $RequestUrl = $BaseUrl + "url/riskrules"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers

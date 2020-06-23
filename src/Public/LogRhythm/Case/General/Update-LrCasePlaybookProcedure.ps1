@@ -1,7 +1,6 @@
 using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
-
 Function Update-LrCasePlaybookProcedure {
     <#
     .SYNOPSIS
@@ -49,61 +48,37 @@ Function Update-LrCasePlaybookProcedure {
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
-
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            Position = 1
-        )]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [object] $CaseId,
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 2
-        )]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNullOrEmpty()]
         [object] $PlaybookId,
 
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 3
-        )]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 3)]
         [ValidateNotNullOrEmpty()]
         [object] $Id,
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 4
-        )]
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNullOrEmpty()]
         [string] $Assignee,
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 5
-        )]
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNullOrEmpty()]
         [string] $Notes,
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 6
-        )]
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateNotNullOrEmpty()]
         [datetime] $DueDate,
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 7
-        )]
+        [Parameter( Mandatory = $false, Position = 7)]
         [ValidateNotNullOrEmpty()]
         [string] $Status
     )
@@ -219,8 +194,8 @@ Function Update-LrCasePlaybookProcedure {
         }
         
         # Request URI
-        $RequestUri = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookGuid/procedures/$ProcedureGuid/"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookGuid/procedures/$ProcedureGuid/"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Inspect Note for Procedure Limitation
         if ($Notes) {
@@ -312,27 +287,46 @@ Function Update-LrCasePlaybookProcedure {
         
         # REQUEST
         Write-Verbose "[$Me]: request body is:`n$Body"
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method `
-                -Body $Body
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
 
-            switch ($Err.statusCode) {
-                "404" {
-                    throw [KeyNotFoundException] `
-                        "[404]: Case ID $CaseId or Playbook ID $PlaybookId not found, or you do not have permission to view it."
-                 }
-                 "401" {
-                     throw [UnauthorizedAccessException] `
-                        "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                 }
-                Default {
-                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
+                switch ($Err.statusCode) {
+                    "404" {
+                        throw [KeyNotFoundException] `
+                            "[404]: Case ID $CaseId or Playbook ID $PlaybookId not found, or you do not have permission to view it."
+                     }
+                     "401" {
+                         throw [UnauthorizedAccessException] `
+                            "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                     }
+                    Default {
+                        throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
+                    }
+                }
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+
+                switch ($Err.statusCode) {
+                    "404" {
+                        throw [KeyNotFoundException] `
+                            "[404]: Case ID $CaseId or Playbook ID $PlaybookId not found, or you do not have permission to view it."
+                     }
+                     "401" {
+                         throw [UnauthorizedAccessException] `
+                            "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                     }
+                    Default {
+                        throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
+                    }
                 }
             }
         }

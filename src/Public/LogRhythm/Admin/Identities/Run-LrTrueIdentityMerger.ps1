@@ -32,8 +32,9 @@ Function Run-LrTrueIdentityConflictMerger {
     .NOTES
         LogRhythm-API        
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
+    
     [CmdletBinding()]
     param( 
         [Parameter(Mandatory = $false, Position = 0)]

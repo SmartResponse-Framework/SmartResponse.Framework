@@ -7,18 +7,10 @@ Function Merge-LrIdentities {
     .SYNOPSIS
         Merge two TrueIdentities in LR 7.4 
     .DESCRIPTION
-        Mergeg TrueIdentities in LR 7.4 
-        Given a Primary and Secondary IdentityId, moves all Identifiers from the Secondard into the Primary
-            Note: Only "Active" Identifiers on the Secondary will be used
-        Retires the Secondary
+        This cmdlet moves all Identifiers from the Secondard TrueIdentity into the specified Primary TrueIdentity record
+        The Secondary Identity will be retired.
         
-    .PARAMETER IdentityObject
-        Pipeline paramater that will accept an of two [int]IdentitiyId values.  
-        The first value of each pair represents the PrimaryId
-        The second value of each pair represents the SecondaryId
-
-        @(1,11)
-
+        Note: Only "Active" Identifiers on the Secondary will be migrated
     .PARAMETER PrimaryIdentityId
         Required integer
         The IdentityId of the TrueIdentity which will remain after merging
@@ -29,17 +21,43 @@ Function Merge-LrIdentities {
         Required integer
         The IdentityId of the TrueIdentity which will be retired after merging
         All Identifiers will be moved from the Secondary TrueIdentity to the Primary TrueIdentity
-    .PARAMETER LeadingWhitespace
-        Optional Integer
-        Adds the specified number of additional tabs before all output
-        Used by Resolve-TrueIdentityConflicts for more readable output
-    .PARAMETER WhatIf
-        Optional switch. Enabling "WhatIf" (Preview Mode) will check for errors but not make any changes to the TrueIdentities
-        Recommended before the initial run 
+    .PARAMETER IdentityObject
+        Pipeline paramater that will accept an of two [int]IdentitiyId values.  
+        The first value of each pair represents the PrimaryId
+        The second value of each pair represents the SecondaryId
+
+        @(1,11)
+    .PARAMETER TestMode
+        Enabled by default. Disabling "TestMode" will perform the TrueIdentity migration.
+        
+        With TestMode on the cmdlet will check for errors but not make any changes to the TrueIdentities
     .EXAMPLE
-        .\Merge-TrueIdentities.ps1 -PrimaryIdentityId 3208 -SecondaryIdentityId 3222
-        Move all the Identifiers from Identity 3222 to Identity 3208
-    #>    
+        C:\> Merge-LrIdentities -PrimaryIdentity 8 -SecondaryIdentity 1 -TestMode $false
+        Merge-LrIdentities -PrimaryIdentityId 8 -SecondaryIdentityId 1 -TestMode $false
+        Primary Identity: 'Eric Hart (Eric.Hart)'
+        Secondary Identity: 'Eric Hart (Eric.Hart)'
+        Moving Identifiers:
+            Identifier 'eric.hart@logrhythm.com' type 'Login' already exists in the Primary Identity
+            Identifier 'eric.hart@logrhythm.com' type 'Email' already exists in the Primary Identity
+            Successfully moved Identifier 'eric23hart@gmail.com' type 'Email'
+        @{identityID=1; nameFirst=Eric; nameMiddle=W; nameLast=Hart; displayIdentifier=Eric.Hart; company=LogRhythm; department=Customer Success; title=; manager=Chuck Talley; addressCity=; domainName=; entity=; dateUpdated=2020-06-19T14:25:33.883Z; recordStatus=Retired; identifiers=System.Object[]; groups=System.Object[]}
+    .EXAMPLE
+        C:\> Merge-LrIdentities -IdentityObject @(8,1)
+        ---
+        Running in Preview mode; no changes to TrueIdentities will be made
+        Primary Identity: 'Eric Hart (Eric.Hart)'
+        Secondary Identity: 'Eric Hart (Eric.Hart)'
+        Moving Identifiers:
+                Identifier 'eric.hart@logrhythm.com' type 'Login' already exists in the Primary Identity
+                Identifier 'eric.hart@logrhythm.com' type 'Email' already exists in the Primary Identity
+                Successfully moved Identifier 'eric23hart@gmail.com' type 'Email'
+        Test Mode: Disable-LrIdentity -IdentityId 1
+        identityID        : 1
+        status            : Retired
+    .LINK
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
+    #>  
+    
     [CmdletBinding()]
     param( 
         [Parameter(Mandatory = $false, Position = 0)]
@@ -133,7 +151,7 @@ Function Merge-LrIdentities {
             Write-Host "Test Mode: Retire-LrIdentity -IdentityId $SecondaryIdentityId "
             $RetireResults = "identityID        : $SecondaryIdentityId`r`nstatus            : Retired"
         } else {
-            $RetireResults = Retire-LrIdentity -IdentityId $SecondaryIdentityId
+            $RetireResults = Disable-LrIdentity -IdentityId $SecondaryIdentityId
         }
 
         Write-Host $RetireResults

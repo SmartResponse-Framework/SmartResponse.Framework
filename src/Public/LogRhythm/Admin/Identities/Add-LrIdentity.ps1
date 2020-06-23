@@ -13,7 +13,9 @@ Function Add-LrIdentity {
     .PARAMETER EntityId
         Entity ID # for associating new TrueIdentity Identity record.
     .PARAMETER SyncName
+        Friendly name associated with the TrueIdentity record add.  Must be unique for each API call of this cmdlet.
 
+        If no SyncName is provided a unique key will be genearted.  Key format: LRT-{10*AlphaCharacters}
     .PARAMETER Attributes
 
     .PARAMETER Identifiers
@@ -23,14 +25,16 @@ Function Add-LrIdentity {
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
-        PS C:\> Add-LrIdentity -EntityId 0
+        PS C:\> Add-LrIdentity -EntityId 1 -NameFirst Eric -NameLast Hart -DisplayIdentifier Eric.Hart -Department "Customer Success" -Company "LogRhythm Inc." -Identifier1Value "eric.hart@logrhythm.com" -Identifier1Type "both"
         ----
-        identityID        : 1217
+        vendorUniqueKey                          identityID identifierSourceAccountID
+        ---------------                          ---------- -------------------------
+        24638670afc7cd4e75fb8e107b223cd0680f6bae          7                         0
 
     .NOTES
         LogRhythm-API        
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -42,7 +46,7 @@ Function Add-LrIdentity {
         [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 1)]
         [int]$EntityId,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 2)]
+        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 2)]
         [String]$SyncName,
 
         [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 3)]
@@ -73,42 +77,38 @@ Function Add-LrIdentity {
         [String]$Identifier1Value,
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 12)]
-        [String]$Identifier1Type = "Both",
+        [ValidateSet('both','login', 'email', ignorecase=$true)]
+        [String]$Identifier1Type = "both",
         
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 13)]
         [String]$Identifier2Value,
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 14)]
-        [String]$Identifier2Type = "Both",
+        [ValidateSet('both','login', 'email', ignorecase=$true)]
+        [String]$Identifier2Type = "both",
 
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 15)]
         [String]$Identifier3Value,
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 16)]
-        [String]$Identifier3Type = "Both",
+        [ValidateSet('both','login', 'email', ignorecase=$true)]
+        [String]$Identifier3Type = "both",
 
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 17)]
         [String]$Identifier4Value,
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 18)]
-        [String]$Identifier4Type = "Both",
+        [ValidateSet('both','login', 'email', ignorecase=$true)]
+        [String]$Identifier4Type = "both",
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 19)]
         [String]$Identifier5Value,
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 20)]
-        [String]$Identifier5Type = "Both",
-
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 21)]
-        [switch] $WhatIf,
-
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 22)]
-        [switch] $ForceRetire,
-
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 23)]
-        [switch] $ForceUnretire
+        [ValidateSet('both','login', 'email', ignorecase=$true)]
+        [String]$Identifier5Type = "both"
     )
 
     Begin {
@@ -123,6 +123,12 @@ Function Add-LrIdentity {
 
         # Define HTTP Method
         $Method = $HttpMethod.Post
+
+        # If a SyncName has not been provided, establish a unique SyncName for this execution.
+        if (!$SyncName) {
+            $SyncName = "LRT-"+(-join (((65..90)+(97..122)) | Get-Random -Count 10 | ForEach-Object {[char]$_}))
+        }
+
 
         # Create vendorUniqueKey based on SyncName
         $StringBuilder = New-Object System.Text.StringBuilder
@@ -261,20 +267,32 @@ Function Add-LrIdentity {
             )
         } | ConvertTo-Json -Depth 5
         
+        Write-Verbose $BodyContents
+
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/identities/bulk?entityID=" + $EntityId
+        $RequestUrl = $BaseUrl + "/identities/bulk/?entityID=" + $EntityId
 
 
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-            $PSCmdlet.ThrowTerminatingError($PSItem)
-            return $false
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
+            }
+            catch {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+            }
+            catch [System.Net.WebException] {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
+            }
         }
 
         return $Response

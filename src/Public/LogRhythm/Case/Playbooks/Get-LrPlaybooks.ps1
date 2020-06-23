@@ -130,22 +130,48 @@ Function Get-LrPlaybooks {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            ResponseUrl           =   $null
+            Playbook              =   $Name
+        }
+
         # Request URI
-        $RequestUri = $BaseUrl + "/playbooks/?playbook=$Name"
+        $RequestUrl = $BaseUrl + "/playbooks/?playbook=$Name"
 
 
         # REQUEST
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method `
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
         }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-        }
-
         
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
@@ -165,7 +191,12 @@ Function Get-LrPlaybooks {
         # for some reason, even if an exact playbook match is found, the function
         # will return it but KEEP RUNNING.
         if ($Exact -and (! $Playbook)) {
-            throw [Exception] "Unable to find exact match for playbook"
+            $ErrorObject.Code = 404
+            $ErrorObject.Type = "Object not found"
+            $ErrorObject.Note = "Playbook not found"
+            $ErrorObject.ResponseUrl = $RequestUrl
+            $ErrorObject.Error = $true
+            return $ErrorObject
         }
 
         # Return all responses.

@@ -21,6 +21,8 @@ Function Get-LrCases {
         Note: You can bypass the need to provide a Credential by setting
         the preference variable $LrtConfig.LogRhythm.ApiKey
         with a valid Api Token.
+    .PARAMETER Name
+        Filter results that contain a string value.  Exact match available via -exact switch.
     .PARAMETER DueBefore
         Filter results that have a due date before the specified date.
     .PARAMETER Priority
@@ -78,6 +80,8 @@ Function Get-LrCases {
         Sort the results in ascending (asc) or descending (desc) order.
     .PARAMETER Count
         Maximum number of results to be returned (default 500)
+    .PARAMETER Exact
+        Forces the name parameter to be exact matches only for returned results.
     .INPUTS
         None
     .OUTPUTS
@@ -121,6 +125,12 @@ Function Get-LrCases {
 
         [Parameter(Mandatory = $false, Position = 16)]
         [switch] $Summary,
+
+        [Parameter(Mandatory = $false, Position = 17)]
+        [switch] $Exact,
+
+        [Parameter(Mandatory = $false, Position = 18)]
+        [string] $Name,
 
         #region: Query Parameters ___________________________________________________________
         [Parameter(Mandatory = $false, Position = 1)]
@@ -357,21 +367,27 @@ Function Get-LrCases {
     #region: Send RequestHeaders_________________________________________________________
     # Request URI
     $Method = $HttpMethod.Get
-    $RequestUri = $BaseUrl + "/cases/" + $QueryString
+    $RequestUrl = $BaseUrl + "/cases/" + $QueryString
 
 
     # REQUEST
-    try {
-        $Response = Invoke-RestMethod `
-            -Uri $RequestUri `
-            -Headers $Headers `
-            -Method $Method
+    if ($PSEdition -eq 'Core'){
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+        }
+        catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+        }
+    } else {
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        }
+        catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+        }
     }
-    catch [System.Net.WebException] {
-        $Err = Get-RestErrorMessage $_
-        throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-    }
-
 
     # For Summary, return a formatted report
     if ($Summary) {
@@ -405,6 +421,51 @@ Function Get-LrCases {
     }
     #endregion
 
-    return $Response
-
+    if ($Exact) {
+        if ($FilteredResult) {
+            $Pattern = "^$Name$"
+            $FilteredResult | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
+                }
+            }
+        } else {
+            $Pattern = "^$Name$"
+            $Response | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
+                }
+            }
+        }
+    } elseif ($Name) {
+        if ($FilteredResult) {
+            $Pattern = ".*$Name.*"
+            $FilteredResult | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
+                }
+            }
+        } else {
+            $Pattern = ".*$Name.*"
+            $Response | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
+                }
+            }
+        }
+    } else {
+        if ($FilteredResult) {
+            return $FilteredResult
+        } else {
+            return $Response
+        }
+    }
 }

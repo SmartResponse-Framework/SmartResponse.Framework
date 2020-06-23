@@ -37,7 +37,7 @@ Function Sync-LrListItems {
     .NOTES
         LogRhythm-API        
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -116,7 +116,7 @@ Function Sync-LrListItems {
             # Bulk remove of the RemoveList items
             if ($RemoveList) {
                 Write-Host "$(Get-TimeStamp) - Remove Count: $($RemoveList.Count)"
-                # For large number of removals, break the additions into 50,000 items per API call
+                # For large number of removals, break the additions into 10,000 items per API call
                 if ($RemoveList.Count -gt 10000) {
                     Write-Host "$(Get-TimeStamp) - Enter Removal Segmentation"
                     $SegmentCount = ([Math]::Round(($($RemoveList.Count) / 10000)+ 0.05, 2))
@@ -140,7 +140,7 @@ Function Sync-LrListItems {
             # Bulk addition of the AddList items
             if ($AddList) {
                 Write-Host "$(Get-TimeStamp) - Addition Count: $($AddList.Count)"
-                # For large number of additions, break the additions into 100,000 items per API call
+                # For large number of additions, break the additions into 10,000 items per API call
                 if ($AddList.Count -gt 10000) {
                     Write-Host "$(Get-TimeStamp) - Enter Addition Segmentation"
                     $SegmentCount = ([Math]::Round(($($AddList.Count) / 10000)+ 0.05, 2))

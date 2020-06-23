@@ -10,6 +10,9 @@ Function New-LrSearch {
         Create-LrNetwork returns a full LogRhythm Host object, including details and list items.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+        Note: You can bypass the need to provide a Credential by setting
+        the preference variable $LrtConfig.LogRhythm.ApiKey
+        with a valid Api Token.
     .PARAMETER Entity
         Parameter for specifying the existing LogRhythm Entity for the new Network record to be set to.  
         This parameter can be provided either Entity Name or Entity Id but not both.
@@ -49,7 +52,7 @@ Function New-LrSearch {
     .NOTES
         LogRhythm-API        
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -210,7 +213,7 @@ Function New-LrSearch {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUri           =   $null
+            ResponseUrl           =   $null
             Value                 =   $Name
         }
 
@@ -485,15 +488,43 @@ FIRST FILTER ITEM GOES HERE:
             }
         } | ConvertTo-Json -Depth 7
 
-        Write-Host $BodyContents
+        Write-Verbose $BodyContents
 
 
         # Define Query URL
-        $RequestUri = $BaseUrl + "/actions/search-task"
+        $RequestUrl = $BaseUrl + "/actions/search-task"
 
         # Send Request
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
+            }
+            catch {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
+        }
+        
         try {
-            $Response = Invoke-RestMethod $RequestUri -Headers $Headers -Method $Method -Body $BodyContents
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
         } catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
             return $Err
@@ -501,7 +532,7 @@ FIRST FILTER ITEM GOES HERE:
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.Exception.Response.StatusCode.value__)
             $ErrorObject.Note = $($Err.Exception.Response.StatusDescription)
-            $ErrorObject.ResponseUri = $($Err.Exception.Response.ResponseUri)
+            $ErrorObject.ResponseUrl = $($Err.Exception.Response.ResponseUrl)
             return $ErrorObject
         }
         #>

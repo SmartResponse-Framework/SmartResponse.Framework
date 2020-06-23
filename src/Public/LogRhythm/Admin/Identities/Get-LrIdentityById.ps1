@@ -59,7 +59,7 @@ Function Get-LrIdentityById {
     .NOTES
         LogRhythm-API        
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -100,21 +100,40 @@ Function Get-LrIdentityById {
 
         # Send Request
         if($Silent) {
-            Try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -ErrorAction 'silentlycontinue'
-            } catch {
-                $_.Exception.Response.StatusCode.Value__
-            }
-            
+            if ($PSEdition -eq 'Core'){
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck -ErrorAction 'silentlycontinue'
+                }
+                catch {
+                    $_.Exception.Response.StatusCode.Value__
+                }
+            } else {
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -ErrorAction 'silentlycontinue'
+                }
+                catch [System.Net.WebException] {
+                    $_.Exception.Response.StatusCode.Value__
+                }
+            }            
         } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-                return $false
+            if ($PSEdition -eq 'Core'){
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+                }
+                catch [System.Net.WebException] {
+                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                    Write-Verbose "Exception Message: $ExceptionMessage"
+                    return $ExceptionMessage
+                }
+            } else {
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                }
+                catch [System.Net.WebException] {
+                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                    Write-Verbose "Exception Message: $ExceptionMessage"
+                    return $ExceptionMessage
+                }
             }
         }
 

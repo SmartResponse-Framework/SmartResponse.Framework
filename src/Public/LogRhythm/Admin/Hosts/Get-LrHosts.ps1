@@ -14,19 +14,24 @@ Function Get-LrHosts {
         Integer representing number of pages to return.  Default is maximum, 1000.
     .PARAMETER Name
         String used to search Entity Host records by Name.
-    .PARAMETER Entity,
+    .PARAMETER Entity
         String used to search Entity Host by Entity Name.
-    .PARAMETER RecordStatus,
+    .PARAMETER RecordStatus
         String used to restrict results based on RecordStatus.
         Valid entries: All, Active, Retired
+    .PARAMETER HostIdentifier
+        Array of strings used to search for Host records based on Identifiers.
+
+        Common Identifiers: IP Address, DNS Name, Hostname
     .PARAMETER Exact,
         Switch used to specify Name search for Entity Host record is explicit.
     .INPUTS
-        [System.Int]    -> PageCount
-        [System.String] -> Name
-        [System.String] -> Entity
-        [System.String] -> RecordStatus
-        [System.Switch] -> Exact
+        [System.Int]           -> PageCount
+        [System.String]        -> Name
+        [System.String]        -> Entity
+        [System.String]        -> RecordStatus
+        [System.String[array]] -> HostIdentifier
+        [System.Switch]        -> Exact
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
     .EXAMPLE
@@ -86,6 +91,9 @@ Function Get-LrHosts {
         [string]$RecordStatus,
 
         [Parameter(Mandatory = $false, Position = 5)]
+        [string[]]$HostIdentifier,
+
+        [Parameter(Mandatory = $false, Position = 6)]
         [switch]$Exact
     )
 
@@ -100,6 +108,9 @@ Function Get-LrHosts {
 
         # Define HTTP Method
         $Method = $HttpMethod.Get
+
+        # Define LogRhythm Version
+        $LrVersion = $LrtConfig.LogRhythm.Version
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy        
@@ -125,10 +136,20 @@ Function Get-LrHosts {
         }
 
 
+
         # Filter by Object Entity Name
         if ($Entity) {
             $_entityName = $Entity
             $QueryParams.Add("entity", $_entityName)
+        }
+
+        if ($HostIdentifier) {
+            ForEach ($Identifier in $HostIdentifier) {
+                [string[]]$_hostIdentifier += $Identifier
+            }
+            if ($_hostIdentifier) {
+                $QueryParams.Add("hostIdentifier", $_hostIdentifier)
+            }
         }
 
 
@@ -152,15 +173,27 @@ Function Get-LrHosts {
         }
         #endregion
 
-        $RequestUri = $BaseUrl + "/hosts/" + $QueryString
+        $RequestUrl = $BaseUrl + "/hosts/" + $QueryString
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUri -Headers $Headers -Method $Method
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            }
+            catch {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
+            }
         }
 
         # [Exact] Parameter
