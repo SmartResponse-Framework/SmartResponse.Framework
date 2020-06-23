@@ -156,3 +156,4 @@ ASALocalRun/
 .localhistory/
 
 build/BuildInfo.json
+testsLrt.Publisher/data/*

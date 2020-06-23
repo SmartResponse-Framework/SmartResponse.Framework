@@ -22,6 +22,18 @@
         "ApiKey": ""
     },
 
+    "VirusTotal": {
+        "BaseUrl": "http://www.virustotal.com/vtapi/v2",
+        "ApiKey": "",
+        "Commercial": "False"
+    },
+    "UrlScan": {
+        "BaseUrl": "https://urlscan.io/api/v1",
+        "ScreenshotUrl": "https://urlscan.io/screenshots/",
+        "ApiKey": "",
+        "PublicScans": "On"
+    },
+
     "SecretServer": {
         "BaseUrl": "https://[NOT_SET]/winauthwebservices/sswinauthwebservice.asmx"
     }
