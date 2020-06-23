@@ -43,7 +43,7 @@ Function Get-RfUrlRiskList {
     .NOTES
         Recorded Future - API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -101,7 +101,7 @@ Function Get-RfUrlRiskList {
 
         # Define Search URL
         $RequestUrl = $BaseUrl + "url/risklist" + $QueryString
-        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         if ($Compressed -eq $false) {
             Try {

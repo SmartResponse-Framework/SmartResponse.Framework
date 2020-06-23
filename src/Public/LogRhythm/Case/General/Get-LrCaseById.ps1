@@ -88,30 +88,25 @@ Function Get-LrCaseById {
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         }
         
-        $RequestUri = $BaseUrl + "/cases/$Id/"
+        $RequestUrl = $BaseUrl + "/cases/$Id/"
 
-        # Send Request
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-
-            switch ($Err.statusCode) {
-                "404" { 
-                    throw [KeyNotFoundException] `
-                        "[404]: Case ID $Id not found, or you do not have permission to view it."
-                 }
-                 "401" {
-                     throw [UnauthorizedAccessException] `
-                        "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                 }
-                Default {
-                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-                }
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            }
+            catch {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
             }
         }
 

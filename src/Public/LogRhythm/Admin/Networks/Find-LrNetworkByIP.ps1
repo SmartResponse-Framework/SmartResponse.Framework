@@ -7,7 +7,7 @@ Function Find-LrNetworkByIP {
     .SYNOPSIS
         Retrieve a list of Networks from the LogRhythm Entity structure that include a specified IP address within scope.
     .DESCRIPTION
-        Get-LrNetworks returns a full LogRhythm Host object, including details and list items.
+        Find-LrNetworkByIP is a helper function that returns a full LogRhythm Network object, including details and list items.
     .PARAMETER Ip
         IP Address that can be the Beginning, End, or Inbetween IP Address included in a Network Entity.
     .PARAMETER Bip
@@ -26,7 +26,7 @@ Function Find-LrNetworkByIP {
     .NOTES
         LogRhythm-API        
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -46,56 +46,28 @@ Function Find-LrNetworkByIP {
     )
 
     Begin {
-        # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
-        $Token = $Credential.GetNetworkCredential().Password
-        
-        # Define HTTP Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-
-        # Define HTTP Method
-        $Method = $HttpMethod.Get
-
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
-        Enable-TrustAllCertsPolicy        
+        Enable-TrustAllCertsPolicy
     }
 
     Process {
         # Matches Found Variable
         $IPResults = @()
 
-        # Check for existence of Beginning IP Address
-        if ($BIP) {
+        # Check for existence of Beginning and Ending IP Address exact match
+        if ($EIP -and $BIP) {
             # Submit request
-            $BIPResults = Get-LrNetworks -BIP $BIP
-            # If Error returned, return error.  Else, append results to IPResults
-            if ($BIPResults.Error -eq $true) {
-                Return $BIPResults
-            } else {
-                if ($null -ne $BIPResults) {
-                    $IPResults += $BIPResults
-                }
-            }
+            $IPResults = Get-LrNetworks -EIP $EIP -BIP $BIP -Exact
+        # Check for existence of Ending IP Address exact match
+        } elseif ($EIP) {
+            $IPResults = Get-LrNetworks -EIP $EIP -Exact
+        # Check for existence of Beginning IP Address exact match
+        } elseif ($BIP) {
+            Write-Verbose "We're over the hill."
+            $IPResults = Get-LrNetworks -BIP $BIP -Exact
         }
 
-        # Check for existence of Ending IP Address
-        if ($EIP) {
-            $EIPResults = Get-LrNetworks -EIP $EIP
-            # If Error returned, return error.  Else, append results retaining only unique entries
-            if ($EIPResults.Error -eq $true) {
-                Return $EIPResults
-            } else {
-                if ($null -ne $EIPResults) {
-                    if ($null -ne $IPResults) {
-                        $IPResults += Compare-Object $EIPResults $IPResults | Where-Object SideIndicator -eq "<=" | Select-Object -ExpandProperty InputObject
-                    } else {
-                        $IPResults += $EIPResults
-                    }
-                }
-            }
-        }
-
+        # Inspect if client IP is member of specific LogRhythm Entity.
         if ($IP) {
             # Collect all Network Entities
             $LrNetworks = Get-LrNetworks
@@ -116,6 +88,7 @@ Function Find-LrNetworkByIP {
         }
         
         # Return results as array object if Count > 1
+
         if ($IPResults.Count -gt 1) {
             Return ,$IPResults
         } else {

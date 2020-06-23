@@ -16,7 +16,7 @@ Function Get-RfAlert {
     .NOTES
         RecordedFuture-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -48,7 +48,7 @@ Function Get-RfAlert {
     Process {
         # Define Search URL
         $RequestUrl = $BaseUrl + "alert/" + $Id
-        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers

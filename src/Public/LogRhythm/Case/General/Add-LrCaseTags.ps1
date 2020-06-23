@@ -27,7 +27,7 @@ Function Add-LrTagsToCase {
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/LogRhythm-Tools/LogRhythm.Tools
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools     
     #>
 
     [CmdletBinding()]
@@ -77,6 +77,16 @@ Function Add-LrTagsToCase {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            ResponseUrl           =   $null
+            Tags                  =   $Tags
+            Case                  =   $Id
+        }
         Write-Verbose "[$Me]: Case Id: $Id"
 
         # Validate Case ID (Guid || Int)
@@ -85,8 +95,8 @@ Function Add-LrTagsToCase {
             throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         }                                                        
 
-        $RequestUri = $BaseUrl + "/cases/$Id/actions/addTags/"
-        Write-Verbose "[$Me]: RequestUri: $RequestUri"
+        $RequestUrl = $BaseUrl + "/cases/$Id/actions/addTags/"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
         #endregion
 
 
@@ -97,8 +107,8 @@ Function Add-LrTagsToCase {
 
         # Convert / Validate Tags to Tag Numbers array
         $_tagNumbers = $Tags | Get-LrTagNumber
-        if (! $_tagNumbers) {
-            throw [ArgumentException] "Tag(s) $Tags not found."
+        if ($_tagNumbers.Error -eq $true) {
+            return $_tagNumbers
         }
 
         # Create request body with tag numbers
@@ -117,16 +127,32 @@ Function Add-LrTagsToCase {
         Write-Verbose "[$Me]: request body is:`n$Body"
 
         # Make Request
-        try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method `
-                -Body $Body
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
+            }
+            catch {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
+        } else {
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.ResponseUrl = $RequestUrl
+                $ErrorObject.Error = $true
+                return $ErrorObject
+            }
         }
         
         # Only return the case if PassThru was requested.

@@ -1,10 +1,10 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Show-RfDomainRiskLists {
+Function Get-RfIPRiskLists {
     <#
     .SYNOPSIS
-        Show the available RecordedFuture Domain threat lists.
+        Retrieve the available RecordedFuture IP threat lists.
     .DESCRIPTION
         
     .PARAMETER Token
@@ -22,7 +22,7 @@ Function Show-RfDomainRiskLists {
     .NOTES
         RecordedFuture-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -63,8 +63,8 @@ Function Show-RfDomainRiskLists {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "domain/riskrules"
-        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+        $RequestUrl = $BaseUrl + "ip/riskrules"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers

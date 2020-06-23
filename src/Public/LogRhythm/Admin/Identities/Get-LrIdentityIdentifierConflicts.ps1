@@ -5,10 +5,31 @@ using namespace System.Collections.Generic
 Function Get-LrIdentityIdentifierConflicts {
     <#
     .SYNOPSIS
-        Get a list of Identifier Conflicts for LogRhythm 7.4
+        Get a list of Identifier Conflicts for LogRhythm 7.4.
     .DESCRIPTION
-        A TrueIdentity "Conflict" is when two TrueIdentities share the same Identifier
-        This is common if multiple Active Directory domains are synced; any user with an account in both Domains will likely create a Conflict
+        A TrueIdentity "Conflict" is when two TrueIdentities share the same Identifier.
+
+        This is common if multiple Active Directory domains are synced; any user with an account in both Domains will likely create a Conflict.
+
+        Note that a conflict is specific to matching Identifier types.  
+        Example 1: Conflict
+        TrueID        Identifier                  Type
+        ----          ----                        ----
+        1             Bob.Jones@example.com       Login
+        77            Bob.Jones@example.com       Login
+
+        Example 2: No Conflict
+        TrueID        Identifier                  Type
+        ----          ----                        ----
+        1             Bob.Jones@example.com       Login
+        77            Bob.Jones@example.com       Email
+
+        Example 3: Conflict
+        TrueID        Identifier                  Type
+        ----          ----                        ----
+        1             Bob.Jones@example.com       Email
+        77            Bob.Jones@example.com       Email
+
     .PARAMETER EntityId
         Optional long
         Only search for conflicts within this Root EntityId
@@ -32,8 +53,9 @@ Function Get-LrIdentityIdentifierConflicts {
     .NOTES
         LogRhythm-API        
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
+    
     [CmdletBinding()]
     param( 
         [Parameter(Mandatory = $false, Position = 0)]
@@ -83,19 +105,28 @@ Function Get-LrIdentityIdentifierConflicts {
             if ($ShowRetired) { $RequestUrl += "&showRetired=true" }
             if ($Filter) { $RequestUrl += "&$Filter" }
             
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+
+            if ($PSEdition -eq 'Core'){
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+                }
+                catch {
+                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                    Write-Verbose "Exception Message: $ExceptionMessage"
+                    $SearchingIdententities = $False
+                    break;
+                }
+            } else {
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                }
+                catch [System.Net.WebException] {
+                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                    Write-Verbose "Exception Message: $ExceptionMessage"
+                    $SearchingIdententities = $False
+                    break;
+                }
             }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-                # Fragment Below
-                $Message = "ERROR: Failed to call API to get Identities." + $ApiError
-                write-host $Message
-                $SearchingIdententities = $False
-                break;
-            } 
  
             if ($Response.Count -eq 0) {
                 $SearchingIdententities = $False

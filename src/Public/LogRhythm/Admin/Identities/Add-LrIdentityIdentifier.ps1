@@ -13,20 +13,35 @@ Function Add-LrIdentityIdentifier {
     .PARAMETER IdentityId
         Identity ID # for associating new TrueIdentity Identity record.
     .PARAMETER IdentifierType
-        Valid options: Email, Login, Both
+        Valid options: Email, Login
     .PARAMETER IdentifierValue
         Value for the new Identifier
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
-        PS C:\> Add-LrIdentityIdentifier -IdentityId 12 -IdentifierType "Both" -IdentifierValue "mynewid@example.com"
+        PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "mynewid@example.com"
         ----
-        identityID        : 12
+        identifierID    identifierType value                    recordStatus
+        ------------    -------------- -----                    ------------
+        8               Email          mynewid@example.com      Active      
+    .EXAMPLE
+        Attempting to add an identifier to a TrueIdentity where the identifier exists
 
+        PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "mynewid@example.com"
+        ---
+        IsPresent           : True
+        IdentifierId        : 8
+        Value               : mynewid@example.com
+        IdentifierType      : Email
+        IdentifierValid     : True
+        IdentityId          : 8
+        IdentityValid       : True
+        IdentityStatus      : Active
+        IdentityDisplayName : Eric.Hart
     .NOTES
         LogRhythm-API        
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -39,6 +54,7 @@ Function Add-LrIdentityIdentifier {
         [int]$IdentityId,
 
         [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 2)]
+        [ValidateSet('login', 'email', ignorecase=$true)]
         [String]$IdentifierType = "Login",
 
         [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 3)]
@@ -63,28 +79,45 @@ Function Add-LrIdentityIdentifier {
     }
 
     Process {
+        $ValidStatus = @("login", "email")
+        if ($ValidStatus.Contains($($IdentifierType.ToLower()))) {
+            $_identifierType = (Get-Culture).TextInfo.ToTitleCase($IdentifierType)
+        }
+
+
         # Define HTTP Body
         $BodyContents = @{
             value = $IdentifierValue
-            identifierType = $IdentifierType
+            identifierType = $_identifierType
          } | ConvertTo-Json
         
         # Define Endpoint URL
         $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/identifiers"
 
         # Test if Identifier exists
-        $IdentifierStatus = Test-LrIdentityIdentifier -IdentityId $IdentityId -IdentifierType $IdentifierType -Value $IdentifierValue
+        $IdentifierStatus = Test-LrIdentityIdentifierValue -IdentityId $IdentityId -IdentifierType $IdentifierType -Value $IdentifierValue
 
         # Send Request if Identifier is Not Present
         if ($IdentifierStatus.IsPresent -eq $False) {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-                return $false
+            # Send Request
+            if ($PSEdition -eq 'Core'){
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
+                }
+                catch {
+                    $Err = Get-RestErrorMessage $_
+                    Write-Verbose "Exception Message: $Err"
+                    return $Err
+                }
+            } else {
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+                }
+                catch {
+                    $Err = Get-RestErrorMessage $_
+                    Write-Verbose "Exception Message: $Err"
+                    return $Err
+                }
             }
         } else {
             $Response = $IdentifierStatus

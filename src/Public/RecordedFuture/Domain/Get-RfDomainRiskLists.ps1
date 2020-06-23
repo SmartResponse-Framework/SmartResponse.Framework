@@ -1,10 +1,10 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Show-RfVulnerabilityRiskLists {
+Function Get-RfDomainRiskLists {
     <#
     .SYNOPSIS
-        Show the available RecordedFuture Vulnerability threat lists.
+        Retrieve the available RecordedFuture Domain threat lists.
     .DESCRIPTION
         
     .PARAMETER Token
@@ -22,7 +22,7 @@ Function Show-RfVulnerabilityRiskLists {
     .NOTES
         RecordedFuture-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
@@ -46,6 +46,9 @@ Function Show-RfVulnerabilityRiskLists {
 
         # Request Setup
         $Method = $HttpMethod.Get
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
     }
 
     Process {
@@ -60,8 +63,8 @@ Function Show-RfVulnerabilityRiskLists {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "vulnerability/riskrules"
-        Write-Verbose "[$Me]: RequestUri: $RequestUrl"
+        $RequestUrl = $BaseUrl + "domain/riskrules"
+        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers
