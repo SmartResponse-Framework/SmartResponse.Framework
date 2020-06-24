@@ -47,6 +47,11 @@ $ConfigDirPath = Join-Path -Path ([Environment]::GetFolderPath("LocalApplication
 $T_DATA = Join-Path -Path $PSScriptRoot -ChildPath "data"
 # Everything inside T_DATA
 $T_CONTENTS = Join-Path -Path $T_DATA -ChildPath "*"
+
+# Tetst Data directories aren't tracked, so create one if ! exist
+if (! (Test-Path $T_DATA)) {
+    New-Item -Path $T_DATA -Name "data" -ItemType Directory | Out-Null
+}
 #endregion
 
 
