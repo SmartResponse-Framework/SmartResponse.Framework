@@ -14,7 +14,6 @@
         }
     },
 
-
     "LogRhythm": {
         "Name": "LogRhythm",
         "Optional": false,
@@ -65,7 +64,6 @@
         }
     },
 
-
     "LogRhythmEcho": {
         "Name": "LogRhythm Echo",
         "Optional": true,
@@ -81,7 +79,6 @@
         }
     },
 
-
     "RecordedFuture": {
         "Name": "Recorded Future",
         "Optional": true,
@@ -90,6 +87,33 @@
         "Fields": {}
     },
 
+    "VirusTotal": {
+        "Name": "VirusTotal",
+        "Optional": true,
+        "HasKey": true,
+        "Fields": {
+            "Commercial": {
+                "Prompt": "Use a VirusTotal commercial key",
+                "Hint": "yes or no",
+                "InputCmd": "Get-InputYesNo",
+                "FallThru": false
+            }
+        }
+    },
+
+    "UrlScan": {
+        "Name": "UrlScan",
+        "Optional": true,
+        "HasKey": true,
+        "Fields": {
+            "PublicScans": {
+                "Prompt": "Use Public scans",
+                "Hint": "yes or no",
+                "InputCmd": "Get-InputYesNo",
+                "FallThru": false
+            }
+        }
+    },
 
     "SecretServer": {
         "Name": "Secret Server",
