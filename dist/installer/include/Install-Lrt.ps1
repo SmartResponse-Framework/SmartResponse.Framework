@@ -119,7 +119,16 @@ function Install-Lrt {
     # Various sanity checks in case the module is already installed.
     if ($ScopeInfo.Installed) {
         $InstallerVersion = $ModuleInfo.Version
-        $NewestVersion =  ($ScopeInfo.Versions | Sort-Object -Descending)[0]
+
+        # If there's only one installed version, that version will be $NewestVersion
+        $NewestVersion = $ScopeInfo.Versions
+        # If there are more than one, we need to sort and select the first item in list
+        if ($ScopeInfo.Versions.Count -gt 1) {
+            $NewestVersion =  ($ScopeInfo.Versions | Sort-Object -Descending)[0]    
+        }
+        
+        Write-Host "Installer Version: $InstallerVersion"
+        Write-Host "Newest Version: $NewestVersion"
 
         # Higher version detected
         if ($NewestVersion -gt $InstallerVersion) {
